@@ -25,3 +25,36 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
+/* Fix z-index para Leaflet map */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-pane {
+  z-index: 400 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 500 !important;
+}
+
+/* Asegurar que navbar y footer estén arriba */
+nav {
+  z-index: 1000 !important;
+}
+
+footer {
+  z-index: 1000 !important;
+}
+
+/* SOLO mejora de legibilidad SIN romper nada */
+input::placeholder,
+textarea::placeholder,
+select option:first-child {
+  color: #6B7280 !important;
+}

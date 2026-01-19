@@ -1,0 +1,29 @@
+import { Database } from './database'
+
+// Tipos de las tablas
+export type Usuario = Database['public']['Tables']['usuarios_autorizados']['Row']
+export type UsuarioInsert = Database['public']['Tables']['usuarios_autorizados']['Insert']
+export type UsuarioUpdate = Database['public']['Tables']['usuarios_autorizados']['Update']
+
+export type Reporte = Database['public']['Tables']['reportes_nuevos']['Row']
+export type ReporteInsert = Database['public']['Tables']['reportes_nuevos']['Insert']
+export type ReporteUpdate = Database['public']['Tables']['reportes_nuevos']['Update']
+
+export type ReporteMedio = Database['public']['Tables']['reportes_medios']['Row']
+export type ReporteMedioInsert = Database['public']['Tables']['reportes_medios']['Insert']
+
+export type Sitio = Database['public']['Tables']['sitios_master']['Row']
+export type SitioInsert = Database['public']['Tables']['sitios_master']['Insert']
+export type SitioUpdate = Database['public']['Tables']['sitios_master']['Update']
+
+export type Medio = Database['public']['Tables']['medios']['Row']
+export type MedioInsert = Database['public']['Tables']['medios']['Insert']
+
+// Tipos de roles
+export type Rol = 'founder' | 'partner' | 'experto' | 'publico'
+
+// Tipos de estados de validación
+export type EstadoValidacion = 'rojo' | 'amarillo' | 'verde'
+
+// Tipo para Supabase Client
+export type { Database }
