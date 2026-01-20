@@ -18,6 +18,16 @@ interface Reporte {
   comuna: string
 }
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'string') return err
+  try {
+    return JSON.stringify(err)
+  } catch {
+    return 'Error desconocido'
+  }
+}
+
 export default function RevisarReportesPage() {
   const { usuario, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -39,21 +49,23 @@ export default function RevisarReportesPage() {
     if (usuario && esExpertoOMas(usuario.rol)) {
       cargarReportes()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario])
 
   async function cargarReportes() {
     try {
       setLoading(true)
       const res = await fetch('/api/reportes?estado=rojo')
-      
+
       if (!res.ok) {
         throw new Error('Error cargando reportes')
       }
 
       const data = await res.json()
       setReportes(data.reportes || [])
-    } catch (err: any) {
-      setError(err.message)
+      setError('')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -65,7 +77,7 @@ export default function RevisarReportesPage() {
       const res = await fetch(`/api/reportes/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado_validacion: 'amarillo' })
+        body: JSON.stringify({ estado_validacion: 'amarillo' }),
       })
 
       if (!res.ok) {
@@ -76,8 +88,8 @@ export default function RevisarReportesPage() {
       // Recargar lista
       await cargarReportes()
       setSelectedReporte(null)
-    } catch (err: any) {
-      alert(`Error: ${err.message}`)
+    } catch (err: unknown) {
+      alert(`Error: ${getErrorMessage(err)}`)
     } finally {
       setProcesando(false)
     }
@@ -97,9 +109,7 @@ export default function RevisarReportesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
-        Revisar Reportes Nuevos
-      </h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Revisar Reportes Nuevos</h1>
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -109,9 +119,7 @@ export default function RevisarReportesPage() {
 
       {reportes.length === 0 ? (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-          <p className="text-blue-900 text-lg">
-            ✅ No hay reportes pendientes de revisión
-          </p>
+          <p className="text-blue-900 text-lg">✅ No hay reportes pendientes de revisión</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -142,14 +150,10 @@ export default function RevisarReportesPage() {
               {reportes.map((reporte) => (
                 <tr key={reporte.id_reporte} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {reporte.nombre_reporte}
-                    </div>
+                    <div className="text-sm font-medium text-gray-900">{reporte.nombre_reporte}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">
-                      {reporte.categoria_general || '-'}
-                    </div>
+                    <div className="text-sm text-gray-600">{reporte.categoria_general || '-'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-600">
@@ -186,12 +190,8 @@ export default function RevisarReportesPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {selectedReporte.nombre_reporte}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                ID: {selectedReporte.id_reporte}
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900">{selectedReporte.nombre_reporte}</h2>
+              <p className="text-sm text-gray-500 mt-1">ID: {selectedReporte.id_reporte}</p>
             </div>
 
             <div className="p-6 space-y-4">

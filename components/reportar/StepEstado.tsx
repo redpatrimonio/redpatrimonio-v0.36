@@ -13,6 +13,13 @@ interface StepEstadoProps {
   onBack: () => void
 }
 
+type EstadoData = {
+  estado_conservacion: string
+  nivel_acceso: string
+  descripcion: string
+  amenazas?: string
+}
+
 export function StepEstado({ onNext, onBack }: StepEstadoProps) {
   const [estadoConservacion, setEstadoConservacion] = useState('')
   const [nivelAcceso, setNivelAcceso] = useState('resguardado') // Default
@@ -31,14 +38,11 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
       return
     }
 
-    const data: any = {
+    const data: EstadoData = {
       estado_conservacion: estadoConservacion,
       nivel_acceso: nivelAcceso,
       descripcion: descripcion.trim(),
-    }
-
-    if (amenazas.trim()) {
-      data.amenazas = amenazas.trim()
+      ...(amenazas.trim() ? { amenazas: amenazas.trim() } : {}),
     }
 
     onNext(data)
@@ -47,9 +51,7 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">Paso 3: Estado y Descripción</h2>
-      <p className="text-gray-600 text-sm">
-        Describe el estado actual del sitio
-      </p>
+      <p className="text-gray-600 text-sm">Describe el estado actual del sitio</p>
 
       {/* Estado de Conservación */}
       <div>
@@ -100,9 +102,7 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
                   {nivel.value === 'resguardado' && '🟡 '}
                   {nivel.label.split(' - ')[0]}
                 </p>
-                <p className="text-sm text-gray-600">
-                  {nivel.label.split(' - ')[1]}
-                </p>
+                <p className="text-sm text-gray-600">{nivel.label.split(' - ')[1]}</p>
               </div>
             </label>
           ))}
@@ -121,9 +121,7 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
           placeholder="Describe el sitio: características visibles, estructuras, materiales, contexto, etc."
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
         />
-        <p className="text-xs text-gray-500 mt-1">
-          {descripcion.length} / mínimo 20 caracteres
-        </p>
+        <p className="text-xs text-gray-500 mt-1">{descripcion.length} / mínimo 20 caracteres</p>
       </div>
 
       {/* Amenazas (opcional) */}

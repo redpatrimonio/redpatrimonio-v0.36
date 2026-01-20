@@ -1,12 +1,29 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'string') return err
+  try {
+    return JSON.stringify(err)
+  } catch {
+    return 'Error desconocido'
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
-    
+
     // Verificar autenticación
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
@@ -31,9 +48,7 @@ export async function GET(request: NextRequest) {
     if (estado === 'rojo' || estado === 'amarillo') {
       const rolesPermitidos = ['experto', 'partner', 'founder']
       if (!rolesPermitidos.includes(usuario.rol)) {
-        return NextResponse.json({ 
-          error: 'Requiere rol experto o superior' 
-        }, { status: 403 })
+        return NextResponse.json({ error: 'Requiere rol experto o superior' }, { status: 403 })
       }
     }
 
@@ -50,15 +65,16 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: reportes, error } = await query
-
     if (error) throw error
 
     return NextResponse.json({ reportes })
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en GET /api/reportes:', error)
-    return NextResponse.json({ 
-      error: error.message || 'Error del servidor' 
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: getErrorMessage(error) || 'Error del servidor',
+      },
+      { status: 500 }
+    )
   }
 }

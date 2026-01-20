@@ -8,18 +8,7 @@ import { StepCaracterizacion } from '@/components/reportar/StepCaracterizacion'
 import { StepEstado } from '@/components/reportar/StepEstado'
 import { StepFotos } from '@/components/reportar/StepFotos'
 
-interface ReporteData {
-  latitud?: number
-  longitud?: number
-  categoria?: string
-  tipologia?: string
-  cultura?: string
-  periodo?: string
-  estado_conservacion?: string
-  nivel_acceso?: string
-  descripcion?: string
-  amenazas?: string
-}
+import type { ReporteData } from '@/types/reporte'
 
 export default function ReportarPage() {
   const { user } = useAuth()

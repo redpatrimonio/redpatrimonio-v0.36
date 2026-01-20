@@ -4,12 +4,23 @@ import { useState } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import type { ReporteData } from '@/types/reporte'
 
-const supabase = createClient()  // ✅ Crear cliente aquí
+const supabase = createClient()
 
 interface StepFotosProps {
-  reporteData: any
+  reporteData: ReporteData
   onBack: () => void
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'string') return err
+  try {
+    return JSON.stringify(err)
+  } catch {
+    return 'Error desconocido'
+  }
 }
 
 export function StepFotos({ reporteData, onBack }: StepFotosProps) {
@@ -23,13 +34,12 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || [])
-    
+
     if (files.length + fotos.length > 5) {
       setError('Máximo 5 fotos permitidas')
       return
     }
 
-    // Validar tamaño (máx 5MB cada una)
     const invalidFiles = files.filter((f) => f.size > 5 * 1024 * 1024)
     if (invalidFiles.length > 0) {
       setError('Algunas fotos superan los 5MB')
@@ -39,7 +49,6 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
     setError('')
     setFotos([...fotos, ...files])
 
-    // Crear previews
     files.forEach((file) => {
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -55,28 +64,15 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
   }
 
   async function handleSubmit() {
-  if (!user) {
-    setError('No estás autenticado')
-    return
-  }
+    if (!user) {
+      setError('No estás autenticado')
+      return
+    }
 
-  // 🔍 DEBUG: Verificar usuario
-  console.log('🔍 Usuario:', user)
-  console.log('🔍 User ID:', user.id)
-  console.log('🔍 Email:', user.email)
-
-  // Verificar sesión en Supabase
-  const { data: session } = await supabase.auth.getSession()
-  console.log('🔍 Sesión Supabase:', session)
-
-  setLoading(true)
-  setError('')
-
-  // ... resto del código
-
+    setLoading(true)
+    setError('')
 
     try {
-      // 1. Crear reporte en reportes_nuevos
       const { data: reporte, error: reporteError } = await supabase
         .from('reportes_nuevos')
         .insert({
@@ -86,14 +82,12 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
           longitud: reporteData.longitud,
           nombre_reporte: reporteData.nombre || 'Sin nombre',
           categoria_general: reporteData.categoria,
-          tipologia_especifica: reporteData.tipologia 
-            ? [reporteData.tipologia]
-            : null,
+          tipologia_especifica: reporteData.tipologia ? [reporteData.tipologia] : null,
           cultura_asociada: reporteData.cultura || null,
           periodo_cronologico: reporteData.periodo || null,
-          estado_conservacion: reporteData.estado_conservacion,
+          estado_conservacion: reporteData.estado_conservacion ?? null,
           nivel_acceso: reporteData.nivel_acceso || 'resguardado',
-          descripcion_ubicacion: reporteData.descripcion,
+          descripcion_ubicacion: reporteData.descripcion ?? null,
           amenazas: reporteData.amenazas || null,
           region: reporteData.region || null,
           comuna: reporteData.comuna || null,
@@ -107,14 +101,12 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
 
       if (reporteError) throw reporteError
 
-      // 2. Subir fotos si hay
       if (fotos.length > 0) {
         for (let i = 0; i < fotos.length; i++) {
           const foto = fotos[i]
           const fileName = `reportes/${reporte.id_reporte}/${Date.now()}_${foto.name}`
 
-          // Subir a Storage
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from('fotos')
             .upload(fileName, foto)
 
@@ -123,21 +115,15 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
             continue
           }
 
-          // Obtener URL pública
-          const { data: urlData } = supabase.storage
-            .from('fotos')
-            .getPublicUrl(fileName)
+          const { data: urlData } = supabase.storage.from('fotos').getPublicUrl(fileName)
 
-          // Guardar en tabla medios
-          const { error: medioError } = await supabase
-            .from('medios')
-            .insert({
-              id_reporte: reporte.id_reporte,
-              url: urlData.publicUrl,
-              storage_path: fileName,
-              descripcion: `Foto ${i + 1}`,
-              prioridad: i === 0 ? 1 : 0,
-            })
+          const { error: medioError } = await supabase.from('medios').insert({
+            id_reporte: reporte.id_reporte,
+            url: urlData.publicUrl,
+            storage_path: fileName,
+            descripcion: `Foto ${i + 1}`,
+            prioridad: i === 0 ? 1 : 0,
+          })
 
           if (medioError) {
             console.error('Error guardando medio:', medioError)
@@ -145,11 +131,10 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
         }
       }
 
-      // 3. Redirect a confirmación
-      router.push(`/reportar/confirmacion`)
-    } catch (err: any) {
+      router.push('/reportar/confirmacion')
+    } catch (err: unknown) {
       console.error('Error enviando reporte:', err)
-      setError(err.message || 'Error al enviar el reporte')
+      setError(getErrorMessage(err) || 'Error al enviar el reporte')
       setLoading(false)
     }
   }
@@ -157,11 +142,8 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">Paso 4: Fotos del Sitio</h2>
-      <p className="text-gray-600 text-sm">
-        Agrega hasta 5 fotos (opcional, máx 5MB cada una)
-      </p>
+      <p className="text-gray-600 text-sm">Agrega hasta 5 fotos (opcional, máx 5MB cada una)</p>
 
-      {/* Upload button */}
       <div>
         <label
           className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition ${
@@ -188,7 +170,6 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
         </label>
       </div>
 
-      {/* Previews */}
       {previews.length > 0 && (
         <div>
           <p className="text-sm font-medium text-gray-700 mb-2">
@@ -197,6 +178,7 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
           <div className="grid grid-cols-2 gap-3">
             {previews.map((preview, index) => (
               <div key={index} className="relative group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={preview}
                   alt={`Preview ${index + 1}`}
@@ -205,38 +187,35 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
                 <button
                   onClick={() => removeFoto(index)}
                   className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                  type="button"
                 >
                   ×
                 </button>
-                <p className="text-xs text-gray-500 mt-1 truncate">
-                  {fotos[index].name}
-                </p>
+                <p className="text-xs text-gray-500 mt-1 truncate">{fotos[index]?.name}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {/* Info */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-900">
           ℹ️ Puedes enviar el reporte sin fotos o agregar fotos más tarde desde tu perfil.
         </p>
       </div>
 
-      {/* Botones */}
       <div className="flex gap-2">
         <button
           onClick={onBack}
           disabled={loading}
           className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 font-medium disabled:opacity-50"
+          type="button"
         >
           ← Atrás
         </button>
@@ -244,10 +223,9 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
           onClick={handleSubmit}
           disabled={loading}
           className={`flex-1 py-3 rounded-lg font-medium transition ${
-            loading
-              ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-green-600 text-white hover:bg-green-700'
+            loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'
           }`}
+          type="button"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">

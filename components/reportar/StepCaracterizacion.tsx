@@ -13,6 +13,13 @@ interface StepCaracterizacionProps {
   onBack: () => void
 }
 
+type CaracterizacionData = {
+  categoria: string
+  tipologia: string
+  cultura?: string
+  periodo?: string
+}
+
 export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps) {
   const [categoria, setCategoria] = useState('')
   const [tipologia, setTipologia] = useState('')
@@ -37,13 +44,12 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       return
     }
 
-    const data: any = {
+    const data: CaracterizacionData = {
       categoria,
       tipologia,
+      ...(cultura ? { cultura } : {}),
+      ...(periodo ? { periodo } : {}),
     }
-
-    if (cultura) data.cultura = cultura
-    if (periodo) data.periodo = periodo
 
     onNext(data)
   }
@@ -51,9 +57,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
   return (
     <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">Paso 2: Caracterización</h2>
-      <p className="text-gray-600 text-sm">
-        Describe el tipo de sitio arqueológico
-      </p>
+      <p className="text-gray-600 text-sm">Describe el tipo de sitio arqueológico</p>
 
       {/* Categoría */}
       <div>
@@ -97,17 +101,13 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
           ))}
         </select>
         {categoria && (
-          <p className="text-xs text-gray-500 mt-1">
-            {tipologiasDisponibles.length} tipologías disponibles
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{tipologiasDisponibles.length} tipologías disponibles</p>
         )}
       </div>
 
       {/* Cultura (opcional) */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Cultura (opcional)
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cultura (opcional)</label>
         <select
           value={cultura}
           onChange={(e) => setCultura(e.target.value)}
@@ -124,9 +124,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
 
       {/* Periodo (opcional) */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Periodo (opcional)
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Periodo (opcional)</label>
         <select
           value={periodo}
           onChange={(e) => setPeriodo(e.target.value)}
@@ -153,10 +151,21 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm font-medium text-blue-900 mb-1">Resumen:</p>
           <p className="text-xs text-blue-700">
-            <strong>Categoría:</strong> {categoria}<br />
+            <strong>Categoría:</strong> {categoria}
+            <br />
             <strong>Tipología:</strong> {tipologia}
-            {cultura && <><br /><strong>Cultura:</strong> {cultura}</>}
-            {periodo && <><br /><strong>Periodo:</strong> {periodo}</>}
+            {cultura && (
+              <>
+                <br />
+                <strong>Cultura:</strong> {cultura}
+              </>
+            )}
+            {periodo && (
+              <>
+                <br />
+                <strong>Periodo:</strong> {periodo}
+              </>
+            )}
           </p>
         </div>
       )}
@@ -184,3 +193,4 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
     </div>
   )
 }
+export default StepCaracterizacion

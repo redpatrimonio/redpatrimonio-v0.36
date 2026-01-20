@@ -1,15 +1,40 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+type EstadoValidacion = 'rojo' | 'amarillo' | 'verde'
+
+function isEstadoValidacion(value: unknown): value is EstadoValidacion {
+  return value === 'rojo' || value === 'amarillo' || value === 'verde'
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'string') return err
+  try {
+    return JSON.stringify(err)
+  } catch {
+    return 'Error desconocido'
+  }
+}
+
+type UpdateData = {
+  estado_validacion: EstadoValidacion
+  timestamp_aprobado?: string
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient()
-    
+
     // Verificar autenticación
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
@@ -26,14 +51,15 @@ export async function PATCH(
     }
 
     // Obtener body
-    const body = await request.json()
-    const { estado_validacion } = body
+    const body: unknown = await request.json()
+    const estado_validacion = (body as { estado_validacion?: unknown })?.estado_validacion
 
     // Validar estado
-    if (!['rojo', 'amarillo', 'verde'].includes(estado_validacion)) {
-      return NextResponse.json({ 
-        error: 'Estado inválido. Debe ser: rojo, amarillo o verde' 
-      }, { status: 400 })
+    if (!isEstadoValidacion(estado_validacion)) {
+      return NextResponse.json(
+        { error: 'Estado inválido. Debe ser: rojo, amarillo o verde' },
+        { status: 400 }
+      )
     }
 
     // Verificar permisos según estado destino
@@ -41,9 +67,10 @@ export async function PATCH(
       // Experto+ puede cambiar a amarillo
       const rolesPermitidos = ['experto', 'partner', 'founder']
       if (!rolesPermitidos.includes(usuario.rol)) {
-        return NextResponse.json({ 
-          error: 'Requiere rol experto o superior para revisar reportes' 
-        }, { status: 403 })
+        return NextResponse.json(
+          { error: 'Requiere rol experto o superior para revisar reportes' },
+          { status: 403 }
+        )
       }
     }
 
@@ -51,14 +78,15 @@ export async function PATCH(
       // Solo Partner+ puede aprobar (verde)
       const rolesPermitidos = ['partner', 'founder']
       if (!rolesPermitidos.includes(usuario.rol)) {
-        return NextResponse.json({ 
-          error: 'Requiere rol partner o founder para aprobar reportes' 
-        }, { status: 403 })
+        return NextResponse.json(
+          { error: 'Requiere rol partner o founder para aprobar reportes' },
+          { status: 403 }
+        )
       }
     }
 
     // Preparar datos de actualización
-    const updateData: any = { estado_validacion }
+    const updateData: UpdateData = { estado_validacion }
 
     // Si pasa a verde, actualizar timestamp_aprobado
     if (estado_validacion === 'verde') {
@@ -75,15 +103,15 @@ export async function PATCH(
 
     if (error) throw error
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       mensaje: `Reporte actualizado a ${estado_validacion}`,
-      reporte 
+      reporte,
     })
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en PATCH /api/reportes/[id]:', error)
-    return NextResponse.json({ 
-      error: error.message || 'Error del servidor' 
-    }, { status: 500 })
+    return NextResponse.json(
+      { error: getErrorMessage(error) || 'Error del servidor' },
+      { status: 500 }
+    )
   }
 }

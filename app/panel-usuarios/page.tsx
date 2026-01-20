@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { createClient } from '@/lib/supabase/client'
 
@@ -24,25 +24,7 @@ export default function PanelUsuariosPage() {
   const [searchEmail, setSearchEmail] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    if (!loading && usuario?.rol === 'founder') {
-      loadUsuarios()
-    }
-  }, [loading, usuario])
-
-  useEffect(() => {
-    if (searchEmail.trim() === '') {
-      setFilteredUsuarios(usuarios)
-    } else {
-      setFilteredUsuarios(
-        usuarios.filter(u => 
-          u.email.toLowerCase().includes(searchEmail.toLowerCase())
-        )
-      )
-    }
-  }, [searchEmail, usuarios])
-
-  async function loadUsuarios() {
+  const loadUsuarios = useCallback(async () => {
     setIsLoading(true)
     const { data, error } = await supabase
       .from('usuarios_autorizados')
@@ -56,16 +38,32 @@ export default function PanelUsuariosPage() {
       setFilteredUsuarios(data || [])
     }
     setIsLoading(false)
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    if (!loading && usuario?.rol === 'founder') {
+      loadUsuarios()
+    }
+  }, [loading, usuario, loadUsuarios])
+
+  useEffect(() => {
+    if (searchEmail.trim() === '') {
+      setFilteredUsuarios(usuarios)
+    } else {
+      setFilteredUsuarios(
+        usuarios.filter(u => 
+          u.email.toLowerCase().includes(searchEmail.toLowerCase())
+        )
+      )
+    }
+  }, [searchEmail, usuarios])
 
   async function handleChangeRol(usuarioId: string, email: string, currentRol: string, newRol: string) {
     if (currentRol === newRol) return
 
-    // Confirmar cambio
-    const confirmMsg = `¿Cambiar rol de ${email} de "${currentRol}" a "${newRol}"?`
+    const confirmMsg = `¿Cambiar rol de ${email} de &quot;${currentRol}&quot; a &quot;${newRol}&quot;?`
     if (!confirm(confirmMsg)) return
 
-    // Prevenir que founder cambie su propio rol
     if (usuario?.email === email) {
       alert('No puedes cambiar tu propio rol')
       return
@@ -75,7 +73,7 @@ export default function PanelUsuariosPage() {
       .from('usuarios_autorizados')
       .update({
         rol: newRol,
-        creado_por_email: usuario?.email, // Registrar quién autorizó
+        creado_por_email: usuario?.email,
         fecha_ultima_actualizacion: new Date().toISOString(),
       })
       .eq('id_usuario', usuarioId)
@@ -83,7 +81,7 @@ export default function PanelUsuariosPage() {
     if (error) {
       alert('Error al cambiar rol: ' + error.message)
     } else {
-      alert(`Rol actualizado: ${email} ahora es "${newRol}"`)
+      alert(`Rol actualizado: ${email} ahora es &quot;${newRol}&quot;`)
       loadUsuarios()
     }
   }
@@ -198,7 +196,7 @@ export default function PanelUsuariosPage() {
       {/* Info */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          <strong>Nota:</strong> Al cambiar el rol de un usuario, se actualizará automáticamente el campo "Autorizado por" con tu email.
+          <strong>Nota:</strong> Al cambiar el rol de un usuario, se actualizará automáticamente el campo Autorizado por con tu email.
         </p>
       </div>
     </div>

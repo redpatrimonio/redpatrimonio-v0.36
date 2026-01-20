@@ -7,8 +7,9 @@ import { Sitio } from '@/types'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Fix para iconos de Leaflet en Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl
+// Fix para iconos de Leaflet en Next.js (sin any)
+;(L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl = undefined
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -19,10 +20,6 @@ export function MapView() {
   const [sitios, setSitios] = useState<Sitio[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
-
-  useEffect(() => {
-    fetchSitios()
-  }, [])
 
   async function fetchSitios() {
     try {
@@ -40,6 +37,11 @@ export function MapView() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchSitios()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (loading) {
     return (
@@ -66,27 +68,26 @@ export function MapView() {
         />
 
         {sitios.map((sitio) => (
-          <Marker
-            key={sitio.id_sitio}
-            position={[sitio.latitud, sitio.longitud]}
-          >
+          <Marker key={sitio.id_sitio} position={[sitio.latitud, sitio.longitud]}>
             <Popup>
               <div className="min-w-[200px]">
-                <h3 className="font-bold text-base mb-1">
-                  {sitio.nombre_sitio}
-                </h3>
+                <h3 className="font-bold text-base mb-1">{sitio.nombre_sitio}</h3>
+
                 {sitio.alias_local && (
                   <p className="text-sm text-gray-600 italic mb-2">
-                    "{sitio.alias_local}"
+                    &quot;{sitio.alias_local}&quot;
                   </p>
                 )}
-                <p className="text-sm text-gray-700 mb-2">
-                  {sitio.descripcion_breve}
-                </p>
+
+                <p className="text-sm text-gray-700 mb-2">{sitio.descripcion_breve}</p>
+
                 <div className="text-xs text-gray-500 mb-2">
-                  <p>📍 {sitio.region}, {sitio.comuna}</p>
+                  <p>
+                    📍 {sitio.region}, {sitio.comuna}
+                  </p>
                   <p>🏛️ {sitio.categoria_general}</p>
                 </div>
+
                 <button
                   onClick={() => window.open(`/sitio/${sitio.id_sitio}`, '_blank')}
                   className="text-sm bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 transition"
