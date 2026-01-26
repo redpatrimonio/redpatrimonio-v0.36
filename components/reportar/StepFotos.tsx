@@ -117,12 +117,12 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
 
           const { data: urlData } = supabase.storage.from('fotos').getPublicUrl(fileName)
 
-          const { error: medioError } = await supabase.from('medios').insert({
+          // ✅ CORREGIDO: columnas correctas según tabla reportes_medios
+          const { error: medioError } = await supabase.from('reportes_medios').insert({
             id_reporte: reporte.id_reporte,
-            url: urlData.publicUrl,
-            storage_path: fileName,
-            descripcion: `Foto ${i + 1}`,
-            prioridad: i === 0 ? 1 : 0,
+            url_publica: urlData.publicUrl,
+            descripcion_imagen: `Foto ${i + 1}`,
+            prioridad_visualizacion: i === 0 ? 1 : 0,
           })
 
           if (medioError) {
