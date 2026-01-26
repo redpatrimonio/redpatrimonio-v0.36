@@ -126,28 +126,27 @@ export default function AprobarReportePage() {
   }
 
   async function handlePublicar() {
-    if (!confirm('¿Publicar este reporte? Pasará a estado VERDE y será visible en el mapa público')) return
+  if (!confirm('¿Publicar este reporte? Pasará a estado VERDE y será visible en el mapa público')) return
 
-    try {
-      setGuardando(true)
-      const { error: updateError } = await supabase
-        .from('reportes_nuevos')
-        .update({
-          estado_validacion: 'verde',
-          timestamp_publicado: new Date().toISOString(),
-        })
-        .eq('id_reporte', id)
+  try {
+    setGuardando(true)
+    const { error: updateError } = await supabase
+      .from('reportes_nuevos')
+      .update({
+        estado_validacion: 'verde',
+      })
+      .eq('id_reporte', id)
 
-      if (updateError) throw updateError
-      alert('✓ Reporte PUBLICADO → VERDE')
-      router.push('/dashboard/aprobar')
-    } catch (err) {
-      console.error('Error publicando:', err)
-      setError('Error al publicar reporte')
-    } finally {
-      setGuardando(false)
-    }
+    if (updateError) throw updateError
+    alert('✓ Reporte PUBLICADO → VERDE')
+    router.push('/dashboard/aprobar')
+  } catch (err) {
+    console.error('Error publicando:', err)
+    setError('Error al publicar reporte')
+  } finally {
+    setGuardando(false)
   }
+}
 
   if (authLoading || loading) {
     return (
