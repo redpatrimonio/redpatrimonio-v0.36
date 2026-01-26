@@ -53,22 +53,21 @@ export default function AprobarReportesPage() {
       if (reportesError) throw reportesError
       setReportes(data || [])
 
-      // Cargar primera foto de cada reporte
-      const fotosMap: Record<string, string> = {}
-      for (const reporte of data || []) {
-        const { data: fotoData } = await supabase
-          .from('reportes_medios')
-          .select('url_publica')
-          .eq('id_reporte', reporte.id_reporte)
-          .order('prioridad_visualizacion', { ascending: false })
-          .limit(1)
-          .single()
+// Cargar primera foto de cada reporte
+const fotosMap: Record<string, string> = {}
+for (const reporte of data || []) {
+  const { data: fotoData, error: fotoError } = await supabase
+    .from('reportes_medios')
+    .select('url_publica')
+    .eq('id_reporte', reporte.id_reporte)
+    .order('prioridad_visualizacion', { ascending: false })
+    .limit(1)
 
-        if (fotoData) {
-          fotosMap[reporte.id_reporte] = fotoData.url_publica
-        }
-      }
-      setFotos(fotosMap)
+  if (fotoData && fotoData.length > 0) {
+    fotosMap[reporte.id_reporte] = fotoData[0].url_publica
+  }
+}
+setFotos(fotosMap)
     } catch (err) {
       console.error('Error cargando reportes:', err)
       setError('Error al cargar reportes')
