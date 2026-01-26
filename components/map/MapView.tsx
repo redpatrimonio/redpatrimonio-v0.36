@@ -7,13 +7,12 @@ import { Sitio } from '@/types'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Fix para iconos de Leaflet en Next.js (sin any)
-;(L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl = undefined
-
+// ✅ Fix iconos Leaflet (igual que MapPicker)
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 })
 
 export function MapView() {
@@ -40,7 +39,6 @@ export function MapView() {
 
   useEffect(() => {
     fetchSitios()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading) {
@@ -57,7 +55,7 @@ export function MapView() {
   return (
     <div className="h-screen w-full">
       <MapContainer
-        center={[-33.4489, -70.6693]} // Santiago, Chile
+        center={[-33.4489, -70.6693]}
         zoom={6}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
