@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function HomePage() {
   return (
@@ -8,8 +9,14 @@ export default function HomePage() {
         <div className="py-20 text-center">
           {/* Logo grande */}
           <div className="flex justify-center mb-8">
-            <div className="w-32 h-32 bg-green-700 rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-5xl">RP</span>
+            <div className="w-32 h-32 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+              <Image
+                src="/logo1.png"
+                alt="Red Patrimonio Chile"
+                width={128}
+                height={128}
+                className="object-cover"
+              />
             </div>
           </div>
 
@@ -26,7 +33,7 @@ export default function HomePage() {
           {/* CTA Button */}
           <Link
             href="/mapa"
-            className="inline-block bg-green-700 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-800 transition shadow-lg hover:shadow-xl"
+            className="inline-block bg-[#25494D] text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#1a3538] transition shadow-lg hover:shadow-xl"
           >
             Explorar Mapa
           </Link>
