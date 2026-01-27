@@ -59,11 +59,13 @@ export default function MiReportePage() {
     }
   }, [user, authLoading, router])
 
-  useEffect(() => {
-    if (id && user) {
-      cargarReporte()
-    }
-  }, [id, user])
+useEffect(() => {
+  if (id && user && !authLoading) {
+    cargarReporte()
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [id, user, authLoading])
+
 
   async function cargarReporte() {
     if (!user) return
