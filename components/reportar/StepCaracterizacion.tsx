@@ -32,7 +32,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
     if (categoria) {
       const tipologias = TIPOLOGIAS[categoria as keyof typeof TIPOLOGIAS] || []
       setTipologiasDisponibles(tipologias)
-      setTipologia('') // Reset tipología al cambiar categoría
+      setTipologia('')
     } else {
       setTipologiasDisponibles([])
     }
@@ -67,11 +67,11 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
         <select
           value={categoria}
           onChange={(e) => setCategoria(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         >
-          <option value="">Selecciona una categoría</option>
+          <option value="" className="text-gray-400">Selecciona una categoría</option>
           {CATEGORIAS.map((cat) => (
-            <option key={cat} value={cat}>
+            <option key={cat} value={cat} className="text-gray-900">
               {cat}
             </option>
           ))}
@@ -87,15 +87,15 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
           value={tipologia}
           onChange={(e) => setTipologia(e.target.value)}
           disabled={!categoria}
-          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-            !categoria ? 'bg-gray-100 cursor-not-allowed' : ''
+          className={`w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
+            !categoria ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
           }`}
         >
-          <option value="">
+          <option value="" className="text-gray-400">
             {categoria ? 'Selecciona una tipología' : 'Primero selecciona categoría'}
           </option>
           {tipologiasDisponibles.map((tip) => (
-            <option key={tip} value={tip}>
+            <option key={tip} value={tip} className="text-gray-900">
               {tip}
             </option>
           ))}
@@ -111,11 +111,11 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
         <select
           value={cultura}
           onChange={(e) => setCultura(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         >
-          <option value="">Sin especificar</option>
+          <option value="" className="text-gray-400">Sin especificar</option>
           {CULTURAS.map((cul) => (
-            <option key={cul} value={cul}>
+            <option key={cul} value={cul} className="text-gray-900">
               {cul}
             </option>
           ))}
@@ -128,11 +128,11 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
         <select
           value={periodo}
           onChange={(e) => setPeriodo(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         >
-          <option value="">Sin especificar</option>
+          <option value="" className="text-gray-400">Sin especificar</option>
           {PERIODOS.map((per) => (
-            <option key={per} value={per}>
+            <option key={per} value={per} className="text-gray-900">
               {per}
             </option>
           ))}

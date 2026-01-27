@@ -22,7 +22,7 @@ type EstadoData = {
 
 export function StepEstado({ onNext, onBack }: StepEstadoProps) {
   const [estadoConservacion, setEstadoConservacion] = useState('')
-  const [nivelAcceso, setNivelAcceso] = useState('resguardado') // Default
+  const [nivelAcceso, setNivelAcceso] = useState('resguardado')
   const [descripcion, setDescripcion] = useState('')
   const [amenazas, setAmenazas] = useState('')
   const [error, setError] = useState('')
@@ -61,11 +61,11 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
         <select
           value={estadoConservacion}
           onChange={(e) => setEstadoConservacion(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         >
-          <option value="">Selecciona el estado</option>
+          <option value="" className="text-gray-400">Selecciona el estado</option>
           {ESTADO_CONSERVACION.map((estado) => (
-            <option key={estado} value={estado}>
+            <option key={estado} value={estado} className="text-gray-900">
               {estado}
             </option>
           ))}
@@ -119,7 +119,7 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
           onChange={(e) => setDescripcion(e.target.value)}
           rows={4}
           placeholder="Describe el sitio: características visibles, estructuras, materiales, contexto, etc."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none placeholder:text-gray-400"
         />
         <p className="text-xs text-gray-500 mt-1">{descripcion.length} / mínimo 20 caracteres</p>
       </div>
@@ -134,7 +134,7 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
           onChange={(e) => setAmenazas(e.target.value)}
           rows={3}
           placeholder="Ej: Construcción cercana, saqueo, erosión, vandalismo, etc."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none placeholder:text-gray-400"
         />
       </div>
 
