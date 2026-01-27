@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Fix iconos Leaflet (sin usar `any`)
+// Fix iconos Leaflet
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -22,6 +22,20 @@ interface MapPickerProps {
   onLocationSelect: (lat: number, lng: number) => void
 }
 
+// ✅ Componente que re-centra el mapa cuando cambian lat/lng
+function MapUpdater({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap()
+
+  useEffect(() => {
+    map.flyTo([lat, lng], 13, {
+      duration: 1.5
+    })
+  }, [lat, lng, map])
+
+  return null
+}
+
+// Componente que maneja clicks en el mapa
 function LocationMarker({
   onLocationSelect,
 }: {
@@ -29,7 +43,6 @@ function LocationMarker({
 }) {
   const [position, setPosition] = useState<L.LatLng | null>(null)
 
-  // useMapEvents registra eventos; no guardamos `map` porque no lo usamos
   useMapEvents({
     click(e) {
       setPosition(e.latlng)
@@ -55,8 +68,15 @@ export default function MapPicker({ lat, lng, onLocationSelect }: MapPickerProps
         attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <LocationMarker onLocationSelect={onLocationSelect} />
+      
+      {/* ✅ Actualiza centro cuando cambian coordenadas */}
+      <MapUpdater lat={lat} lng={lng} />
+      
+      {/* Marker principal que sigue las props */}
       <Marker position={[lat, lng]} />
+      
+      {/* Marker de click */}
+      <LocationMarker onLocationSelect={onLocationSelect} />
     </MapContainer>
   )
 }
