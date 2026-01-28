@@ -26,14 +26,13 @@ interface SitioCompleto {
   fuente_informacion: string | null
   timestamp_creado: string
   timestamp_actualizado: string | null
+  id_reporte: string | null  // ← IMPORTANTE: necesitamos esta columna
 }
 
 interface Medio {
   id_medio: string
   url_publica: string
-  tipo_medio: string
   descripcion_imagen: string | null
-  credito_autor: string | null
   prioridad_visualizacion: number
 }
 
@@ -82,14 +81,19 @@ export default function SitioDetallePage() {
 
       setSitio(sitioData)
 
-      // Cargar medios
-      const { data: mediosData } = await supabase
-        .from('sitios_medios')
-        .select('*')
-        .eq('id_sitio', id)
-        .order('prioridad_visualizacion', { ascending: false })
+      // ========================================
+      // CAMBIO AQUÍ: Buscar fotos en reportes_medios usando id_reporte
+      // ========================================
+      if (sitioData.id_reporte) {
+        const { data: mediosData } = await supabase
+          .from('reportes_medios')
+          .select('id_medio, url_publica, descripcion_imagen, prioridad_visualizacion')
+          .eq('id_reporte', sitioData.id_reporte)
+          .order('prioridad_visualizacion', { ascending: false })
 
-      setMedios(mediosData || [])
+        setMedios(mediosData || [])
+      }
+
     } catch (err) {
       console.error('Error cargando sitio:', err)
       setError('No se pudo cargar el sitio')
@@ -289,18 +293,13 @@ export default function SitioDetallePage() {
             </div>
 
             {/* Info foto actual */}
-            <div className="p-4 bg-gray-50">
-              {medios[currentIndex].descripcion_imagen && (
-                <p className="text-sm text-gray-700 mb-1">
+            {medios[currentIndex].descripcion_imagen && (
+              <div className="p-4 bg-gray-50">
+                <p className="text-sm text-gray-700">
                   {medios[currentIndex].descripcion_imagen}
                 </p>
-              )}
-              {medios[currentIndex].credito_autor && (
-                <p className="text-xs text-gray-500 italic">
-                  Foto: {medios[currentIndex].credito_autor}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
