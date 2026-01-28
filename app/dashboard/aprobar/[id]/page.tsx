@@ -126,27 +126,27 @@ export default function AprobarReportePage() {
   }
 
   async function handlePublicar() {
-  if (!confirm('¿Publicar este reporte? Pasará a estado VERDE y será visible en el mapa público')) return
+    if (!confirm('¿Publicar este reporte? Pasará a estado VERDE y será visible en el mapa público')) return
 
-  try {
-    setGuardando(true)
-    const { error: updateError } = await supabase
-      .from('reportes_nuevos')
-      .update({
-        estado_validacion: 'verde',
-      })
-      .eq('id_reporte', id)
+    try {
+      setGuardando(true)
+      const { error: updateError } = await supabase
+        .from('reportes_nuevos')
+        .update({
+          estado_validacion: 'verde',
+        })
+        .eq('id_reporte', id)
 
-    if (updateError) throw updateError
-    alert('✓ Reporte PUBLICADO → VERDE')
-    router.push('/dashboard/aprobar')
-  } catch (err) {
-    console.error('Error publicando:', err)
-    setError('Error al publicar reporte')
-  } finally {
-    setGuardando(false)
+      if (updateError) throw updateError
+      alert('✓ Reporte PUBLICADO → VERDE')
+      router.push('/dashboard/aprobar')
+    } catch (err) {
+      console.error('Error publicando:', err)
+      setError('Error al publicar reporte')
+    } finally {
+      setGuardando(false)
+    }
   }
-}
 
   if (authLoading || loading) {
     return (
@@ -229,7 +229,7 @@ export default function AprobarReportePage() {
                   type="text"
                   value={formData.nombre_reporte || ''}
                   onChange={(e) => setFormData({ ...formData, nombre_reporte: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 />
               </div>
               <div>
@@ -238,7 +238,7 @@ export default function AprobarReportePage() {
                   type="text"
                   value={formData.region || ''}
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 />
               </div>
               <div>
@@ -247,7 +247,7 @@ export default function AprobarReportePage() {
                   type="text"
                   value={formData.comuna || ''}
                   onChange={(e) => setFormData({ ...formData, comuna: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 />
               </div>
               <div>
@@ -270,7 +270,7 @@ export default function AprobarReportePage() {
                 value={formData.descripcion_ubicacion || ''}
                 onChange={(e) => setFormData({ ...formData, descripcion_ubicacion: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -286,11 +286,11 @@ export default function AprobarReportePage() {
                 <select
                   value={formData.categoria_general || ''}
                   onChange={(e) => setFormData({ ...formData, categoria_general: e.target.value, tipologia_especifica: null })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="" className="text-gray-400">Seleccionar...</option>
                   {CATEGORIAS.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat} className="text-gray-900">{cat}</option>
                   ))}
                 </select>
               </div>
@@ -299,12 +299,12 @@ export default function AprobarReportePage() {
                 <select
                   value={formData.tipologia_especifica?.[0] || ''}
                   onChange={(e) => setFormData({ ...formData, tipologia_especifica: e.target.value ? [e.target.value] : null })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                   disabled={!formData.categoria_general}
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="" className="text-gray-400">Seleccionar...</option>
                   {formData.categoria_general && TIPOLOGIAS[formData.categoria_general as keyof typeof TIPOLOGIAS]?.map((tip) => (
-                    <option key={tip} value={tip}>{tip}</option>
+                    <option key={tip} value={tip} className="text-gray-900">{tip}</option>
                   ))}
                 </select>
               </div>
@@ -313,11 +313,11 @@ export default function AprobarReportePage() {
                 <select
                   value={formData.cultura_asociada || ''}
                   onChange={(e) => setFormData({ ...formData, cultura_asociada: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="" className="text-gray-400">Seleccionar...</option>
                   {CULTURAS.map((cult) => (
-                    <option key={cult} value={cult}>{cult}</option>
+                    <option key={cult} value={cult} className="text-gray-900">{cult}</option>
                   ))}
                 </select>
               </div>
@@ -326,11 +326,11 @@ export default function AprobarReportePage() {
                 <select
                   value={formData.periodo_cronologico || ''}
                   onChange={(e) => setFormData({ ...formData, periodo_cronologico: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="" className="text-gray-400">Seleccionar...</option>
                   {PERIODOS.map((per) => (
-                    <option key={per} value={per}>{per}</option>
+                    <option key={per} value={per} className="text-gray-900">{per}</option>
                   ))}
                 </select>
               </div>
@@ -348,11 +348,11 @@ export default function AprobarReportePage() {
                 <select
                   value={formData.estado_conservacion || ''}
                   onChange={(e) => setFormData({ ...formData, estado_conservacion: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="" className="text-gray-400">Seleccionar...</option>
                   {ESTADO_CONSERVACION.map((est) => (
-                    <option key={est} value={est}>{est}</option>
+                    <option key={est} value={est} className="text-gray-900">{est}</option>
                   ))}
                 </select>
               </div>
@@ -362,7 +362,7 @@ export default function AprobarReportePage() {
                   type="text"
                   value={formData.tipo_riesgo_principal || ''}
                   onChange={(e) => setFormData({ ...formData, tipo_riesgo_principal: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white placeholder:text-gray-400"
                   placeholder="Ej: Erosión, vandalismo..."
                 />
               </div>
@@ -373,12 +373,12 @@ export default function AprobarReportePage() {
                 <select
                   value={formData.nivel_proteccion || ''}
                   onChange={(e) => setFormData({ ...formData, nivel_proteccion: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
-                  <option value="">Seleccionar...</option>
-                  <option value="Monumento Nacional">Monumento Nacional</option>
-                  <option value="Zona Típica">Zona Típica</option>
-                  <option value="Sin Protección">Sin Protección</option>
+                  <option value="" className="text-gray-400">Seleccionar...</option>
+                  <option value="Monumento Nacional" className="text-gray-900">Monumento Nacional</option>
+                  <option value="Zona Típica" className="text-gray-900">Zona Típica</option>
+                  <option value="Sin Protección" className="text-gray-900">Sin Protección</option>
                 </select>
               </div>
               <div>
@@ -386,11 +386,11 @@ export default function AprobarReportePage() {
                 <select
                   value={formData.nivel_acceso || 'resguardado'}
                   onChange={(e) => setFormData({ ...formData, nivel_acceso: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
-                  <option value="resguardado">Resguardado</option>
-                  <option value="restringido_autorizacion">Restringido (autorización)</option>
-                  <option value="prohibido">Prohibido</option>
+                  <option value="resguardado" className="text-gray-900">Resguardado</option>
+                  <option value="restringido_autorizacion" className="text-gray-900">Restringido (autorización)</option>
+                  <option value="prohibido" className="text-gray-900">Prohibido</option>
                 </select>
               </div>
             </div>
@@ -406,7 +406,7 @@ export default function AprobarReportePage() {
                   value={formData.amenazas || ''}
                   onChange={(e) => setFormData({ ...formData, amenazas: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white placeholder:text-gray-400"
                   placeholder="Describe amenazas o riesgos específicos..."
                 />
               </div>
