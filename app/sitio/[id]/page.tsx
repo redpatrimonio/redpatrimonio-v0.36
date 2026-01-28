@@ -47,6 +47,13 @@ export default function SitioDetallePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Estados del slideshow
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [translateX, setTranslateX] = useState(0)
+  const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null)
+
   useEffect(() => {
     if (id) {
       cargarSitio()
@@ -89,6 +96,47 @@ export default function SitioDetallePage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Funciones del slideshow
+  function goToSlide(index: number) {
+    setCurrentIndex(index)
+    setTranslateX(0)
+  }
+
+  function nextSlide() {
+    setCurrentIndex((prev) => (prev + 1) % medios.length)
+  }
+
+  function prevSlide() {
+    setCurrentIndex((prev) => (prev - 1 + medios.length) % medios.length)
+  }
+
+  // Drag handlers
+  function handleDragStart(e: React.MouseEvent | React.TouchEvent) {
+    setIsDragging(true)
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    setStartX(clientX)
+  }
+
+  function handleDragMove(e: React.MouseEvent | React.TouchEvent) {
+    if (!isDragging) return
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const diff = clientX - startX
+    setTranslateX(diff)
+  }
+
+  function handleDragEnd() {
+    if (!isDragging) return
+    setIsDragging(false)
+
+    // Si el drag es > 50px, cambiar slide
+    if (translateX > 50) {
+      prevSlide()
+    } else if (translateX < -50) {
+      nextSlide()
+    }
+    setTranslateX(0)
   }
 
   if (loading) {
@@ -161,33 +209,136 @@ export default function SitioDetallePage() {
           </div>
         </div>
 
-        {/* Galería de Imágenes */}
+        {/* Slideshow (solo si hay fotos) */}
         {medios.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Galería ({medios.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {medios.map((medio) => (
-                <div key={medio.id_medio} className="relative group">
-                  <img
-                    src={medio.url_publica}
-                    alt={medio.descripcion_imagen || sitio.nombre_sitio}
-                    className="w-full h-64 object-cover rounded-lg border border-gray-300"
-                  />
-                  {medio.descripcion_imagen && (
-                    <p className="text-xs text-gray-600 mt-2">
-                      {medio.descripcion_imagen}
-                    </p>
-                  )}
-                  {medio.credito_autor && (
-                    <p className="text-xs text-gray-500 italic">
-                      Foto: {medio.credito_autor}
-                    </p>
-                  )}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="relative">
+              {/* Contenedor slideshow */}
+              <div
+                className="relative w-full overflow-hidden bg-black"
+                style={{ maxHeight: '50vh' }}
+                onMouseDown={handleDragStart}
+                onMouseMove={handleDragMove}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+                onTouchStart={handleDragStart}
+                onTouchMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+              >
+                <div
+                  className="flex transition-transform duration-300 ease-out"
+                  style={{
+                    transform: `translateX(calc(-${currentIndex * 100}% + ${translateX}px))`,
+                  }}
+                >
+                  {medios.map((medio) => (
+                    <div
+                      key={medio.id_medio}
+                      className="w-full flex-shrink-0"
+                      style={{ maxHeight: '50vh' }}
+                    >
+                      <img
+                        src={medio.url_publica}
+                        alt={medio.descripcion_imagen || sitio.nombre_sitio}
+                        className="w-full h-full object-cover"
+                        style={{ maxHeight: '50vh' }}
+                        draggable={false}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
+
+                {/* Botón Fullscreen (abajo derecha) */}
+                <button
+                  onClick={() => setFullscreenIndex(currentIndex)}
+                  className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition backdrop-blur-sm"
+                  title="Ver en pantalla completa"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Puntos indicadores */}
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                {medios.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`w-2 h-2 rounded-full transition ${
+                      index === currentIndex
+                        ? 'bg-white scale-125'
+                        : 'bg-white/50 hover:bg-white/75'
+                    }`}
+                    aria-label={`Ir a foto ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
+
+            {/* Info foto actual */}
+            <div className="p-4 bg-gray-50">
+              {medios[currentIndex].descripcion_imagen && (
+                <p className="text-sm text-gray-700 mb-1">
+                  {medios[currentIndex].descripcion_imagen}
+                </p>
+              )}
+              {medios[currentIndex].credito_autor && (
+                <p className="text-xs text-gray-500 italic">
+                  Foto: {medios[currentIndex].credito_autor}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal Fullscreen */}
+        {fullscreenIndex !== null && (
+          <div
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            onClick={() => setFullscreenIndex(null)}
+          >
+            {/* Botón cerrar */}
+            <button
+              onClick={() => setFullscreenIndex(null)}
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition backdrop-blur-sm"
+              aria-label="Cerrar"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Imagen fullscreen */}
+            <img
+              src={medios[fullscreenIndex].url_publica}
+              alt={medios[fullscreenIndex].descripcion_imagen || sitio.nombre_sitio}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         )}
 
@@ -268,19 +419,6 @@ export default function SitioDetallePage() {
             {sitio.timestamp_actualizado && (
               <p>Actualizado: {new Date(sitio.timestamp_actualizado).toLocaleDateString('es-CL')}</p>
             )}
-          </div>
-        </div>
-
-        {/* Mapa de ubicación */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Ubicación</h2>
-          <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-            <p className="text-gray-600">
-              Mapa interactivo: {sitio.latitud.toFixed(6)}, {sitio.longitud.toFixed(6)}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              (Puedes integrar aquí un mapa estático o Leaflet centrado en el sitio)
-            </p>
           </div>
         </div>
 
