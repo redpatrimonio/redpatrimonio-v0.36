@@ -137,7 +137,7 @@ export default function MasPage() {
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative w-48 h-24">
                   <Image 
-                    src="/logo-cmn.jpg" 
+                    src="/logo-cmn.jpeg" 
                     alt="Consejo de Monumentos" 
                     fill
                     className="object-contain"
