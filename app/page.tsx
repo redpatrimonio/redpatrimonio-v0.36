@@ -11,7 +11,7 @@ export default function HomePage() {
           <div className="flex justify-center mb-8">
             <div className="w-32 h-32 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
               <Image
-                src="/logo1.png"
+                src="/logo.png"
                 alt="Red Patrimonio Chile"
                 width={128}
                 height={128}
