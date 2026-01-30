@@ -31,7 +31,7 @@ export function Footer() {
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            strokeWidth={2.5}
+            strokeWidth={1.5}
             stroke="currentColor"
             className="w-6 h-6 text-white drop-shadow-md"
           >
@@ -44,8 +44,8 @@ export function Footer() {
           <span className="text-xs mt-1 text-white font-medium">Mapa</span>
         </Link>
 
-        {/* Reportar (solo autenticados) */}
-        {user && (
+        {/* Reportar - Siempre visible, deshabilitado si no hay login */}
+        {user ? (
           <Link
             href="/reportar"
             className={`flex flex-col items-center justify-center flex-1 h-full transition-all rounded-lg ${
@@ -56,7 +56,7 @@ export function Footer() {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={2.5}
+              strokeWidth={1.5}
               stroke="currentColor"
               className="w-6 h-6 text-white drop-shadow-md"
             >
@@ -73,35 +73,32 @@ export function Footer() {
             </svg>
             <span className="text-xs mt-1 text-white font-medium">Reportar</span>
           </Link>
-        )}
-
-        {/* Dashboard (experto+) */}
-        {usuario?.rol && ['experto', 'partner', 'founder'].includes(usuario.rol) && (
-          <Link
-            href="/dashboard"
-            className={`flex flex-col items-center justify-center flex-1 h-full transition-all rounded-lg ${
-              isActive('/dashboard') ? 'bg-white/20 scale-105' : 'hover:bg-white/10'
-            }`}
-          >
+        ) : (
+          <div className="flex flex-col items-center justify-center flex-1 h-full opacity-50 pointer-events-none">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={2.5}
+              strokeWidth={1.5}
               stroke="currentColor"
-              className="w-6 h-6 text-white drop-shadow-md"
+              className="w-6 h-6 text-white/60"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+                d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
               />
             </svg>
-            <span className="text-xs mt-1 text-white font-medium">Panel</span>
-          </Link>
+            <span className="text-xs mt-1 text-white/60 font-medium">Reportar</span>
+          </div>
         )}
 
-        {/* Perfil (autenticados) / Login (no autenticados) */}
+        {/* Panel (va a /perfil) - Solo autenticados */}
         {user ? (
           <Link
             href="/perfil"
@@ -113,17 +110,17 @@ export function Footer() {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={2.5}
+              strokeWidth={1.5}
               stroke="currentColor"
               className="w-6 h-6 text-white drop-shadow-md"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
               />
             </svg>
-            <span className="text-xs mt-1 text-white font-medium">Perfil</span>
+            <span className="text-xs mt-1 text-white font-medium">Panel</span>
           </Link>
         ) : (
           <Link
@@ -134,7 +131,7 @@ export function Footer() {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={2.5}
+              strokeWidth={1.5}
               stroke="currentColor"
               className="w-6 h-6 text-white drop-shadow-md"
             >
@@ -159,7 +156,7 @@ export function Footer() {
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            strokeWidth={2.5}
+            strokeWidth={1.5}
             stroke="currentColor"
             className="w-6 h-6 text-white drop-shadow-md"
           >
