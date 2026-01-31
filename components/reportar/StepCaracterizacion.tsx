@@ -1,109 +1,156 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CATEGORIAS, TIPOLOGIAS, CULTURAS, PERIODOS } from '@/lib/constants/tipologias'
+import { 
+  CLASIFICACION_CMN, 
+  CATEGORIAS, 
+  TIPOLOGIAS, 
+  CULTURAS, 
+  PERIODOS 
+} from '@/lib/constants/tipologias'
 
 interface StepCaracterizacionProps {
   onNext: (data: {
+    nombre: string
+    clasificacionCMN: string
     categoria: string
-    tipologia: string
+    tipologia: string[]
     cultura?: string
     periodo?: string
   }) => void
   onBack: () => void
 }
 
-type CaracterizacionData = {
-  categoria: string
-  tipologia: string
-  cultura?: string
-  periodo?: string
-}
-
 export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps) {
+  const [nombre, setNombre] = useState('')
+  const [clasificacionCMN, setClasificacionCMN] = useState('')
   const [categoria, setCategoria] = useState('')
-  const [tipologia, setTipologia] = useState('')
+  const [tipologiasSeleccionadas, setTipologiasSeleccionadas] = useState<string[]>([])
+  const [tipologiasDisponibles, setTipologiasDisponibles] = useState<string[]>([])
   const [cultura, setCultura] = useState('')
   const [periodo, setPeriodo] = useState('')
-  const [tipologiasDisponibles, setTipologiasDisponibles] = useState<string[]>([])
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (categoria) {
-      const tipologias = TIPOLOGIAS[categoria as keyof typeof TIPOLOGIAS] || []
+      const tipologias = TIPOLOGIAS[categoria as keyof typeof TIPOLOGIAS]
       setTipologiasDisponibles(tipologias)
-      setTipologia('')
     } else {
       setTipologiasDisponibles([])
     }
   }, [categoria])
 
+  function handleTipologiaToggle(tip: string) {
+    if (tipologiasSeleccionadas.includes(tip)) {
+      setTipologiasSeleccionadas(tipologiasSeleccionadas.filter(t => t !== tip))
+    } else {
+      setTipologiasSeleccionadas([...tipologiasSeleccionadas, tip])
+    }
+  }
+
   function handleNext() {
-    if (!categoria || !tipologia) {
-      setError('Debes seleccionar categoría y tipología')
+    if (!nombre || !clasificacionCMN || !categoria) {
+      setError('Completa los campos obligatorios')
       return
     }
 
-    const data: CaracterizacionData = {
+    const tipologiaFinal = tipologiasSeleccionadas.length > 0 
+      ? tipologiasSeleccionadas 
+      : ['No determinado']
+
+    onNext({
+      nombre,
+      clasificacionCMN,
       categoria,
-      tipologia,
+      tipologia: tipologiaFinal,
       ...(cultura ? { cultura } : {}),
       ...(periodo ? { periodo } : {}),
-    }
-
-    onNext(data)
+    })
   }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">Paso 2: Caracterización</h2>
-      <p className="text-gray-600 text-sm">Describe el tipo de sitio arqueológico</p>
+      <h2 className="text-xl font-semibold text-gray-900">Paso 2: Identificación</h2>
+      <p className="text-gray-600 text-sm">Describe el tipo de sitio</p>
 
-      {/* Categoría */}
+      {/* Nombre */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Categoría <span className="text-red-500">*</span>
+          Nombre del sitio <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          placeholder="Ej: Pucará de Quitor"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
+        />
+      </div>
+
+      {/* Clasificación CMN */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Clasificación CMN <span className="text-red-500">*</span>
+        </label>
+        <select
+          value={clasificacionCMN}
+          onChange={(e) => setClasificacionCMN(e.target.value)}
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
+        >
+          <option value="" className="text-gray-400">Selecciona una clasificación</option>
+          {CLASIFICACION_CMN.map((c) => (
+            <option key={c} value={c} className="text-gray-900">{c}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Categoría temática */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Categoría temática <span className="text-red-500">*</span>
         </label>
         <select
           value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          onChange={(e) => {
+            setCategoria(e.target.value)
+            setTipologiasSeleccionadas([])
+          }}
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
         >
           <option value="" className="text-gray-400">Selecciona una categoría</option>
           {CATEGORIAS.map((cat) => (
-            <option key={cat} value={cat} className="text-gray-900">
-              {cat}
-            </option>
+            <option key={cat} value={cat} className="text-gray-900">{cat}</option>
           ))}
         </select>
       </div>
 
-      {/* Tipología */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tipología <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={tipologia}
-          onChange={(e) => setTipologia(e.target.value)}
-          disabled={!categoria}
-          className={`w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-            !categoria ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
-          }`}
-        >
-          <option value="" className="text-gray-400">
-            {categoria ? 'Selecciona una tipología' : 'Primero selecciona categoría'}
-          </option>
-          {tipologiasDisponibles.map((tip) => (
-            <option key={tip} value={tip} className="text-gray-900">
-              {tip}
-            </option>
-          ))}
-        </select>
-        {categoria && (
-          <p className="text-xs text-gray-500 mt-1">{tipologiasDisponibles.length} tipologías disponibles</p>
-        )}
-      </div>
+      {/* Tipologías (múltiples, opcional) */}
+      {categoria && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tipología (opcional, puedes elegir varias)
+          </label>
+          <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto bg-white">
+            {tipologiasDisponibles.map((tip) => (
+              <label key={tip} className="flex items-center gap-2 py-1 cursor-pointer hover:bg-gray-50 px-2 rounded">
+                <input
+                  type="checkbox"
+                  checked={tipologiasSeleccionadas.includes(tip)}
+                  onChange={() => handleTipologiaToggle(tip)}
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: '#10454B' }}
+                />
+                <span className="text-sm text-gray-900">{tip}</span>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            {tipologiasSeleccionadas.length > 0 
+              ? `${tipologiasSeleccionadas.length} seleccionada(s)` 
+              : 'Si no seleccionas, se marcará como "No determinado"'}
+          </p>
+        </div>
+      )}
 
       {/* Cultura (opcional) */}
       <div>
@@ -111,13 +158,11 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
         <select
           value={cultura}
           onChange={(e) => setCultura(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
         >
           <option value="" className="text-gray-400">Sin especificar</option>
           {CULTURAS.map((cul) => (
-            <option key={cul} value={cul} className="text-gray-900">
-              {cul}
-            </option>
+            <option key={cul} value={cul} className="text-gray-900">{cul}</option>
           ))}
         </select>
       </div>
@@ -128,13 +173,11 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
         <select
           value={periodo}
           onChange={(e) => setPeriodo(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
         >
           <option value="" className="text-gray-400">Sin especificar</option>
           {PERIODOS.map((per) => (
-            <option key={per} value={per} className="text-gray-900">
-              {per}
-            </option>
+            <option key={per} value={per} className="text-gray-900">{per}</option>
           ))}
         </select>
       </div>
@@ -147,25 +190,16 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       )}
 
       {/* Resumen */}
-      {categoria && tipologia && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm font-medium text-blue-900 mb-1">Resumen:</p>
-          <p className="text-xs text-blue-700">
-            <strong>Categoría:</strong> {categoria}
-            <br />
-            <strong>Tipología:</strong> {tipologia}
-            {cultura && (
-              <>
-                <br />
-                <strong>Cultura:</strong> {cultura}
-              </>
-            )}
-            {periodo && (
-              <>
-                <br />
-                <strong>Periodo:</strong> {periodo}
-              </>
-            )}
+      {nombre && clasificacionCMN && categoria && (
+        <div className="border rounded-lg p-4" style={{ backgroundColor: '#f0f7f8', borderColor: '#10454B' }}>
+          <p className="text-sm font-medium mb-1" style={{ color: '#10454B' }}>Resumen</p>
+          <p className="text-xs text-gray-700">
+            <strong>Nombre:</strong> {nombre}<br />
+            <strong>Clasificación:</strong> {clasificacionCMN}<br />
+            <strong>Categoría:</strong> {categoria}<br />
+            <strong>Tipologías:</strong> {tipologiasSeleccionadas.length > 0 ? tipologiasSeleccionadas.join(', ') : 'No determinado'}
+            {cultura && <><br /><strong>Cultura:</strong> {cultura}</>}
+            {periodo && <><br /><strong>Periodo:</strong> {periodo}</>}
           </p>
         </div>
       )}
@@ -176,21 +210,22 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
           onClick={onBack}
           className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 font-medium"
         >
-          ← Atrás
+          Atrás
         </button>
         <button
           onClick={handleNext}
-          disabled={!categoria || !tipologia}
-          className={`flex-1 py-3 rounded-lg font-medium transition ${
-            categoria && tipologia
-              ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
+          disabled={!nombre || !clasificacionCMN || !categoria}
+          className="flex-1 py-3 rounded-lg font-medium transition disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: (nombre && clasificacionCMN && categoria) ? '#10454B' : undefined,
+            color: (nombre && clasificacionCMN && categoria) ? 'white' : undefined
+          }}
         >
-          Siguiente →
+          Siguiente
         </button>
       </div>
     </div>
   )
 }
+
 export default StepCaracterizacion
