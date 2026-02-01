@@ -2,11 +2,7 @@
 export const CLASIFICACION_CMN = [
   'Sitio Arqueológico',
   'Hallazgo Aislado',
-  'Sitio Histórico',
-  'Monumento Arquitectónico',
-  'Zona Típica',
-  'Santuario de la Naturaleza',
-  'No determinado'
+ 
 ] as const
 
 // Categorías temáticas
