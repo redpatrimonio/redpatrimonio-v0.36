@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
+import { REGIONES, COMUNAS } from '@/lib/constants/tipologias'
 
-const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
+const MapPicker = dynamic(() => import('@/components/reportar/MapPicker'), { ssr: false })
 
 interface StepUbicacionProps {
   onNext: (data: { 
@@ -36,6 +37,7 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
   const [longitud, setLongitud] = useState<number | null>(null)
   const [region, setRegion] = useState('')
   const [comuna, setComuna] = useState('')
+  const [comunasDisponibles, setComunasDisponibles] = useState<string[]>([])
   const [error, setError] = useState('')
   const [cargandoGPS, setCargandoGPS] = useState(false)
 
@@ -59,8 +61,30 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
 
         // Obtener región y comuna automáticamente
         const geo = await getReverseGeocode(lat, lng)
-        setRegion(geo.region)
-        setComuna(geo.comuna)
+        
+        // Intentar encontrar región en nuestro listado
+        const regionEncontrada = REGIONES.find(r => 
+          geo.region.toLowerCase().includes(r.toLowerCase()) || 
+          r.toLowerCase().includes(geo.region.toLowerCase())
+        )
+        
+        if (regionEncontrada) {
+          setRegion(regionEncontrada)
+          const comunas = COMUNAS[regionEncontrada] || []
+          setComunasDisponibles(comunas)
+          
+          // Intentar encontrar comuna
+          const comunaEncontrada = comunas.find(c => 
+            geo.comuna.toLowerCase().includes(c.toLowerCase()) || 
+            c.toLowerCase().includes(geo.comuna.toLowerCase())
+          )
+          if (comunaEncontrada) {
+            setComuna(comunaEncontrada)
+          }
+        } else {
+          setRegion(geo.region)
+          setComuna(geo.comuna)
+        }
         
         setCargandoGPS(false)
       },
@@ -75,6 +99,13 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
   function handleMapClick(lat: number, lng: number) {
     setLatitud(lat)
     setLongitud(lng)
+  }
+
+  function handleRegionChange(nuevaRegion: string) {
+    setRegion(nuevaRegion)
+    setComuna('') // Resetear comuna
+    const comunas = COMUNAS[nuevaRegion] || []
+    setComunasDisponibles(comunas)
   }
 
   function handleNext() {
@@ -127,32 +158,41 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
         </div>
       )}
 
-      {/* Región */}
+      {/* Región DROPDOWN */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Región <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
+        <select
           value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          placeholder="Ej: Metropolitana"
+          onChange={(e) => handleRegionChange(e.target.value)}
           className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        />
+        >
+          <option value="" className="text-gray-400">Selecciona una región</option>
+          {REGIONES.map((r) => (
+            <option key={r} value={r} className="text-gray-900">{r}</option>
+          ))}
+        </select>
       </div>
 
-      {/* Comuna */}
+      {/* Comuna DROPDOWN (dependiente de región) */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Comuna <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
+        <select
           value={comuna}
           onChange={(e) => setComuna(e.target.value)}
-          placeholder="Ej: Santiago"
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        />
+          disabled={!region || comunasDisponibles.length === 0}
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B] disabled:bg-gray-100 disabled:cursor-not-allowed"
+        >
+          <option value="" className="text-gray-400">
+            {!region ? 'Primero selecciona una región' : 'Selecciona una comuna'}
+          </option>
+          {comunasDisponibles.map((c) => (
+            <option key={c} value={c} className="text-gray-900">{c}</option>
+          ))}
+        </select>
       </div>
 
       {/* Error */}
