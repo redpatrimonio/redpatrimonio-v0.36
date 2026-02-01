@@ -31,7 +31,8 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
   const [condicionEmplazamiento, setCondicionEmplazamiento] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [tipoPropiedad, setTipoPropiedad] = useState('')
-  const [nivelacceso, setNivelAcceso] = useState('Resguardado')
+  const [nivelacceso, setNivelAcceso] = useState('Espacio Publico')
+  const [descripcionNivelAcceso, setDescripcionNivelAcceso] = useState(NIVEL_ACCESO[0].descripcion)
   const [usoSuelo, setUsoSuelo] = useState('')
   const [usoSueloOtro, setUsoSueloOtro] = useState('')
   const [amenazas, setAmenazas] = useState('')
@@ -131,20 +132,31 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
         </select>
       </div>
 
-      {/* Nivel Acceso */}
+      {/* Nivel Acceso CON DESCRIPCIÓN */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Nivel de acceso <span className="text-red-500">*</span>
         </label>
         <select
           value={nivelacceso}
-          onChange={(e) => setNivelAcceso(e.target.value)}
+          onChange={(e) => {
+            setNivelAcceso(e.target.value)
+            const seleccionado = NIVEL_ACCESO.find(n => n.valor === e.target.value)
+            setDescripcionNivelAcceso(seleccionado?.descripcion || '')
+          }}
           className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
         >
           {NIVEL_ACCESO.map((nivel) => (
-            <option key={nivel} value={nivel} className="text-gray-900">{nivel}</option>
+            <option key={nivel.valor} value={nivel.valor} className="text-gray-900">
+              {nivel.valor}
+            </option>
           ))}
         </select>
+        {descripcionNivelAcceso && (
+          <p className="text-xs text-gray-600 mt-2 italic">
+            ℹ️ {descripcionNivelAcceso}
+          </p>
+        )}
       </div>
 
       {/* Uso de Suelo (opcional) */}

@@ -1,196 +1,205 @@
-// lib/constants/tipologias.ts
-
-// ========== CLASIFICACIÓN CMN ==========
+// Clasificación CMN (Consejo Monumentos Nacionales)
 export const CLASIFICACION_CMN = [
   'Sitio Arqueológico',
   'Hallazgo Aislado',
+  'Sitio Histórico',
+  'Monumento Arquitectónico',
+  'Zona Típica',
+  'Santuario de la Naturaleza',
+  'No determinado'
 ] as const
 
-export type ClasificacionCMN = typeof CLASIFICACION_CMN[number]
-
-// ========== CATEGORÍAS TEMÁTICAS (PARA FILTROS) ==========
+// Categorías temáticas
 export const CATEGORIAS = [
-  'Monumentos Arquitectónicos',
-  'Arte y Expresión Cultural',
-  'Sitios Funerarios',
-  'Asentamientos Humanos',
-  'Infraestructura Prehispánica',
-  'Hallazgos y Evidencias',
-  'Qhapaq Ñan',
-  'Sitios Ceremoniales',
+  'Sitios habitacionales',
+  'Arte rupestre',
+  'Estructuras ceremoniales o funerarias',
+  'Infraestructura productiva',
+  'Sistemas viales',
+  'Fortificaciones',
+  'Hallazgos aislados',
+  'Arquitectura histórica',
+  'Patrimonio industrial',
+  'Otro'
 ] as const
 
-export type Categoria = typeof CATEGORIAS[number]
-
-// ========== TIPOLOGÍAS POR CATEGORÍA (MÚLTIPLES, OPCIONAL) ==========
-export const TIPOLOGIAS: { [key in Categoria]: string[] } = {
-  'Monumentos Arquitectónicos': [
-    'Pucará',
-    'Tambo',
-    'Ushnu',
-    'Colca',
-    'Pirca',
-    'Andén',
-    'Kancha',
-    'Kallanka',
-    'Torreón',
-    'Apacheta',
-    'Muro perimetral',
-    'Plaza ceremonial',
-    'Plataforma',
-    'Recinto habitacional',
-    'Estructura circular',
-    'Megalito',
-  ],
-  'Arte y Expresión Cultural': [
-    'Petroglifo',
-    'Pictografía',
-    'Geoglifo',
-    'Línea de piedra',
-    'Grabado en roca',
-    'Mural',
-    'Megalito',
-  ],
-  'Sitios Funerarios': [
-    'Cementerio precolombino',
-    'Túmulo',
-    'Enterratorio',
-    'Chullpa',
-    'Momia',
-    'Contexto funerario',
-    'Estructura circular',
-  ],
-  'Asentamientos Humanos': [
+// Tipologías por categoría
+export const TIPOLOGIAS: Record<string, string[]> = {
+  'Sitios habitacionales': [
     'Aldea',
-    'Poblado',
     'Campamento',
     'Conchales',
-    'Alero habitado',
-    'Cueva habitada',
-    'Refugio',
-    'Asentamiento',
-    'Recinto habitacional',
-  ],
-  'Infraestructura Prehispánica': [
-    'Camino del Inca',
-    'Sendero prehispánico',
-    'Canal de riego',
-    'Acequia',
-    'Puente precolombino',
-    'Pozo de agua',
-    'Mina prehispánica',
-    'Cantera',
-    'Salinera',
-    'Andén',
-  ],
-  'Hallazgos y Evidencias': [
-    'Cerámica dispersa',
-    'Lítico',
-    'Concha trabajada',
-    'Textil',
-    'Metal trabajado',
-    'Osamentas humanas',
-    'Restos arqueológicos',
-    'Petroglifo',
-  ],
-  'Qhapaq Ñan': [
-    'Pucará',
+    'Refugio rocoso',
+    'Pukará',
     'Tambo',
-    'Camino del Inca',
-    'Sendero prehispánico',
-    'Puente precolombino',
+    'Complejo habitacional'
   ],
-  'Sitios Ceremoniales': [
-    'Santuario de altura',
-    'Templo',
-    'Altar',
-    'Sitio de ofrendas',
-    'Huaca',
-    'Centro ceremonial',
+  'Arte rupestre': [
+    'Petroglifos',
+    'Pictografías',
+    'Geoglifos',
+    'Arte mobiliar'
+  ],
+  'Estructuras ceremoniales o funerarias': [
+    'Túmulo funerario',
+    'Cementerio',
+    'Chenque',
     'Ushnu',
-    'Kallanka',
+    'Altar',
+    'Plataforma ceremonial',
+    'Sepultura'
   ],
+  'Infraestructura productiva': [
+    'Terrazas de cultivo',
+    'Sistema de riego',
+    'Corrales',
+    'Apachetas',
+    'Colcas (depósitos)',
+    'Salinas',
+    'Minas',
+    'Canteras'
+  ],
+  'Sistemas viales': [
+    'Qhapaq Ñan (Camino Inca)',
+    'Camino tropero',
+    'Puente',
+    'Tambo'
+  ],
+  'Fortificaciones': [
+    'Pukará',
+    'Muralla',
+    'Torre de vigilancia'
+  ],
+  'Hallazgos aislados': [
+    'Material lítico',
+    'Material cerámico',
+    'Material óseo',
+    'Material textil',
+    'Resto arquitectónico aislado'
+  ],
+  'Arquitectura histórica': [
+    'Iglesia o capilla',
+    'Hacienda',
+    'Casona',
+    'Fuerte o fortín',
+    'Faro',
+    'Estación ferroviaria',
+    'Puente histórico'
+  ],
+  'Patrimonio industrial': [
+    'Salitreras',
+    'Minas',
+    'Molinos',
+    'Fundiciones',
+    'Hornos',
+    'Talleres'
+  ],
+  'Otro': [
+    'No determinado',
+    'Otro (especificar)'
+  ]
 }
 
-// ========== CULTURAS ==========
+// Culturas prehispánicas e históricas
 export const CULTURAS = [
   'Inca',
   'Diaguita',
+  'Molle',
   'Atacameña',
+  'Aymara',
   'Mapuche',
-  'Aonikenk',
+  'Huilliche',
+  'Pehuenche',
+  'Picunche',
   'Chango',
-  'Chinchorro',
-  'Huentelauquén',
-  'El Molle',
-  'Las Ánimas',
-  'Aconcagua',
-  'Chono',
-  'Kawésqar',
+  'Selk\'nam',
   'Yagán',
-  'Otra',
-  'Sin información',
+  'Kawésqar',
+  'Tehuelche',
+  'Chinchorro',
+  'Tiwanaku',
+  'Colonial',
+  'Republicano',
+  'No determinado',
+  'Otro'
 ] as const
 
-// ========== PERIODOS ==========
+// Periodos cronológicos
 export const PERIODOS = [
-  'Prehispánico',
-  'Histórico',
-  'Ambos',
-  'Sin información',
+  'Arcaico',
+  'Formativo',
+  'Intermedio Tardío',
+  'Tardío/Inca',
+  'Colonial',
+  'Republicano',
+  'Contemporáneo',
+  'No determinado'
 ] as const
 
-// ========== ESTADO CONSERVACIÓN ==========
+// Estados de conservación
 export const ESTADO_CONSERVACION = [
   'Bueno',
   'Regular',
-  'Grave',
-  'Muy grave',
+  'Malo',
+  'En ruinas',
   'Destruido',
-  'Sin información',
+  'No determinado'
 ] as const
 
-// ========== CONDICIÓN EMPLAZAMIENTO ==========
+// Condición de emplazamiento
 export const CONDICION_EMPLAZAMIENTO = [
-  'A cielo abierto',
-  'Cueva o Mina',
-  'Subacuático',
-  'Sin información',
+  'In situ',
+  'Alterado',
+  'Descontextualizado',
+  'Removido',
+  'No determinado'
 ] as const
 
-// ========== TIPO PROPIEDAD ==========
+// Tipo de propiedad
 export const TIPO_PROPIEDAD = [
   'Fiscal',
   'Privada',
+  'Comunitaria',
+  'Municipal',
   'Mixta',
-  'Sin información',
+  'No determinado'
 ] as const
 
-// ========== USOS DE SUELO (CMN 2.8.1) ==========
+// Nivel de acceso (CON DESCRIPCIONES)
+export const NIVEL_ACCESO = [
+  {
+    valor: 'Espacio Publico',
+    descripcion: 'Libre acceso sin restricciones. Ej: plaza, camino, orilla de río.'
+  },
+  {
+    valor: 'Area Protegida',
+    descripcion: 'Administrado por institución. Con horarios, guías o guardaparques. Ej: Parque Nacional, Reserva.'
+  },
+  {
+    valor: 'Acceso Restringido',
+    descripcion: 'Requiere autorización previa del propietario o administrador.'
+  },
+  {
+    valor: 'Prohibido',
+    descripcion: 'Acceso no permitido. Sitio cerrado al público.'
+  }
+]
+
+// Usos de suelo actuales
 export const USOS_SUELO = [
   'Agrícola',
-  'Área verde',
-  'Forestal',
   'Ganadero',
-  'Industrial',
-  'Infraestructura',
+  'Forestal',
   'Minero',
-  'Pesca',
-  'Turismo',
-  'Equipamiento - Residencial - Red vial',
-  'Sin uso',
-  'Otro',
-  'Sin información',
+  'Urbano',
+  'Industrial',
+  'Turístico',
+  'Conservación',
+  'Sin uso aparente',
+  'Otro'
 ] as const
 
-// ========== NIVEL ACCESO ==========
-export const NIVEL_ACCESO = [
-  'Resguardado',
-  'Restringido con autorización',
-  'Prohibido',
-] as const
-
-// ========== REGIONES CHILE ==========
+// Regiones de Chile
 export const REGIONES = [
   'Arica y Parinacota',
   'Tarapacá',
@@ -207,118 +216,25 @@ export const REGIONES = [
   'Los Ríos',
   'Los Lagos',
   'Aysén',
-  'Magallanes',
+  'Magallanes'
 ] as const
 
-// ========== COMUNAS POR REGIÓN (SUBSET) ==========
-export const COMUNAS_POR_REGION: { [key: string]: string[] } = {
-  'Metropolitana': [
-    'Santiago',
-    'Cerrillos',
-    'Cerro Navia',
-    'Colina',
-    'Conchalí',
-    'El Bosque',
-    'Estación Central',
-    'Huechuraba',
-    'Independencia',
-    'La Cisterna',
-    'La Florida',
-    'La Granja',
-    'La Pintana',
-    'La Reina',
-    'Las Condes',
-    'Lo Barnechea',
-    'Lo Espejo',
-    'Lo Prado',
-    'Macul',
-    'Maipú',
-    'Ñuñoa',
-    'Pedro Aguirre Cerda',
-    'Peñalolén',
-    'Providencia',
-    'Pudahuel',
-    'Quilicura',
-    'Quinta Normal',
-    'Recoleta',
-    'Renca',
-    'San Joaquín',
-    'San Miguel',
-    'San Ramón',
-    'Vitacura',
-    'Puente Alto',
-    'Pirque',
-    'San José de Maipo',
-    'Buin',
-    'Calera de Tango',
-    'Paine',
-    'San Bernardo',
-    'Talagante',
-    'Melipilla',
-  ],
+// Comunas por región (muestra - expandir según necesidad)
+export const COMUNAS: Record<string, string[]> = {
+  'Metropolitana': ['Santiago', 'Providencia', 'Las Condes', 'Maipú', 'Puente Alto', 'La Florida', 'Peñalolén', 'Ñuñoa', 'Quilicura', 'Cerrillos', 'Estación Central', 'Renca', 'Huechuraba', 'Independencia', 'Recoleta', 'Conchalí', 'Lo Prado', 'Quinta Normal', 'Pudahuel', 'Cerro Navia', 'Lo Barnechea', 'Vitacura', 'Macul', 'San Joaquín', 'La Granja', 'La Pintana', 'San Ramón', 'San Miguel', 'La Cisterna', 'El Bosque', 'Pedro Aguirre Cerda', 'Lo Espejo', 'PAC', 'San Bernardo', 'Puente Alto', 'Pirque', 'San José de Maipo', 'Colina', 'Lampa', 'Tiltil', 'Padre Hurtado', 'Peñaflor', 'Talagante', 'El Monte', 'Isla de Maipo', 'Curacaví', 'María Pinto', 'Melipilla', 'Alhué', 'San Pedro', 'Buin', 'Paine', 'Calera de Tango'],
   'Valparaíso': ['Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana', 'Casablanca', 'Isla de Pascua', 'San Antonio', 'Cartagena', 'Con-Con'],
   'Antofagasta': ['Antofagasta', 'Calama', 'Tocopilla', 'Mejillones', 'San Pedro de Atacama', 'Taltal'],
   'Arica y Parinacota': ['Arica', 'Putre', 'Camarones', 'General Lagos'],
   'Tarapacá': ['Iquique', 'Alto Hospicio', 'Pozo Almonte', 'Pica', 'Huara', 'Camiña', 'Colchane'],
   'Atacama': ['Copiapó', 'Caldera', 'Chañaral', 'Diego de Almagro', 'Vallenar', 'Huasco'],
   'Coquimbo': ['La Serena', 'Coquimbo', 'Ovalle', 'Illapel', 'Vicuña', 'Andacollo'],
-   'O\'Higgins': [
-    'Rancagua', 'Machalí', 'Graneros', 'Codegua', 'Requínoa', 'Doñihue', 
-    'Coltauco', 'Coinco', 'Olivar', 'Mostazal', 'San Vicente', 'Pichidegua',
-    'Peumo', 'Las Cabras', 'San Fernando', 'Chimbarongo', 'Placilla', 
-    'Nancagua', 'Chépica', 'Santa Cruz', 'Lolol', 'Pumanque', 'Palmilla',
-    'Peralillo', 'Rengo', 'Malloa', 'Quinta de Tilcoco', 'Pichilemu',
-    'Navidad', 'Litueche', 'La Estrella', 'Marchihue', 'Paredones'
-  ],
-  'Maule': [
-    'Talca', 'Constitución', 'Curepto', 'Empedrado', 'Maule', 'Pelarco',
-    'Pencahue', 'Río Claro', 'San Clemente', 'San Rafael', 'Cauquenes',
-    'Chanco', 'Pelluhue', 'Curicó', 'Hualañé', 'Licantén', 'Molina',
-    'Rauco', 'Romeral', 'Sagrada Familia', 'Teno', 'Vichuquén', 'Linares',
-    'Colbún', 'Longaví', 'Parral', 'Retiro', 'San Javier', 'Villa Alegre',
-    'Yerbas Buenas'
-  ],
-  'Ñuble': [
-    'Chillán', 'Chillán Viejo', 'Bulnes', 'Cobquecura', 'Coelemu', 'Coihueco',
-    'El Carmen', 'Ninhue', 'Ñiquén', 'Pemuco', 'Pinto', 'Portezuelo',
-    'Quillón', 'Quirihue', 'Ránquil', 'San Carlos', 'San Fabián', 'San Ignacio',
-    'San Nicolás', 'Treguaco', 'Yungay'
-  ],
-  'Biobío': [
-    'Concepción', 'Coronel', 'Chiguayante', 'Florida', 'Hualqui', 'Lota',
-    'Penco', 'San Pedro de la Paz', 'Santa Juana', 'Talcahuano', 'Tomé',
-    'Hualpén', 'Lebu', 'Arauco', 'Cañete', 'Contulmo', 'Curanilahue',
-    'Los Álamos', 'Tirúa', 'Los Ángeles', 'Antuco', 'Cabrero', 'Laja',
-    'Mulchén', 'Nacimiento', 'Negrete', 'Quilaco', 'Quilleco', 'San Rosendo',
-    'Santa Bárbara', 'Tucapel', 'Yumbel', 'Alto Biobío'
-  ],
-  'Araucanía': [
-    'Temuco', 'Carahue', 'Cunco', 'Curarrehue', 'Freire', 'Galvarino',
-    'Gorbea', 'Lautaro', 'Loncoche', 'Melipeuco', 'Nueva Imperial', 'Padre Las Casas',
-    'Perquenco', 'Pitrufquén', 'Pucón', 'Saavedra', 'Teodoro Schmidt', 'Toltén',
-    'Vilcún', 'Villarrica', 'Cholchol', 'Angol', 'Collipulli', 'Curacautín',
-    'Ercilla', 'Lonquimay', 'Los Sauces', 'Lumaco', 'Purén', 'Renaico',
-    'Traiguén', 'Victoria'
-  ],
-  'Los Ríos': [
-    'Valdivia', 'Corral', 'Lanco', 'Los Lagos', 'Máfil', 'Mariquina',
-    'Paillaco', 'Panguipulli', 'La Unión', 'Futrono', 'Lago Ranco', 'Río Bueno'
-  ],
-  'Los Lagos': [
-    'Puerto Montt', 'Calbuco', 'Cochamó', 'Fresia', 'Frutillar', 'Los Muermos',
-    'Llanquihue', 'Maullín', 'Puerto Varas', 'Castro', 'Ancud', 'Chonchi',
-    'Curaco de Vélez', 'Dalcahue', 'Puqueldón', 'Queilén', 'Quellón', 'Quemchi',
-    'Quinchao', 'Osorno', 'Puerto Octay', 'Purranque', 'Puyehue', 'Río Negro',
-    'San Juan de la Costa', 'San Pablo', 'Chaitén', 'Futaleufú', 'Hualaihué',
-    'Palena'
-  ],
-  'Aysén': [
-    'Coyhaique', 'Lago Verde', 'Aysén', 'Cisnes', 'Guaitecas', 'Cochrane',
-    'O\'Higgins', 'Tortel', 'Chile Chico', 'Río Ibáñez'
-  ],
-  'Magallanes': [
-    'Punta Arenas', 'Laguna Blanca', 'Río Verde', 'San Gregorio', 'Cabo de Hornos',
-    'Antártica', 'Porvenir', 'Primavera', 'Timaukel', 'Natales', 'Torres del Paine'
-  ],
+  'O\'Higgins': ['Rancagua', 'Machalí', 'Graneros', 'Codegua', 'Requínoa', 'Doñihue', 'Coltauco', 'Coinco', 'Olivar', 'Mostazal', 'San Vicente', 'Pichidegua', 'Peumo', 'Las Cabras', 'San Fernando', 'Chimbarongo', 'Placilla', 'Nancagua', 'Chépica', 'Santa Cruz', 'Lolol', 'Pumanque', 'Palmilla', 'Peralillo', 'Rengo', 'Malloa', 'Quinta de Tilcoco', 'Pichilemu', 'Navidad', 'Litueche', 'La Estrella', 'Marchihue', 'Paredones'],
+  'Maule': ['Talca', 'Constitución', 'Curepto', 'Empedrado', 'Maule', 'Pelarco', 'Pencahue', 'Río Claro', 'San Clemente', 'San Rafael', 'Cauquenes', 'Chanco', 'Pelluhue', 'Curicó', 'Hualañé', 'Licantén', 'Molina', 'Rauco', 'Romeral', 'Sagrada Familia', 'Teno', 'Vichuquén', 'Linares', 'Colbún', 'Longaví', 'Parral', 'Retiro', 'San Javier', 'Villa Alegre', 'Yerbas Buenas'],
+  'Ñuble': ['Chillán', 'Chillán Viejo', 'Bulnes', 'Cobquecura', 'Coelemu', 'Coihueco', 'El Carmen', 'Ninhue', 'Ñiquén', 'Pemuco', 'Pinto', 'Portezuelo', 'Quillón', 'Quirihue', 'Ránquil', 'San Carlos', 'San Fabián', 'San Ignacio', 'San Nicolás', 'Treguaco', 'Yungay'],
+  'Biobío': ['Concepción', 'Talcahuano', 'Hualpén', 'Chiguayante', 'San Pedro de la Paz', 'Penco', 'Tomé', 'Coronel', 'Lota', 'Hualqui', 'Santa Juana', 'Laja', 'Quilleco', 'Cabrero', 'Yumbel', 'Tucapel', 'Antuco', 'San Rosendo', 'Los Ángeles', 'Nacimiento', 'Negrete', 'Mulchén', 'Quilaco', 'Santa Bárbara', 'Lebu', 'Arauco', 'Curanilahue', 'Los Álamos', 'Cañete', 'Contulmo', 'Tirúa'],
+  'Araucanía': ['Temuco', 'Padre Las Casas', 'Lautaro', 'Perquenco', 'Vilcún', 'Cunco', 'Melipeuco', 'Curarrehue', 'Pucón', 'Villarrica', 'Freire', 'Pitrufquén', 'Gorbea', 'Loncoche', 'Toltén', 'Teodoro Schmidt', 'Saavedra', 'Carahue', 'Nueva Imperial', 'Cholchol', 'Galvarino', 'Ercilla', 'Collipulli', 'Lonquimay', 'Curacautín', 'Victoria', 'Traiguén', 'Lumaco', 'Purén', 'Los Sauces', 'Angol', 'Renaico'],
+  'Los Ríos': ['Valdivia', 'Mariquina', 'Lanco', 'Los Lagos', 'Futrono', 'Río Bueno', 'La Unión', 'Paillaco', 'Corral', 'Máfil', 'Panguipulli', 'Lago Ranco'],
+  'Los Lagos': ['Puerto Montt', 'Puerto Varas', 'Osorno', 'Castro', 'Ancud', 'Quellón', 'Chonchi', 'Dalcahue', 'Puqueldón', 'Quemchi', 'Quinchao', 'Curaco de Vélez', 'Calbuco', 'Cochamó', 'Fresia', 'Frutillar', 'Llanquihue', 'Los Muermos', 'Maullín', 'San Juan de la Costa', 'San Pablo', 'Purranque', 'Puyehue', 'Río Negro', 'Puerto Octay', 'Chaitén', 'Futaleufú', 'Hualaihué', 'Palena'],
+  'Aysén': ['Coyhaique', 'Aysén', 'Chile Chico', 'Cisnes', 'Cochrane', 'Guaitecas', 'Lago Verde', 'O\'Higgins', 'Río Ibáñez', 'Tortel'],
+  'Magallanes': ['Punta Arenas', 'Puerto Natales', 'Porvenir', 'Primavera', 'Timaukel', 'Cabo de Hornos', 'Antártica', 'Laguna Blanca', 'Río Verde', 'San Gregorio', 'Torres del Paine']
 }
-
