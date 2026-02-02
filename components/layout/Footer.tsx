@@ -169,6 +169,15 @@ export function Footer() {
           <span className="text-xs mt-1 text-white font-medium">Más</span>
         </Link>
 
+      <div className="text-center text-xs text-gray-500 mt-4">
+  <a href="/privacidad" className="hover:text-gray-700 underline">
+    Privacidad
+  </a>
+  {' · '}
+  <a href="/terminos" className="hover:text-gray-700 underline">
+    Términos
+  </a>
+</div>
       </div>
     </footer>
   )
