@@ -1,3 +1,5 @@
+## app/dashboard/aprobar/[id]/page.tsx
+```tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -5,8 +7,6 @@ import { useAuth } from '@/components/auth/AuthProvider'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIAS, TIPOLOGIAS, CULTURAS, PERIODOS, ESTADO_CONSERVACION } from '@/lib/constants/tipologias'
-import { ORIGEN_ACCESO, NIVEL_ACCESIBILIDAD } from '@/lib/constants/accesibilidad'
-import { calcularCodigoAccesibilidad } from '@/lib/utils/accesibilidad'
 
 const supabase = createClient()
 
@@ -30,10 +30,6 @@ interface ReporteCompleto {
   recinto_privado: boolean
   estado_validacion: string
   timestamp_creado: string
-  // Campos nuevos v0.4
-  origen_acceso: string
-  nivel_accesibilidad: string
-  codigo_accesibilidad: string | null
 }
 
 interface Foto {
@@ -118,9 +114,6 @@ export default function AprobarReportePage() {
           nivel_acceso: formData.nivel_acceso,
           amenazas: formData.amenazas,
           recinto_privado: formData.recinto_privado,
-          // Campos nuevos v0.4
-          origen_acceso: formData.origen_acceso,
-          nivel_accesibilidad: formData.nivel_accesibilidad,
         })
         .eq('id_reporte', id)
 
@@ -135,49 +128,23 @@ export default function AprobarReportePage() {
   }
 
   async function handlePublicar() {
-    // Validación de campos requeridos
-    if (!formData.nombre_reporte || !formData.region || !formData.categoria_general) {
-      alert('⚠️ Faltan campos obligatorios: Nombre, Región y Categoría')
-      return
-    }
-
-    if (!formData.origen_acceso || !formData.nivel_accesibilidad) {
-      alert('⚠️ Debes definir Origen de Acceso y Nivel de Accesibilidad antes de publicar')
-      return
-    }
-
     if (!confirm('¿Publicar este reporte? Pasará a estado VERDE y será visible en el mapa público')) return
 
     try {
       setGuardando(true)
-
-      // Calcular código de accesibilidad
-      const codigo = calcularCodigoAccesibilidad(
-        formData.origen_acceso as 'publico' | 'privado',
-        formData.nivel_accesibilidad as 'abierto' | 'controlado' | 'protegido' | 'restringido'
-      )
-
-      // Actualizar reporte con todos los campos
       const { error: updateError } = await supabase
         .from('reportes_nuevos')
         .update({
           estado_validacion: 'verde',
-          codigo_accesibilidad: codigo,
-          id_usuario_publico: usuario?.id_usuario,
-          timestamp_publicacion: new Date().toISOString(),
-          // Asegurar que los campos de accesibilidad estén actualizados
-          origen_acceso: formData.origen_acceso,
-          nivel_accesibilidad: formData.nivel_accesibilidad,
         })
         .eq('id_reporte', id)
 
       if (updateError) throw updateError
-
-      alert(`✓ Reporte PUBLICADO → VERDE (Código: ${codigo})`)
+      alert('✓ Reporte PUBLICADO → VERDE')
       router.push('/dashboard/aprobar')
     } catch (err) {
       console.error('Error publicando:', err)
-      setError('Error al publicar reporte: ' + (err as Error).message)
+      setError('Error al publicar reporte')
     } finally {
       setGuardando(false)
     }
@@ -202,7 +169,7 @@ export default function AprobarReportePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 pb-20">
       <div className="max-w-4xl mx-auto space-y-6">
-
+        
         {/* Header */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
@@ -251,7 +218,7 @@ export default function AprobarReportePage() {
 
         {/* Formulario Editable */}
         <div className="bg-white rounded-lg shadow p-6 space-y-6">
-
+          
           {/* Ubicación */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">Ubicación</h3>
@@ -417,73 +384,17 @@ export default function AprobarReportePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nivel Acceso (deprecado)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nivel Acceso</label>
                 <select
                   value={formData.nivel_acceso || 'resguardado'}
                   onChange={(e) => setFormData({ ...formData, nivel_acceso: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-gray-50"
-                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
                   <option value="resguardado" className="text-gray-900">Resguardado</option>
                   <option value="restringido_autorizacion" className="text-gray-900">Restringido (autorización)</option>
                   <option value="prohibido" className="text-gray-900">Prohibido</option>
                 </select>
               </div>
-            </div>
-          </div>
-
-          {/* NUEVA SECCIÓN: Accesibilidad v0.4 */}
-          <div className="border-2 border-green-200 bg-green-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-green-300">
-              🆕 Control de Accesibilidad (v0.4)
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Origen de Acceso *
-                </label>
-                <select
-                  value={formData.origen_acceso || 'publico'}
-                  onChange={(e) => setFormData({ ...formData, origen_acceso: e.target.value })}
-                  className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
-                >
-                  {ORIGEN_ACCESO.map((origen) => (
-                    <option key={origen} value={origen} className="text-gray-900">
-                      {origen === 'publico' ? 'Público' : 'Privado'}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-600 mt-1">
-                  ¿El sitio está en terreno público o privado?
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nivel de Accesibilidad *
-                </label>
-                <select
-                  value={formData.nivel_accesibilidad || 'abierto'}
-                  onChange={(e) => setFormData({ ...formData, nivel_accesibilidad: e.target.value })}
-                  className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
-                >
-                  {NIVEL_ACCESIBILIDAD.map((nivel) => (
-                    <option key={nivel} value={nivel} className="text-gray-900">
-                      {nivel.charAt(0).toUpperCase() + nivel.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-600 mt-1">
-                  Define quién puede ver este sitio en el mapa
-                </p>
-              </div>
-            </div>
-            <div className="mt-3 bg-white rounded border border-green-300 p-3">
-              <p className="text-xs font-semibold text-gray-700 mb-1">Guía rápida:</p>
-              <ul className="text-xs text-gray-600 space-y-1">
-                <li><strong>Abierto/Controlado → A:</strong> Verde oscuro, visible para todos</li>
-                <li><strong>Protegido → B:</strong> Azul gris, área difusa para público, preciso para expertos</li>
-                <li><strong>Restringido → C:</strong> Gris oscuro, solo visible para expertos</li>
-              </ul>
             </div>
           </div>
 
@@ -537,3 +448,4 @@ export default function AprobarReportePage() {
     </div>
   )
 }
+```

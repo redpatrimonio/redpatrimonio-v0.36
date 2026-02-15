@@ -1,0 +1,36 @@
+## package.json
+```json
+{
+  "name": "redpatrimonio-v03",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@react-leaflet/core": "^2.1.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.90.1",
+    "leaflet": "^1.9.4",
+    "next": "14.2.35",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-leaflet": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8",
+    "supabase": "^2.72.8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
+```

@@ -1,0 +1,3 @@
+## types/reporte.ts
+```typescript
+```
