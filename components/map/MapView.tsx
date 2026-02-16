@@ -81,9 +81,9 @@ export function MapView() {
 
       // Filtrar según rol del usuario
       const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
-const sitiosFiltrados = (data || []).filter(sitio => 
-  puedeVerSitio(sitio.codigo_accesibilidad as 'A' | 'B' | 'C', rolUsuario)
-)
+      const sitiosFiltrados = (data || []).filter(sitio => 
+        puedeVerSitio(sitio.codigo_accesibilidad as 'A' | 'B' | 'C', rolUsuario)
+      )
 
       setSitios(sitiosFiltrados)
     } catch (error) {
