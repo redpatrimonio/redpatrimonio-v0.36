@@ -501,15 +501,6 @@ export default function AprobarReportePage() {
                   placeholder="Describe amenazas o riesgos específicos..."
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.recinto_privado || false}
-                  onChange={(e) => setFormData({ ...formData, recinto_privado: e.target.checked })}
-                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <label className="text-sm text-gray-700">Sitio en recinto privado</label>
-              </div>
             </div>
           </div>
 
