@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import { esExpertoOMas, esPartnerOMas, esFounder } from '@/lib/utils/role'
 import { AgregarInfoContactoModal } from '@/components/modals/AgregarInfoContactoModal'
 
-
 const supabase = createClient()
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +26,6 @@ interface SolicitudConDatos {
   solicitante_nombre?: string
   solicitante_email?: string
 }
-const [modalAprobar, setModalAprobar] = useState<{ id_solicitud: string; id_sitio: string; nombre_sitio: string } | null>(null)
 
 export default function PerfilPage() {
   const { user, usuario, loading, signOut } = useAuth()
@@ -36,6 +34,7 @@ export default function PerfilPage() {
   const [solicitudesPendientes, setSolicitudesPendientes] = useState<SolicitudConDatos[]>([])
   const [misSolicitudes, setMisSolicitudes] = useState<SolicitudConDatos[]>([])
   const [loadingSolicitudes, setLoadingSolicitudes] = useState(true)
+  const [modalAprobar, setModalAprobar] = useState<{ id_solicitud: string; id_sitio: string; nombre_sitio: string } | null>(null)
 
   useEffect(() => {
     if (user && usuario) {
