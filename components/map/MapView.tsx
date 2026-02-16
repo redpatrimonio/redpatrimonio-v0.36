@@ -59,7 +59,7 @@ interface SitioMapa {
 }
 
 export function MapView() {
-  const { usuario } = useAuth()
+  const { usuario, loading: authLoading } = useAuth()
   const [sitios, setSitios] = useState<SitioMapa[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -84,6 +84,13 @@ export function MapView() {
         )
       )
 
+      console.log('🗺️ MapView Debug:', {
+        totalSitios: data?.length,
+        sitiosFiltrados: sitiosFiltrados.length,
+        rolUsuario,
+        usuarioCompleto: usuario
+      })
+
       setSitios(sitiosFiltrados)
     } catch (error) {
       console.error('Error fetching sitios:', error)
@@ -93,8 +100,11 @@ export function MapView() {
   }
 
   useEffect(() => {
-    fetchSitios()
-  }, [usuario])
+    // ✅ ESPERAR a que termine de cargar el usuario
+    if (!authLoading) {
+      fetchSitios()
+    }
+  }, [usuario, authLoading])
 
   function getIconoPorNivel(nivel: string) {
     switch (nivel) {
@@ -120,7 +130,7 @@ export function MapView() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
