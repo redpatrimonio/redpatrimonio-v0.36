@@ -16,50 +16,45 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 })
 
-// Iconos personalizados por código
-const iconoA = new L.Icon({
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+// Iconos personalizados por nivel de accesibilidad
+const iconoVerde = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-  className: 'marker-verde-oscuro'
+  shadowSize: [41, 41]
 })
 
-const iconoB = new L.Icon({
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+const iconoAzul = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-  className: 'marker-cafe'
+  shadowSize: [41, 41]
 })
 
-const iconoC = new L.Icon({
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+const iconoGris = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-  className: 'marker-gris'
+  shadowSize: [41, 41]
 })
 
 interface SitioMapa {
-  id_sitio: string
-  nombre_sitio: string
-  alias_local: string | null
+  id_reporte: string
+  nombre_reporte: string
   latitud: number
   longitud: number
-  region: string
-  comuna: string
-  descripcion_breve: string
-  categoria_general: string
+  region: string | null
+  comuna: string | null
+  descripcion_ubicacion: string | null
+  categoria_general: string | null
+  origen_acceso: string
+  nivel_accesibilidad: string
   codigo_accesibilidad: string
 }
 
@@ -72,10 +67,11 @@ export function MapView() {
   async function fetchSitios() {
     try {
       const { data, error } = await supabase
-        .from('sitios_master')
-        .select('id_sitio, nombre_sitio, alias_local, latitud, longitud, region, comuna, descripcion_breve, categoria_general, codigo_accesibilidad')
+        .from('reportes_nuevos')
+        .select('id_reporte, nombre_reporte, latitud, longitud, region, comuna, descripcion_ubicacion, categoria_general, origen_acceso, nivel_accesibilidad, codigo_accesibilidad')
         .eq('estado_validacion', 'verde')
-        .order('nombre_sitio')
+        .not('codigo_accesibilidad', 'is', null)
+        .order('nombre_reporte')
 
       if (error) throw error
 
@@ -100,21 +96,27 @@ export function MapView() {
     fetchSitios()
   }, [usuario])
 
-  function getIconoPorCodigo(codigo: string) {
-    switch (codigo) {
-      case 'A': return iconoA
-      case 'B': return iconoB
-      case 'C': return iconoC
-      default: return iconoA
+  function getIconoPorNivel(nivel: string) {
+    switch (nivel) {
+      case 'abierto':
+      case 'controlado':
+        return iconoVerde
+      case 'protegido':
+        return iconoAzul
+      case 'restringido':
+        return iconoGris
+      default:
+        return iconoVerde
     }
   }
 
-  function getColorBadge(codigo: string) {
-    switch (codigo) {
-      case 'A': return 'bg-green-700 text-white'
-      case 'B': return 'bg-yellow-700 text-white'
-      case 'C': return 'bg-gray-500 text-white'
-      default: return 'bg-gray-400 text-white'
+  function getNivelTexto(nivel: string) {
+    switch (nivel) {
+      case 'abierto': return 'Abierto'
+      case 'controlado': return 'Controlado'
+      case 'protegido': return 'Protegido'
+      case 'restringido': return 'Restringido'
+      default: return nivel
     }
   }
 
@@ -144,64 +146,42 @@ export function MapView() {
 
         {sitios.map((sitio) => (
           <Marker 
-            key={sitio.id_sitio} 
+            key={sitio.id_reporte} 
             position={[sitio.latitud, sitio.longitud]}
-            icon={getIconoPorCodigo(sitio.codigo_accesibilidad)}
+            icon={getIconoPorNivel(sitio.nivel_accesibilidad)}
           >
             <Popup>
-              <div className="min-w-[200px]">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-base flex-1">{sitio.nombre_sitio}</h3>
-                  <span className={'text-xs px-2 py-1 rounded ml-2 ' + getColorBadge(sitio.codigo_accesibilidad)}>
-                    {sitio.codigo_accesibilidad}
-                  </span>
+              <div className="min-w-[220px]">
+                <h3 className="font-bold text-base mb-2">{sitio.nombre_reporte}</h3>
+
+                <div className="text-sm space-y-1 mb-3">
+                  {sitio.descripcion_ubicacion && (
+                    <p className="text-gray-700 italic">{sitio.descripcion_ubicacion}</p>
+                  )}
+                  {sitio.region && sitio.comuna && (
+                    <p className="text-gray-600">📍 {sitio.region}, {sitio.comuna}</p>
+                  )}
+                  {sitio.categoria_general && (
+                    <p className="text-gray-600">🏛️ {sitio.categoria_general}</p>
+                  )}
                 </div>
 
-                {sitio.alias_local && (
-                  <p className="text-sm text-gray-600 italic mb-2">
-                    &quot;{sitio.alias_local}&quot;
-                  </p>
-                )}
-
-                <p className="text-sm text-gray-700 mb-2">{sitio.descripcion_breve}</p>
-
-                <div className="text-xs text-gray-500 mb-2">
-                  <p>📍 {sitio.region}, {sitio.comuna}</p>
-                  <p>🏛️ {sitio.categoria_general}</p>
+                <div className="mb-3 pb-2 border-t pt-2">
+                  <p className="text-xs font-semibold text-gray-700">Nivel de Acceso:</p>
+                  <p className="text-sm font-medium text-gray-900">{getNivelTexto(sitio.nivel_accesibilidad)}</p>
                 </div>
 
                 <button
-                  onClick={() => window.open('/sitio/' + sitio.id_sitio, '_blank')}
-                  className="text-sm bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 transition w-full"
+                  onClick={() => window.open('/sitio/' + sitio.id_reporte, '_blank')}
+                  className="text-sm bg-green-700 text-white px-3 py-1.5 rounded hover:bg-green-800 transition w-full"
                 >
-                  Ver detalle →
+                  Ver ficha completa →
                 </button>
               </div>
             </Popup>
           </Marker>
         ))}
       </MapContainer>
-
-      {/* Leyenda */}
-      <div className="absolute bottom-6 right-6 bg-white rounded-lg shadow-lg p-4 z-[1000]">
-        <h4 className="font-semibold text-sm mb-2 text-gray-900">Código de Acceso</h4>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-700 rounded-full"></div>
-            <span className="text-gray-700">A - Abierto/Controlado</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-yellow-700 rounded-full"></div>
-            <span className="text-gray-700">B - Protegido</span>
-          </div>
-          {usuario?.rol && ['experto', 'partner', 'founder'].includes(usuario.rol) && (
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-              <span className="text-gray-700">C - Restringido</span>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
