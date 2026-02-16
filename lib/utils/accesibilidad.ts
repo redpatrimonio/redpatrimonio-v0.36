@@ -1,78 +1,51 @@
-// lib/utils/accesibilidad.ts
-// Funciones helper para el sistema de accesibilidad v0.4
-
-import type { OrigenAcceso, NivelAccesibilidad, CodigoAccesibilidad } from '@/lib/constants/accesibilidad';
-
-/**
- * Calcula el código de accesibilidad (A/B/C) basado en origen y nivel
- * 
- * @param origen_acceso - 'publico' | 'privado'
- * @param nivel_accesibilidad - 'abierto' | 'controlado' | 'protegido' | 'restringido'
- * @returns 'A' | 'B' | 'C'
- */
+// Calcular código de accesibilidad A/B/C
 export function calcularCodigoAccesibilidad(
-  origen_acceso: OrigenAcceso,
-  nivel_accesibilidad: NivelAccesibilidad
-): CodigoAccesibilidad {
-  // A: Abierto o Controlado (independiente del origen)
-  if (nivel_accesibilidad === 'abierto' || nivel_accesibilidad === 'controlado') {
-    return 'A';
+  origenAcceso: 'publico' | 'privado',
+  nivelAccesibilidad: 'abierto' | 'controlado' | 'protegido' | 'restringido'
+): 'A' | 'B' | 'C' {
+  if (nivelAccesibilidad === 'abierto' || nivelAccesibilidad === 'controlado') {
+    return 'A'
   }
-  
-  // B: Protegido (requiere mostrar área difusa a público)
-  if (nivel_accesibilidad === 'protegido') {
-    return 'B';
+  if (nivelAccesibilidad === 'protegido') {
+    return 'B'
   }
-  
-  // C: Restringido (solo experto+)
-  return 'C';
+  return 'C' // restringido
 }
 
-/**
- * Determina si un usuario puede ver un sitio según su rol y el código de accesibilidad
- * 
- * @param codigo_accesibilidad - 'A' | 'B' | 'C'
- * @param rol_usuario - 'publico' | 'experto' | 'partner' | 'founder' | null (sin login)
- * @returns true si puede ver el sitio, false si no
- */
+// Determinar si un usuario puede ver un sitio según su código
 export function puedeVerSitio(
-  codigo_accesibilidad: CodigoAccesibilidad,
-  rol_usuario: 'publico' | 'experto' | 'partner' | 'founder' | null
+  codigoAccesibilidad: 'A' | 'B' | 'C',
+  rolUsuario: 'publico' | 'experto' | 'partner' | 'founder' | null
 ): boolean {
-  // Sin login: solo código A
-  if (!rol_usuario) {
-    return codigo_accesibilidad === 'A';
+  // SIN LOGIN: Solo código A
+  if (!rolUsuario) {
+    return codigoAccesibilidad === 'A'
   }
-  
-  // Usuario público logueado: A y B
-  if (rol_usuario === 'publico') {
-    return codigo_accesibilidad === 'A' || codigo_accesibilidad === 'B';
+
+  // PÚBLICO LOGUEADO: A y B
+  if (rolUsuario === 'publico') {
+    return codigoAccesibilidad === 'A' || codigoAccesibilidad === 'B'
   }
-  
-  // Experto, Partner, Founder: todos (A, B, C)
-  return true;
+
+  // EXPERTO/PARTNER/FOUNDER: A, B y C
+  return true
 }
 
-/**
- * Determina si un usuario puede ver coordenadas exactas de un sitio
- * 
- * @param codigo_accesibilidad - 'A' | 'B' | 'C'
- * @param rol_usuario - 'publico' | 'experto' | 'partner' | 'founder' | null
- * @returns true si puede ver coordenadas exactas, false si solo área aproximada
- */
+// Determinar si puede ver coordenadas exactas
 export function puedeVerCoordenadasExactas(
-  codigo_accesibilidad: CodigoAccesibilidad,
-  rol_usuario: 'publico' | 'experto' | 'partner' | 'founder' | null
+  codigoAccesibilidad: 'A' | 'B' | 'C',
+  rolUsuario: 'publico' | 'experto' | 'partner' | 'founder' | null
 ): boolean {
-  // Código A: todos ven coordenadas exactas
-  if (codigo_accesibilidad === 'A') {
-    return true;
+  // Solo expertos ven coordenadas de C
+  if (codigoAccesibilidad === 'C') {
+    return rolUsuario === 'experto' || rolUsuario === 'partner' || rolUsuario === 'founder'
   }
-  
-  // Código B o C: solo experto+
-  if (rol_usuario && ['experto', 'partner', 'founder'].includes(rol_usuario)) {
-    return true;
+
+  // B: Expertos ven coordenadas exactas, públicos NO
+  if (codigoAccesibilidad === 'B') {
+    return rolUsuario === 'experto' || rolUsuario === 'partner' || rolUsuario === 'founder'
   }
-  
-  return false;
+
+  // A: Todos ven coordenadas exactas
+  return true
 }
