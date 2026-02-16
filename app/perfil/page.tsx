@@ -7,7 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 import { esExpertoOMas, esPartnerOMas, esFounder } from '@/lib/utils/role'
 import { AgregarInfoContactoModal } from '@/components/modals/AgregarInfoContactoModal'
 
+
 const supabase = createClient()
+
+export const dynamic = 'force-dynamic'
 
 interface SolicitudConDatos {
   id_solicitud: string
