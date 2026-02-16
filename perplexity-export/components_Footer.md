@@ -1,3 +1,0 @@
-## components/Footer.tsx
-```tsx
-```

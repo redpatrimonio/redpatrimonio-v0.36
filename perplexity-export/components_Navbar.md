@@ -1,3 +1,0 @@
-## components/Navbar.tsx
-```tsx
-```

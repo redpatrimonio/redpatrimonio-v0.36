@@ -1,0 +1,76 @@
+## app/globals.css
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
+/* Fix z-index para Leaflet map */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-pane {
+  z-index: 400 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 500 !important;
+}
+
+/* Asegurar que navbar y footer estén arriba */
+nav {
+  z-index: 1000 !important;
+}
+
+footer {
+  z-index: 1000 !important;
+}
+
+/* SOLO mejora de legibilidad SIN romper nada */
+input::placeholder,
+textarea::placeholder,
+select option:first-child {
+  color: #6B7280 !important;
+}
+
+/* Iconos personalizados Leaflet v0.4 */
+.marker-verde-oscuro {
+  filter: hue-rotate(0deg) saturate(150%);
+}
+
+.marker-cafe {
+  filter: hue-rotate(25deg) saturate(120%) brightness(80%);
+}
+
+.marker-gris {
+  filter: grayscale(100%) brightness(70%);
+}
+```
