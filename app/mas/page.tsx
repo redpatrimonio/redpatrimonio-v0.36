@@ -27,7 +27,6 @@ export default function MasPage() {
           </h2>
           
           <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-            {/* Botón Buenas Prácticas */}
             <Link 
               href="/mas/buenas-practicas"
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition group"
@@ -49,7 +48,6 @@ export default function MasPage() {
               </div>
             </Link>
 
-            {/* Botón Contacto */}
             <Link 
               href="/mas/contacto"
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition group"
@@ -80,7 +78,6 @@ export default function MasPage() {
           </h2>
           
           <div className="space-y-6">
-            {/* Rutas de Nuestra Geografia Sagrada */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative w-48 h-24">
@@ -106,7 +103,6 @@ export default function MasPage() {
               </div>
             </div>
 
-            {/* Sociedad Chilena de Historia y Geografia */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative w-48 h-24">
@@ -132,7 +128,6 @@ export default function MasPage() {
               </div>
             </div>
 
-            {/* Consejo de Monumentos */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative w-48 h-24">
@@ -156,6 +151,29 @@ export default function MasPage() {
                   Ir a página
                 </a>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── SECCIÓN LEGAL ── */}
+        <section className="border-t border-gray-200 pt-8 pb-4">
+          <div className="text-center space-y-2">
+            <p className="text-xs text-gray-400">
+              © {new Date().getFullYear()} Red Patrimonio Chile
+            </p>
+            <div className="flex justify-center gap-6">
+              <Link
+                href="/terminos"
+                className="text-xs text-gray-400 hover:text-gray-600 underline transition"
+              >
+                Términos de Servicio
+              </Link>
+              <Link
+                href="/privacidad"
+                className="text-xs text-gray-400 hover:text-gray-600 underline transition"
+              >
+                Política de Privacidad
+              </Link>
             </div>
           </div>
         </section>
