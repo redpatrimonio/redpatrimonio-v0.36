@@ -178,7 +178,7 @@ export function MapView() {
             }
 
             // Para B y C: lógica de zoom
-            // zoom >= 10: solo marcador
+            // zoom >= 15: solo marcador
             // zoom 5–9: solo área
             // zoom < 5: nada
 
@@ -188,8 +188,8 @@ export function MapView() {
 
             return (
               <div key={sitio.id_reporte}>
-                {/* Marcador: zoom >= 10 */}
-                {zoomActual >= 10 && (
+                {/* Marcador: zoom >= 15 */}
+                {zoomActual >= 15 && (
                   <Marker
                     position={coords}
                     icon={getIconoPorCodigo(codigo)}
@@ -213,8 +213,8 @@ export function MapView() {
                   </Marker>
                 )}
 
-                {/* Área: zoom 5–9 */}
-                {zoomActual >= 5 && zoomActual < 10 && (
+                {/* Área: zoom 10-15 */}
+                {zoomActual >= 10 && zoomActual < 15 && (
                   <Circle
                     center={coords}
                     radius={300}
@@ -222,7 +222,7 @@ export function MapView() {
                       color: colorArea.color,
                       fillColor: colorArea.fillColor,
                       fillOpacity: 0.25,
-                      weight: 1.5,
+                      stroke: false,
                     }}
                     eventHandlers={{
                       click: () => setSitioSeleccionado(sitio.id_reporte)
