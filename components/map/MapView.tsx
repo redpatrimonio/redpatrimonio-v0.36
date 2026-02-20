@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, ZoomControl } from 'react-leaflet'
+import { useEffect, useRef, useState } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { FichaSitioModal } from '@/components/modals/FichaSitioModal'
@@ -9,7 +9,6 @@ import { puedeVerSitio, puedeVerCoordenadasExactas } from '@/lib/utils/accesibil
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Fix iconos Leaflet default
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -28,15 +27,14 @@ interface SitioMapa {
   codigo_accesibilidad: 'A' | 'B' | 'C'
 }
 
-// ── SVG Pin 35px para marcadores ──────────────────────────────
+// ── SVG Pin con stroke blanco + círculo interior ──────────────
 function crearIconoPin(color: string): L.DivIcon {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="23" height="35">
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z"
-        fill="${color}"/>
-      <circle cx="12" cy="12" r="4.5" fill="white" opacity="0.65"/>
-    </svg>
-  `
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="23" height="35">
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z"
+      fill="${color}" stroke="white" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="4.5"
+      fill="white" fill-opacity="0.55" stroke="white" stroke-width="1"/>
+  </svg>`
   return L.divIcon({
     className: '',
     html: svg,
@@ -46,44 +44,24 @@ function crearIconoPin(color: string): L.DivIcon {
   })
 }
 
-// ── DivIcon circular 30px para área difusa ────────────────────
+// ── DivIcon circular 30px sin stroke ─────────────────────────
 function crearIconoArea(color: string): L.DivIcon {
   return L.divIcon({
     className: '',
-    html: `<div style="
-      width:30px;
-      height:30px;
-      border-radius:50%;
-      background-color:${color};
-      opacity:0.4;
-      cursor:pointer;
-    "></div>`,
+    html: `<div style="width:30px;height:30px;border-radius:50%;background-color:${color};opacity:0.4;cursor:pointer;"></div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
     popupAnchor: [0, -16],
   })
 }
 
-// Iconos pin por código
-const pinA = crearIconoPin('#526A3A')   // verde terroso
-const pinB = crearIconoPin('#2563eb')   // azul
-const pinC = crearIconoPin('#374151')   // gris oscuro
+const pinA  = crearIconoPin('#526A3A')  // verde terroso
+const pinB  = crearIconoPin('#2563eb')  // azul
+const pinC  = crearIconoPin('#374151')  // gris oscuro
+const areaB = crearIconoArea('#3b82f6') // azul difuso
+const areaC = crearIconoArea('#374151') // gris difuso
 
-// Iconos área por código
-const areaB = crearIconoArea('#3b82f6') // azul claro
-const areaC = crearIconoArea('#374151') // gris oscuro
-
-function getPinPorCodigo(codigo: 'A' | 'B' | 'C'): L.DivIcon {
-  if (codigo === 'A') return pinA
-  if (codigo === 'B') return pinB
-  return pinC
-}
-
-function getAreaPorCodigo(codigo: 'B' | 'C'): L.DivIcon {
-  return codigo === 'B' ? areaB : areaC
-}
-
-// ── Desplazamiento aleatorio dentro de radio en metros ────────
+// ── Desplazamiento aleatorio 300m ─────────────────────────────
 function desplazarCoordenada(lat: number, lng: number, radioMetros: number): [number, number] {
   const radioGrados = radioMetros / 111320
   const angulo = Math.random() * 2 * Math.PI
@@ -95,15 +73,13 @@ function desplazarCoordenada(lat: number, lng: number, radioMetros: number): [nu
 }
 
 // ── Escucha cambios de zoom ───────────────────────────────────
-function ZoomWatcher({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
-  useMapEvents({
-    zoomend: (e) => onZoomChange(e.target.getZoom()),
-  })
+function ZoomWatcher({ onZoomChange }: { onZoomChange: (z: number) => void }) {
+  useMapEvents({ zoomend: (e) => onZoomChange(e.target.getZoom()) })
   return null
 }
 
-// ── Botón ir a mi ubicación ───────────────────────────────────
-function BotonUbicacion() {
+// ── Controles: zoom + ubicación apilados sobre footer ─────────
+function ControlesMapa() {
   const map = useMap()
   const [localizando, setLocalizando] = useState(false)
 
@@ -125,30 +101,54 @@ function BotonUbicacion() {
     )
   }
 
+  const btn = {
+    width: '36px',
+    height: '36px',
+    backgroundColor: 'white',
+    border: '1px solid rgba(0,0,0,0.25)',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#333',
+    fontSize: '20px',
+    fontWeight: 'bold',
+  } as const
+
   return (
     <div
       className="leaflet-bottom leaflet-right"
-      style={{ marginBottom: '90px', marginRight: '10px' }}
+      style={{ marginBottom: '74px', marginRight: '10px' }}
     >
-      <div className="leaflet-control">
-        <button
-          onClick={irAMiUbicacion}
-          title="Ir a mi ubicación"
-          style={{
-            width: '36px',
-            height: '36px',
-            backgroundColor: 'white',
-            border: '2px solid rgba(0,0,0,0.25)',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '18px',
-            boxShadow: '0 1px 5px rgba(0,0,0,0.2)',
-          }}
-        >
-          {localizando ? '⏳' : '📍'}
+      <div
+        className="leaflet-control"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 1px 5px rgba(0,0,0,0.2)',
+          borderRadius: '4px',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Zoom + */}
+        <button onClick={() => map.zoomIn()} style={btn}>+</button>
+        {/* Separador */}
+        <div style={{ height: '1px', backgroundColor: 'rgba(0,0,0,0.15)' }} />
+        {/* Zoom - */}
+        <button onClick={() => map.zoomOut()} style={btn}>−</button>
+        {/* Separador doble */}
+        <div style={{ height: '5px', backgroundColor: 'rgba(0,0,0,0.06)' }} />
+        {/* Ubicación */}
+        <button onClick={irAMiUbicacion} title="Ir a mi ubicación" style={btn}>
+          {localizando ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5">
+              <circle cx="12" cy="12" r="9"/>
+            </svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#333">
+              <path d="M12 2L2 22l10-6 10 6L12 2z"/>
+            </svg>
+          )}
         </button>
       </div>
     </div>
@@ -161,17 +161,17 @@ export function MapView() {
   const [sitios, setSitios] = useState<SitioMapa[]>([])
   const [loading, setLoading] = useState(true)
   const [sitioSeleccionado, setSitioSeleccionado] = useState<string | null>(null)
-  const [zoomActual, setZoomActual] = useState(13)
+  const [zoomActual, setZoomActual] = useState(6)
   const supabase = createClient()
-
-  // Coordenadas desplazadas fijas por sesión
-  const [coordsDesplazadas] = useState<Record<string, [number, number]>>({})
+  const coordsDesplazadasRef = useRef<Record<string, [number, number]>>({})
 
   function getCoordsDesplazadas(sitio: SitioMapa): [number, number] {
-    if (!coordsDesplazadas[sitio.id_reporte]) {
-      coordsDesplazadas[sitio.id_reporte] = desplazarCoordenada(sitio.latitud, sitio.longitud, 300)
+    if (!coordsDesplazadasRef.current[sitio.id_reporte]) {
+      coordsDesplazadasRef.current[sitio.id_reporte] = desplazarCoordenada(
+        sitio.latitud, sitio.longitud, 300
+      )
     }
-    return coordsDesplazadas[sitio.id_reporte]
+    return coordsDesplazadasRef.current[sitio.id_reporte]
   }
 
   async function fetchSitios() {
@@ -185,10 +185,10 @@ export function MapView() {
       if (error) throw error
 
       const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
-      const sitiosFiltrados = (data || []).filter(sitio =>
-        puedeVerSitio(sitio.codigo_accesibilidad as 'A' | 'B' | 'C', rolUsuario)
+      const filtrados = (data || []).filter(s =>
+        puedeVerSitio(s.codigo_accesibilidad as 'A' | 'B' | 'C', rolUsuario)
       )
-      setSitios(sitiosFiltrados)
+      setSitios(filtrados)
     } catch (err) {
       console.error('Error fetching sitios:', err)
     } finally {
@@ -196,9 +196,7 @@ export function MapView() {
     }
   }
 
-  useEffect(() => {
-    fetchSitios()
-  }, [usuario])
+  useEffect(() => { fetchSitios() }, [usuario])
 
   if (loading) {
     return (
@@ -218,7 +216,7 @@ export function MapView() {
       <div className="h-screen w-full">
         <MapContainer
           center={[-33.4489, -70.6693]}
-          zoom={13}
+          zoom={6}
           zoomControl={false}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
@@ -228,10 +226,8 @@ export function MapView() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Controles reposicionados */}
-          <ZoomControl position="bottomright" />
           <ZoomWatcher onZoomChange={setZoomActual} />
-          <BotonUbicacion />
+          <ControlesMapa />
 
           {sitios.map(sitio => {
             const codigo = sitio.codigo_accesibilidad
@@ -240,7 +236,7 @@ export function MapView() {
               ? [sitio.latitud, sitio.longitud]
               : getCoordsDesplazadas(sitio)
 
-            const popupContenido = (
+            const popup = (
               <div className="min-w-[200px]">
                 <h3 className="font-bold text-base mb-1">{sitio.nombre_sitio}</h3>
                 <p className="text-sm text-gray-700 mb-2">{sitio.categoria_general || 'Sin categoría'}</p>
@@ -257,40 +253,51 @@ export function MapView() {
               </div>
             )
 
-            // Código A: siempre pin, sin lógica de zoom
+            // ── Código A: siempre pin, sin lógica de zoom ───────
             if (codigo === 'A') {
               return (
                 <Marker key={sitio.id_reporte} position={coords} icon={pinA}>
-                  <Popup>{popupContenido}</Popup>
+                  <Popup>{popup}</Popup>
                 </Marker>
               )
             }
 
-            // Códigos B y C:
-            // zoom >= 15  → pin
-            // zoom 10–14  → círculo área DivIcon
-            // zoom < 10   → nada
-            if (zoomActual >= 15) {
+            // ── Código B + experto+: siempre pin exacto ─────────
+            if (codigo === 'B' && verExacto) {
               return (
-                <Marker key={sitio.id_reporte} position={coords} icon={getPinPorCodigo(codigo)}>
-                  <Popup>{popupContenido}</Popup>
+                <Marker key={sitio.id_reporte} position={coords} icon={pinB}>
+                  <Popup>{popup}</Popup>
                 </Marker>
               )
             }
 
-            if (zoomActual >= 10 && zoomActual < 15) {
+            // ── B (público) y C (experto+): lógica de zoom ───────
+            // zoom 0–8  → nada
+            // zoom 9–14 → área difusa
+            // zoom ≥ 15 → pin
+            if (zoomActual < 9) return null
+
+            if (zoomActual < 15) {
               return (
                 <Marker
                   key={sitio.id_reporte}
                   position={coords}
-                  icon={getAreaPorCodigo(codigo as 'B' | 'C')}
+                  icon={codigo === 'B' ? areaB : areaC}
                 >
-                  <Popup>{popupContenido}</Popup>
+                  <Popup>{popup}</Popup>
                 </Marker>
               )
             }
 
-            return null
+            return (
+              <Marker
+                key={sitio.id_reporte}
+                position={coords}
+                icon={codigo === 'B' ? pinB : pinC}
+              >
+                <Popup>{popup}</Popup>
+              </Marker>
+            )
           })}
 
         </MapContainer>
