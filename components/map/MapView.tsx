@@ -271,13 +271,13 @@ export function MapView() {
               )
             }
 
-            // ── B (público) y C (experto+): lógica de zoom ───────
-            // zoom 0–8  → nada
+                        // ── B (público) y C (experto+): lógica de zoom ───────
+            // zoom 0–8  → pin
             // zoom 9–14 → área difusa
-            // zoom ≥ 15 → pin
-            if (zoomActual < 9) return null
+            // zoom ≥ 15 → nada
+            if (zoomActual >= 15) return null
 
-            if (zoomActual < 15) {
+            if (zoomActual >= 9) {
               return (
                 <Marker
                   key={sitio.id_reporte}
