@@ -30,11 +30,26 @@ interface SolicitudConDatos {
 export default function PerfilPage() {
   const { user, usuario, loading, signOut } = useAuth()
   const router = useRouter()
-  
+
   const [solicitudesPendientes, setSolicitudesPendientes] = useState<SolicitudConDatos[]>([])
   const [misSolicitudes, setMisSolicitudes] = useState<SolicitudConDatos[]>([])
   const [loadingSolicitudes, setLoadingSolicitudes] = useState(true)
   const [modalAprobar, setModalAprobar] = useState<{ id_solicitud: string; id_sitio: string; nombre_sitio: string } | null>(null)
+
+  // Modal Ver Info Contacto
+  const [modalVerContacto, setModalVerContacto] = useState<{
+    nombreSitio: string
+    idSitio: string
+  } | null>(null)
+  const [infoContacto, setInfoContacto] = useState<{
+    nombre_contacto: string | null
+    email_contacto: string | null
+    telefono_contacto: string | null
+    organizacion: string | null
+    info_adicional: string | null
+  } | null>(null)
+  const [loadingInfoContacto, setLoadingInfoContacto] = useState(false)
+  const [errorInfoContacto, setErrorInfoContacto] = useState<string | null>(null)
 
   useEffect(() => {
     if (user && usuario) {
@@ -128,13 +143,33 @@ export default function PerfilPage() {
   }
 
   function handleAprobarSolicitud(idSolicitud: string, idSitio: string, nombreSitio: string) {
-  setModalAprobar({ id_solicitud: idSolicitud, id_sitio: idSitio, nombre_sitio: nombreSitio })
-}
+    setModalAprobar({ id_solicitud: idSolicitud, id_sitio: idSitio, nombre_sitio: nombreSitio })
+  }
+
+  async function handleVerContacto(idSitio: string, nombreSitio: string) {
+    setInfoContacto(null)
+    setErrorInfoContacto(null)
+    setModalVerContacto({ idSitio, nombreSitio })
+    setLoadingInfoContacto(true)
+    try {
+      const { data, error } = await supabase
+        .from('info_contacto_sitios')
+        .select('nombre_contacto, email_contacto, telefono_contacto, organizacion, info_adicional')
+        .eq('id_sitio', idSitio)
+        .single()
+      if (error) throw error
+      setInfoContacto(data)
+    } catch (err: any) {
+      setErrorInfoContacto('No se pudo cargar la información de contacto.')
+    } finally {
+      setLoadingInfoContacto(false)
+    }
+  }
 
 
   async function handleRechazarSolicitud(idSolicitud: string) {
     const motivo = prompt('Motivo del rechazo (opcional):')
-    
+
     try {
       const { error } = await supabase
         .from('solicitudes_contacto')
@@ -185,7 +220,7 @@ export default function PerfilPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
-        
+
         {/* Información del Usuario */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Mi Perfil</h1>
@@ -200,12 +235,11 @@ export default function PerfilPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Rol</p>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                usuario.rol === 'founder' ? 'bg-purple-100 text-purple-800' :
-                usuario.rol === 'partner' ? 'bg-blue-100 text-blue-800' :
-                usuario.rol === 'experto' ? 'bg-green-100 text-green-800' :
-                'bg-gray-100 text-gray-800'
-              }`}>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${usuario.rol === 'founder' ? 'bg-purple-100 text-purple-800' :
+                  usuario.rol === 'partner' ? 'bg-blue-100 text-blue-800' :
+                    usuario.rol === 'experto' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                }`}>
                 {usuario.rol?.toUpperCase() || 'PÚBLICO'}
               </span>
             </div>
@@ -228,7 +262,7 @@ export default function PerfilPage() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Panel de Control</h2>
           <div className="space-y-3">
-            
+
             {/* EXPERTO: Revisar Reportes */}
             {esExpertoOMas(usuario.rol) && (
               <button
@@ -303,7 +337,7 @@ export default function PerfilPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               📨 Solicitudes de Contacto Recibidas
             </h2>
-            
+
             {loadingSolicitudes ? (
               <p className="text-gray-600 text-sm">Cargando...</p>
             ) : solicitudesPendientes.length === 0 ? (
@@ -323,7 +357,7 @@ export default function PerfilPage() {
                         Pendiente
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-gray-700 mb-1">
                       <strong>Solicitante:</strong> {sol.solicitante_nombre}
                     </p>
@@ -333,20 +367,20 @@ export default function PerfilPage() {
                     <p className="text-sm text-gray-700 mb-3">
                       <strong>Motivo:</strong> {sol.motivo_solicitud}
                     </p>
-                    
+
                     {sol.info_adicional_solicitante && (
                       <p className="text-xs text-gray-600 mb-3 italic">
                         {sol.info_adicional_solicitante}
                       </p>
                     )}
-                    
+
                     <div className="flex gap-2">
-                     <button
-  onClick={() => handleAprobarSolicitud(sol.id_solicitud, sol.id_sitio, sol.sitio_nombre)}
-  className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
->
-  ✓ Aprobar
-</button>
+                      <button
+                        onClick={() => handleAprobarSolicitud(sol.id_solicitud, sol.id_sitio, sol.sitio_nombre)}
+                        className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                      >
+                        ✓ Aprobar
+                      </button>
 
                       <button
                         onClick={() => handleRechazarSolicitud(sol.id_solicitud)}
@@ -367,7 +401,7 @@ export default function PerfilPage() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             📬 Mis Solicitudes de Contacto
           </h2>
-          
+
           {loadingSolicitudes ? (
             <p className="text-gray-600 text-sm">Cargando...</p>
           ) : misSolicitudes.length === 0 ? (
@@ -383,25 +417,28 @@ export default function PerfilPage() {
                         Solicitado: {new Date(sol.timestamp_solicitud).toLocaleDateString('es-CL')}
                       </p>
                     </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      sol.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-700' :
-                      sol.estado === 'aprobada' ? 'bg-green-100 text-green-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {sol.estado === 'pendiente' ? 'Pendiente' :
-                       sol.estado === 'aprobada' ? 'Aprobada' : 'Rechazada'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 text-xs rounded-full ${sol.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-700' :
+                          sol.estado === 'aprobada' ? 'bg-green-100 text-green-700' :
+                            'bg-red-100 text-red-700'
+                        }`}>
+                        {sol.estado === 'pendiente' ? 'Pendiente' :
+                          sol.estado === 'aprobada' ? 'Aprobada' : 'Rechazada'}
+                      </span>
+                      {sol.estado === 'aprobada' && (
+                        <button
+                          onClick={() => handleVerContacto(sol.id_sitio, sol.sitio_nombre)}
+                          className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition font-medium"
+                        >
+                          Ver
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  
+
                   {sol.estado === 'rechazada' && sol.notas_rechazo && (
                     <p className="text-sm text-red-600 mt-2">
                       <strong>Motivo:</strong> {sol.notas_rechazo}
-                    </p>
-                  )}
-                  
-                  {sol.estado === 'aprobada' && (
-                    <p className="text-sm text-green-600 mt-2">
-                      ✅ Info de contacto disponible en la ficha del sitio
                     </p>
                   )}
                 </div>
@@ -414,13 +451,13 @@ export default function PerfilPage() {
         {usuario.rol === 'publico' && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-900">
-              <strong>Eres usuario público.</strong> Puedes reportar sitios arqueológicos. 
+              <strong>Eres usuario público.</strong> Puedes reportar sitios arqueológicos.
               Si eres investigador o arqueólogo, solicita acceso elevado a redpatrimonio.chile@gmail.com
             </p>
           </div>
         )}
       </div>
-              {/* Modal Aprobar */}
+      {/* Modal Aprobar */}
       {modalAprobar && (
         <AgregarInfoContactoModal
           idSitio={modalAprobar.id_sitio}
@@ -432,6 +469,99 @@ export default function PerfilPage() {
             cargarSolicitudes()
           }}
         />
+      )}
+
+      {/* Modal Ver Info de Contacto */}
+      {modalVerContacto && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        // No cierra al hacer clic afuera (sin onClick aquí)
+        >
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">📞 Información de Contacto</h2>
+              <button
+                onClick={() => { setModalVerContacto(null); setInfoContacto(null) }}
+                className="text-gray-400 hover:text-gray-700 text-2xl leading-none font-medium transition"
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">{modalVerContacto.nombreSitio}</p>
+
+            {loadingInfoContacto && (
+              <p className="text-gray-500 text-sm text-center py-4">Cargando información...</p>
+            )}
+
+            {errorInfoContacto && (
+              <p className="text-red-600 text-sm text-center py-4">{errorInfoContacto}</p>
+            )}
+
+            {!loadingInfoContacto && !errorInfoContacto && infoContacto && (
+              <div className="space-y-3">
+                {infoContacto.nombre_contacto && (
+                  <div className="flex items-start gap-3">
+                    <span className="text-gray-400 w-5 mt-0.5">👤</span>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Nombre</p>
+                      <p className="text-gray-900">{infoContacto.nombre_contacto}</p>
+                    </div>
+                  </div>
+                )}
+                {infoContacto.organizacion && (
+                  <div className="flex items-start gap-3">
+                    <span className="text-gray-400 w-5 mt-0.5">🏛️</span>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Organización</p>
+                      <p className="text-gray-900">{infoContacto.organizacion}</p>
+                    </div>
+                  </div>
+                )}
+                {infoContacto.email_contacto && (
+                  <div className="flex items-start gap-3">
+                    <span className="text-gray-400 w-5 mt-0.5">✉️</span>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Email</p>
+                      <a href={`mailto:${infoContacto.email_contacto}`} className="text-green-700 hover:underline">
+                        {infoContacto.email_contacto}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {infoContacto.telefono_contacto && (
+                  <div className="flex items-start gap-3">
+                    <span className="text-gray-400 w-5 mt-0.5">📱</span>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Teléfono</p>
+                      <a href={`tel:${infoContacto.telefono_contacto}`} className="text-green-700 hover:underline">
+                        {infoContacto.telefono_contacto}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {infoContacto.info_adicional && (
+                  <div className="flex items-start gap-3">
+                    <span className="text-gray-400 w-5 mt-0.5">📝</span>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Info adicional</p>
+                      <p className="text-gray-700 text-sm">{infoContacto.info_adicional}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <button
+                onClick={() => { setModalVerContacto(null); setInfoContacto(null) }}
+                className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

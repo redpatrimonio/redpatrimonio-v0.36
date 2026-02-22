@@ -44,30 +44,25 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
   const [fotoActual, setFotoActual] = useState(0)
   const [loading, setLoading] = useState(true)
   const [mostrarSolicitud, setMostrarSolicitud] = useState(false)
+  const [fotoFullscreen, setFotoFullscreen] = useState(false)
 
-  useEffect(() => {
-    cargarDatos()
-  }, [idSitio])
+  useEffect(() => { cargarDatos() }, [idSitio])
 
   async function cargarDatos() {
     try {
-      // Cargar sitio
       const { data: sitioData, error: sitioError } = await supabase
         .from('reportes_nuevos')
         .select('*')
         .eq('id_reporte', idSitio)
         .single()
-
       if (sitioError) throw sitioError
       setSitio(sitioData)
 
-      // Cargar fotos
       const { data: fotosData } = await supabase
         .from('reportes_medios')
         .select('id_medio, url_publica, descripcion_imagen')
         .eq('id_reporte', idSitio)
         .order('prioridad_visualizacion', { ascending: false })
-
       setFotos(fotosData || [])
     } catch (err) {
       console.error('Error cargando sitio:', err)
@@ -78,23 +73,24 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
 
   function handleCompartir() {
     const url = `${window.location.origin}/mapa?sitio=${idSitio}`
-    
     if (navigator.share) {
-      navigator.share({
-        title: sitio?.nombre_sitio,
-        text: `${sitio?.nombre_sitio} - Red Patrimonio Chile`,
-        url: url
-      })
+      navigator.share({ title: sitio?.nombre_sitio, text: `${sitio?.nombre_sitio} - Red Patrimonio Chile`, url })
     } else {
       navigator.clipboard.writeText(url)
       alert('Link copiado al portapapeles')
     }
   }
 
+  function prevFoto() { setFotoActual(i => (i - 1 + fotos.length) % fotos.length) }
+  function nextFoto() { setFotoActual(i => (i + 1) % fotos.length) }
+
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div className="text-white text-lg">Cargando...</div>
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-white border-t-transparent rounded-full animate-spin" style={{ borderWidth: '3px', borderColor: '#B6875D', borderTopColor: 'transparent' }} />
+          <p className="text-white text-sm tracking-wide">Cargando ficha…</p>
+        </div>
       </div>
     )
   }
@@ -102,117 +98,222 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
   if (!sitio) return null
 
   const codigo = sitio.codigo_accesibilidad as 'A' | 'B' | 'C'
-const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
-const puedeVerCoordenadas = puedeVerCoordenadasExactas(codigo, rolUsuario)
-const puedeVerInfoContacto = codigo === 'A' || (codigo === 'B' && puedeVerCoordenadas) || esExpertoOMas(rolUsuario)
+  const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
+  const puedeVerCoordenadas = puedeVerCoordenadasExactas(codigo, rolUsuario)
+  const puedeVerInfoContacto = codigo === 'A' || (codigo === 'B' && puedeVerCoordenadas) || esExpertoOMas(rolUsuario)
+
+  const datosTecnicos = [
+    { label: 'Categoría', value: sitio.categoria_general },
+    { label: 'Tipología', value: sitio.tipologia_especifica?.join(' · ') },
+    { label: 'Cultura', value: sitio.cultura_asociada },
+    { label: 'Período', value: sitio.periodo_cronologico },
+    { label: 'Conservación', value: sitio.estado_conservacion },
+    ...(puedeVerCoordenadas ? [{ label: 'Coordenadas', value: `${sitio.latitud.toFixed(6)}, ${sitio.longitud.toFixed(6)}` }] : []),
+  ].filter(d => d.value)
+
   return (
     <>
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-70 z-50 overflow-y-auto"
+      {/* ── Backdrop ── */}
+      <div
+        className="fixed inset-0 z-50"
+        style={{ backgroundColor: 'rgba(0,0,0,0.72)' }}
         onClick={onClose}
       >
-        <div 
-          className="min-h-screen flex items-center justify-center p-4"
-          onClick={(e) => e.stopPropagation()}
+        {/* ── Modal container ── */}
+        <div
+          className="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center md:p-6"
+          onClick={e => e.stopPropagation()}
         >
-          <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {sitio.nombre_sitio}
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
-              >
-                ×
-              </button>
-            </div>
+          <div
+            className="relative bg-white w-full md:max-w-2xl md:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{ maxHeight: '95vh' }}
+          >
 
-            {/* Contenido */}
-            <div className="p-6 space-y-6">
-              
-              {/* Fotos */}
-              {fotos.length > 0 && (
-                <div className="space-y-2">
+            {/* ══════════ ZONA FOTOS ══════════ */}
+            <div className="relative w-full flex-shrink-0 bg-black" style={{ maxHeight: '50vh' }}>
+
+              {fotos.length > 0 ? (
+                <>
+                  {/* Imagen contenida sin recorte */}
                   <img
                     src={fotos[fotoActual].url_publica}
-                    alt={fotos[fotoActual].descripcion_imagen || 'Foto del sitio'}
-                    className="w-full h-64 object-cover rounded-lg"
+                    alt={fotos[fotoActual].descripcion_imagen || sitio.nombre_sitio}
+                    style={{ width: '100%', maxHeight: '50vh', objectFit: 'contain', display: 'block' }}
                   />
+
+                  {/* Flechas de navegación (solo si hay más de 1 foto) */}
                   {fotos.length > 1 && (
-                    <div className="flex gap-2 justify-center">
+                    <>
+                      <button
+                        onClick={prevFoto}
+                        style={{
+                          position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+                          background: 'rgba(0,0,0,0.45)', color: 'white', border: 'none',
+                          borderRadius: '50%', width: 34, height: 34, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+                        }}
+                      >‹</button>
+                      <button
+                        onClick={nextFoto}
+                        style={{
+                          position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                          background: 'rgba(0,0,0,0.45)', color: 'white', border: 'none',
+                          borderRadius: '50%', width: 34, height: 34, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+                        }}
+                      >›</button>
+                    </>
+                  )}
+
+                  {/* Botón pantalla completa — esquina superior derecha */}
+                  <button
+                    onClick={() => setFotoFullscreen(true)}
+                    title="Ver a pantalla completa"
+                    style={{
+                      position: 'absolute', top: 10, right: 10,
+                      background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: 8,
+                      padding: '6px 7px', cursor: 'pointer', lineHeight: 0,
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                    </svg>
+                  </button>
+
+                  {/* Puntos de navegación iOS — sobre la imagen, parte inferior */}
+                  {fotos.length > 1 && (
+                    <div style={{
+                      position: 'absolute', bottom: 10, left: 0, right: 0,
+                      display: 'flex', justifyContent: 'center', gap: 6,
+                    }}>
                       {fotos.map((_, idx) => (
                         <button
                           key={idx}
                           onClick={() => setFotoActual(idx)}
-                          className={`w-2 h-2 rounded-full ${
-                            idx === fotoActual ? 'bg-green-600' : 'bg-gray-300'
-                          }`}
+                          style={{
+                            width: idx === fotoActual ? 20 : 7,
+                            height: 7,
+                            borderRadius: 999,
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                            transition: 'all 0.2s',
+                            backgroundColor: idx === fotoActual ? '#B6875D' : 'rgba(255,255,255,0.55)',
+                          }}
                         />
                       ))}
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* Ubicación */}
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">📍 Ubicación</h3>
-                <p className="text-gray-700">{sitio.region}, {sitio.comuna}</p>
-                {sitio.descripcion_ubicacion && (
-                  <p className="text-gray-600 text-sm mt-1">{sitio.descripcion_ubicacion}</p>
-                )}
-                {puedeVerCoordenadas && (
-                  <p className="text-gray-500 text-sm mt-1">
-                    {sitio.latitud.toFixed(6)}, {sitio.longitud.toFixed(6)}
-                  </p>
-                )}
-              </div>
-
-              {/* Caracterización */}
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">🏛️ Caracterización</h3>
-                <div className="space-y-1 text-sm">
-                  {sitio.categoria_general && (
-                    <p><strong>Categoría:</strong> {sitio.categoria_general}</p>
-                  )}
-                  {sitio.tipologia_especifica && (
-                    <p><strong>Tipología:</strong> {sitio.tipologia_especifica.join(', ')}</p>
-                  )}
-                  {sitio.cultura_asociada && (
-                    <p><strong>Cultura:</strong> {sitio.cultura_asociada}</p>
-                  )}
-                  {sitio.periodo_cronologico && (
-                    <p><strong>Periodo:</strong> {sitio.periodo_cronologico}</p>
-                  )}
-                  {sitio.estado_conservacion && (
-                    <p><strong>Estado:</strong> {sitio.estado_conservacion}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Info Contacto o Solicitud */}
-              {puedeVerInfoContacto ? (
-                <InfoContactoDisplay idSitio={idSitio} />
+                </>
               ) : (
-                <button
-                  onClick={() => setMostrarSolicitud(true)}
-                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                >
-                  📨 Solicitar información de contacto
-                </button>
+                /* Placeholder sin foto */
+                <div style={{
+                  height: '200px', display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}>
+                  <span style={{ fontSize: 48, opacity: 0.35 }}>🏺</span>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Sin fotografías</p>
+                </div>
               )}
 
-              {/* Botón Compartir (solo código A) */}
+              {/* Botón cerrar — esquina superior izquierda sobre la foto */}
+              <button
+                onClick={onClose}
+                style={{
+                  position: 'absolute', top: 10, left: 10,
+                  background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: 8,
+                  padding: '4px 10px', cursor: 'pointer', color: 'white',
+                  fontSize: 20, lineHeight: 1.3, fontWeight: 300,
+                }}
+              >×</button>
+            </div>
+
+            {/* ══════════ ZONA DATOS (scrollable) ══════════ */}
+            <div className="overflow-y-auto flex-1">
+
+              {/* Encabezado: Título + Subtítulo */}
+              <div style={{ padding: '20px 24px 16px' }}>
+                <h2 style={{
+                  fontSize: '22px', fontWeight: 700, color: '#10454B',
+                  lineHeight: 1.25, marginBottom: 4,
+                }}>
+                  {sitio.nombre_sitio}
+                </h2>
+                <p style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 500, letterSpacing: '0.02em' }}>
+                  {sitio.comuna}
+                  {sitio.region ? ` · ${sitio.region}` : ''}
+                </p>
+              </div>
+
+              {/* Datos técnicos — grid sobre fondo gris claro */}
+              {datosTecnicos.length > 0 && (
+                <div style={{ backgroundColor: '#f8f7f5', padding: '16px 24px', borderTop: '1px solid #ede9e3', borderBottom: '1px solid #ede9e3' }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#10454B', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>
+                    Datos técnicos
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px 16px' }}>
+                    {datosTecnicos.map(d => (
+                      <div key={d.label}>
+                        <p style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
+                          {d.label}
+                        </p>
+                        <p style={{ fontSize: '13px', color: '#1f2937', fontWeight: 500, lineHeight: 1.4 }}>
+                          {d.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Descripción del sitio */}
+              {sitio.descripcion_ubicacion && (
+                <div style={{ padding: '16px 24px', borderBottom: '1px solid #f3f4f6' }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#10454B', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>
+                    Descripción
+                  </p>
+                  <p style={{ fontSize: '14px', color: '#374151', lineHeight: 1.65 }}>
+                    {sitio.descripcion_ubicacion}
+                  </p>
+                </div>
+              )}
+
+              {/* Info contacto o solicitud */}
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #f3f4f6' }}>
+                {puedeVerInfoContacto ? (
+                  <InfoContactoDisplay idSitio={idSitio} />
+                ) : (
+                  <button
+                    onClick={() => setMostrarSolicitud(true)}
+                    style={{
+                      width: '100%', padding: '11px 0',
+                      backgroundColor: '#10454B', color: '#B6875D',
+                      border: 'none', borderRadius: 10,
+                      fontSize: '14px', fontWeight: 700,
+                      cursor: 'pointer', letterSpacing: '0.02em',
+                    }}
+                  >
+                    📨 Solicitar información de contacto
+                  </button>
+                )}
+              </div>
+
+              {/* Compartir — solo código A */}
               {codigo === 'A' && (
-                <button
-                  onClick={handleCompartir}
-                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  📤 Compartir sitio
-                </button>
+                <div style={{ padding: '12px 24px 20px' }}>
+                  <button
+                    onClick={handleCompartir}
+                    style={{
+                      width: '100%', padding: '10px 0',
+                      backgroundColor: 'white', color: '#10454B',
+                      border: '1.5px solid #10454B', borderRadius: 10,
+                      fontSize: '13px', fontWeight: 600,
+                      cursor: 'pointer', letterSpacing: '0.02em',
+                    }}
+                  >
+                    📤 Compartir sitio
+                  </button>
+                </div>
               )}
 
             </div>
@@ -220,7 +321,35 @@ const puedeVerInfoContacto = codigo === 'A' || (codigo === 'B' && puedeVerCoorde
         </div>
       </div>
 
-      {/* Modal solicitud */}
+      {/* ── Overlay foto pantalla completa ── */}
+      {fotoFullscreen && fotos.length > 0 && (
+        <div
+          onClick={() => setFotoFullscreen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            backgroundColor: 'rgba(0,0,0,0.95)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'zoom-out',
+          }}
+        >
+          <img
+            src={fotos[fotoActual].url_publica}
+            alt={fotos[fotoActual].descripcion_imagen || sitio.nombre_sitio}
+            style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain' }}
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setFotoFullscreen(false)}
+            style={{
+              position: 'absolute', top: 16, right: 20,
+              background: 'none', border: 'none', color: 'white',
+              fontSize: 32, cursor: 'pointer', opacity: 0.8,
+            }}
+          >×</button>
+        </div>
+      )}
+
+      {/* Modal solicitud contacto */}
       {mostrarSolicitud && (
         <SolicitarContactoModal
           idSitio={idSitio}

@@ -24,6 +24,9 @@ interface SitioMapa {
   region: string
   comuna: string
   categoria_general: string | null
+  categoria_sitio: string | null
+  tipologia_especifica: string[] | null
+  imagen_url: string | null
   codigo_accesibilidad: 'A' | 'B' | 'C'
 }
 
@@ -55,9 +58,9 @@ function crearIconoArea(color: string): L.DivIcon {
   })
 }
 
-const pinA  = crearIconoPin('#526A3A')  // verde terroso
-const pinB  = crearIconoPin('#2563eb')  // azul
-const pinC  = crearIconoPin('#374151')  // gris oscuro
+const pinA = crearIconoPin('#526A3A')  // verde terroso
+const pinB = crearIconoPin('#2563eb')  // azul
+const pinC = crearIconoPin('#374151')  // gris oscuro
 const areaB = crearIconoArea('#3b82f6') // azul difuso
 const areaC = crearIconoArea('#374151') // gris difuso
 
@@ -142,11 +145,11 @@ function ControlesMapa() {
         <button onClick={irAMiUbicacion} title="Ir a mi ubicación" style={btn}>
           {localizando ? (
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5">
-              <circle cx="12" cy="12" r="9"/>
+              <circle cx="12" cy="12" r="9" />
             </svg>
           ) : (
             <svg width="15" height="15" viewBox="0 0 24 24" fill="#333">
-              <path d="M12 2L2 22l10-6 10 6L12 2z"/>
+              <path d="M12 2L2 22l10-6 10 6L12 2z" />
             </svg>
           )}
         </button>
@@ -178,7 +181,7 @@ export function MapView() {
     try {
       const { data, error } = await supabase
         .from('reportes_nuevos')
-        .select('id_reporte, nombre_sitio, latitud, longitud, region, comuna, categoria_general, codigo_accesibilidad')
+        .select('id_reporte, nombre_sitio, latitud, longitud, region, comuna, categoria_general, categoria_sitio, tipologia_especifica, imagen_url, codigo_accesibilidad')
         .eq('estado_validacion', 'verde')
         .order('nombre_sitio')
 
@@ -213,6 +216,37 @@ export function MapView() {
 
   return (
     <>
+      {/* ── Estilos globales para el popup de Leaflet ── */}
+      <style>{`
+        .leaflet-popup-content-wrapper {
+          padding: 0 !important;
+          border-radius: 14px !important;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.14) !important;
+          border: none !important;
+          overflow: hidden;
+        }
+        .leaflet-popup-content {
+          margin: 0 !important;
+          width: auto !important;
+        }
+        .leaflet-popup-tip-container {
+          margin-top: -1px;
+        }
+        .leaflet-popup-tip {
+          box-shadow: none !important;
+          background: white !important;
+        }
+        .leaflet-popup-close-button {
+          top: 6px !important;
+          right: 8px !important;
+          color: #9ca3af !important;
+          font-size: 18px !important;
+          z-index: 10;
+        }
+        .leaflet-popup-close-button:hover {
+          color: #374151 !important;
+        }
+      `}</style>
       <div className="h-screen w-full">
         <MapContainer
           center={[-33.4489, -70.6693]}
@@ -236,20 +270,135 @@ export function MapView() {
               ? [sitio.latitud, sitio.longitud]
               : getCoordsDesplazadas(sitio)
 
+            const tipologias: string[] = sitio.tipologia_especifica ?? []
+
             const popup = (
-              <div className="min-w-[200px]">
-                <h3 className="font-bold text-base mb-1">{sitio.nombre_sitio}</h3>
-                <p className="text-sm text-gray-700 mb-2">{sitio.categoria_general || 'Sin categoría'}</p>
-                <p className="text-xs text-gray-500 mb-2">{sitio.region}, {sitio.comuna}</p>
-                {!verExacto && (
-                  <p className="text-xs text-amber-600 mb-2">📍 Ubicación aproximada</p>
+              <div style={{ width: '272px', fontFamily: 'inherit' }}>
+                {/* ── Fila superior: miniatura + info ── */}
+                <div style={{ display: 'flex', gap: '10px', padding: '14px 14px 10px 14px', alignItems: 'flex-start' }}>
+                  {/* Miniatura */}
+                  {sitio.imagen_url ? (
+                    <img
+                      src={sitio.imagen_url}
+                      alt={sitio.nombre_sitio}
+                      style={{
+                        width: '70px',
+                        height: '70px',
+                        borderRadius: '8px',
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                        backgroundColor: '#e5e7eb',
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '70px',
+                      height: '70px',
+                      borderRadius: '8px',
+                      backgroundColor: '#e5e7eb',
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '26px',
+                    }}>🏺</div>
+                  )}
+                  {/* Texto derecho */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      color: '#111827',
+                      lineHeight: '1.35',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      marginBottom: '4px',
+                    }}>{sitio.nombre_sitio}</p>
+                    <p style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <span>📍</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {sitio.comuna}
+                      </span>
+                    </p>
+                    {!verExacto && (
+                      <p style={{ fontSize: '10px', color: '#d97706', marginTop: '3px' }}>Ubicación aproximada</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Badges de categoría y tipología ── */}
+                {(sitio.categoria_general || tipologias.length > 0) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', padding: '0 14px 10px 14px' }}>
+                    {sitio.categoria_general && (
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        backgroundColor: '#e6f0ef',
+                        color: '#10454B',
+                        letterSpacing: '0.02em',
+                        textTransform: 'uppercase',
+                      }}>
+                        {sitio.categoria_general}
+                      </span>
+                    )}
+                    {tipologias.slice(0, 2).map((tip, i) => (
+                      <span key={i} style={{
+                        fontSize: '10px',
+                        fontWeight: 500,
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        backgroundColor: '#e0f2fe',
+                        color: '#0369a1',
+                      }}>
+                        {tip}
+                      </span>
+                    ))}
+                    {tipologias.length > 2 && (
+                      <span style={{
+                        fontSize: '10px',
+                        padding: '2px 7px',
+                        borderRadius: '999px',
+                        backgroundColor: '#f3f4f6',
+                        color: '#6b7280',
+                      }}>+{tipologias.length - 2}</span>
+                    )}
+                  </div>
                 )}
-                <button
-                  onClick={() => setSitioSeleccionado(sitio.id_reporte)}
-                  className="text-sm bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 transition w-full"
-                >
-                  📄 Ver ficha completa
-                </button>
+
+                {/* ── Separador ── */}
+                <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '0 0 10px 0' }} />
+
+                {/* ── Botón ── */}
+                <div style={{ padding: '0 14px 14px 14px' }}>
+                  <button
+                    onClick={() => setSitioSeleccionado(sitio.id_reporte)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 0',
+                      backgroundColor: '#10454B',
+                      color: '#B6875D',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'background-color 0.15s',
+                      letterSpacing: '0.02em',
+                    }}
+                    onMouseOver={e => (e.currentTarget.style.backgroundColor = '#0b3237')}
+                    onMouseOut={e => (e.currentTarget.style.backgroundColor = '#10454B')}
+                  >
+                    <span>📄</span> Ver ficha
+                  </button>
+                </div>
               </div>
             )
 
@@ -271,7 +420,7 @@ export function MapView() {
               )
             }
 
-                        // ── B (público) y C (experto+): lógica de zoom ───────
+            // ── B (público) y C (experto+): lógica de zoom ───────
             // zoom 0–8  → pin
             // zoom 9–14 → área difusa
             // zoom ≥ 15 → nada
