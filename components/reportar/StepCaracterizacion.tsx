@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  CLASIFICACION_CMN, 
-  CATEGORIAS, 
-  TIPOLOGIAS, 
-  CULTURAS, 
-  PERIODOS 
+import {
+  CLASIFICACION_CMN,
+  CATEGORIAS,
+  TIPOLOGIAS,
+  CULTURAS,
+  PERIODOS
 } from '@/lib/constants/tipologias'
 
 interface StepCaracterizacionProps {
@@ -17,6 +17,7 @@ interface StepCaracterizacionProps {
     tipologia: string[]
     cultura?: string
     periodo?: string
+    declarado_cmn?: string
   }) => void
   onBack: () => void
 }
@@ -29,6 +30,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
   const [tipologiasDisponibles, setTipologiasDisponibles] = useState<string[]>([])
   const [cultura, setCultura] = useState('')
   const [periodo, setPeriodo] = useState('')
+  const [declaradoCMN, setDeclaradoCMN] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -54,8 +56,8 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       return
     }
 
-    const tipologiaFinal = tipologiasSeleccionadas.length > 0 
-      ? tipologiasSeleccionadas 
+    const tipologiaFinal = tipologiasSeleccionadas.length > 0
+      ? tipologiasSeleccionadas
       : ['No determinado']
 
     onNext({
@@ -65,6 +67,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       tipologia: tipologiaFinal,
       ...(cultura ? { cultura } : {}),
       ...(periodo ? { periodo } : {}),
+      ...(declaradoCMN ? { declarado_cmn: declaradoCMN } : {}),
     })
   }
 
@@ -76,7 +79,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       {/* Nombre */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Nombre del sitio <span className="text-red-500">*</span>
+          Título <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -90,7 +93,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       {/* Clasificación CMN */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Clasificación CMN <span className="text-red-500">*</span>
+          Clasificación <span className="text-red-500">*</span>
         </label>
         <select
           value={clasificacionCMN}
@@ -107,7 +110,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       {/* Categoría temática */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Categoría temática <span className="text-red-500">*</span>
+          Categoría <span className="text-red-500">*</span>
         </label>
         <select
           value={categoria}
@@ -145,8 +148,8 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
             ))}
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            {tipologiasSeleccionadas.length > 0 
-              ? `${tipologiasSeleccionadas.length} seleccionada(s)` 
+            {tipologiasSeleccionadas.length > 0
+              ? `${tipologiasSeleccionadas.length} seleccionada(s)`
               : 'Si no seleccionas, se marcará como "No determinado"'}
           </p>
         </div>
@@ -154,7 +157,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
 
       {/* Cultura (opcional) */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Cultura (opcional)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cultura asociada (opcional)</label>
         <select
           value={cultura}
           onChange={(e) => setCultura(e.target.value)}
@@ -169,7 +172,7 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
 
       {/* Periodo (opcional) */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Periodo (opcional)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Periodo Cultural (opcional)</label>
         <select
           value={periodo}
           onChange={(e) => setPeriodo(e.target.value)}
@@ -179,6 +182,22 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
           {PERIODOS.map((per) => (
             <option key={per} value={per} className="text-gray-900">{per}</option>
           ))}
+        </select>
+      </div>
+
+      {/* Declarado por CMN (opcional) */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Declarado por CMN (opcional)</label>
+        <select
+          value={declaradoCMN}
+          onChange={(e) => setDeclaradoCMN(e.target.value)}
+          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
+        >
+          <option value="" className="text-gray-400">Sin información</option>
+          <option value="Sí" className="text-gray-900">Sí</option>
+          <option value="No" className="text-gray-900">No</option>
+          <option value="En proceso" className="text-gray-900">En proceso</option>
+          <option value="Sin información" className="text-gray-900">Sin información</option>
         </select>
       </div>
 
@@ -194,12 +213,13 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
         <div className="border rounded-lg p-4" style={{ backgroundColor: '#f0f7f8', borderColor: '#10454B' }}>
           <p className="text-sm font-medium mb-1" style={{ color: '#10454B' }}>Resumen</p>
           <p className="text-xs text-gray-700">
-            <strong>Nombre:</strong> {nombre}<br />
+            <strong>Título:</strong> {nombre}<br />
             <strong>Clasificación:</strong> {clasificacionCMN}<br />
             <strong>Categoría:</strong> {categoria}<br />
             <strong>Tipologías:</strong> {tipologiasSeleccionadas.length > 0 ? tipologiasSeleccionadas.join(', ') : 'No determinado'}
-            {cultura && <><br /><strong>Cultura:</strong> {cultura}</>}
-            {periodo && <><br /><strong>Periodo:</strong> {periodo}</>}
+            {cultura && <><br /><strong>Cultura asociada:</strong> {cultura}</>}
+            {periodo && <><br /><strong>Periodo Cultural:</strong> {periodo}</>}
+            {declaradoCMN && <><br /><strong>Declarado por CMN:</strong> {declaradoCMN}</>}
           </p>
         </div>
       )}

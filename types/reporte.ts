@@ -4,7 +4,7 @@ export interface ReporteData {
   longitud: number
   region: string
   comuna: string
-  
+
   // Identificación
   nombre: string
   clasificacionCMN: string
@@ -12,7 +12,8 @@ export interface ReporteData {
   tipologia: string[]
   cultura?: string
   periodo?: string
-  
+  declarado_cmn?: string
+
   // Condición
   estadoconservacion: string
   condicionEmplazamiento: string
@@ -25,7 +26,7 @@ export interface ReporteData {
   contactoPropietarioPosible?: boolean
   contactoPropietarioInfo?: string
   telefonoUsuarioContacto?: string
-  
+
   // Legado (opcional, mantener compatibilidad)
   recintoprivado?: boolean
   tiporiesgo?: string

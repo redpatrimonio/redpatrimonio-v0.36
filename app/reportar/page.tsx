@@ -62,6 +62,7 @@ export default function ReportarPage() {
     tipologia: string[]
     cultura?: string
     periodo?: string
+    declarado_cmn?: string
   }) {
     setReporteData({ ...reporteData, ...data })
     setStep(3)
@@ -93,9 +94,8 @@ export default function ReportarPage() {
             {[1, 2, 3, 4].map((s) => (
               <div
                 key={s}
-                className={`flex-1 h-2 rounded-full mx-1 transition ${
-                  s <= step ? 'bg-[#10454B]' : 'bg-gray-300'
-                }`}
+                className={`flex-1 h-2 rounded-full mx-1 transition ${s <= step ? 'bg-[#10454B]' : 'bg-gray-300'
+                  }`}
               />
             ))}
           </div>
@@ -104,10 +104,10 @@ export default function ReportarPage() {
             {step === 1
               ? 'Ubicación'
               : step === 2
-              ? 'Identificación'
-              : step === 3
-              ? 'Condición'
-              : 'Fotos'}
+                ? 'Identificación'
+                : step === 3
+                  ? 'Condición'
+                  : 'Fotos'}
           </p>
         </div>
 

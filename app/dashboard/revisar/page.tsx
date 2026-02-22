@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 
 const supabase = createClient()
 
+export const dynamic = 'force-dynamic'
+
 interface Reporte {
   id_reporte: string
   nombre_reporte: string

@@ -1,0 +1,41 @@
+# RED PATRIMONIO CHILE - CONSTITUCIÓN DEL PROYECTO (v0.42)
+
+## 1. STACK TECNOLÓGICO
+- Framework: Next.js 14 (App Router)
+- Lenguaje: TypeScript (Tipado estricto obligatorio)
+- Estilos: Tailwind CSS
+- Base de Datos & Auth: Supabase (Auth, RLS, Storage)
+- Mapas: React-Leaflet
+
+## 2. REGLAS DE NEGOCIO Y ROLES
+- Propósito: Plataforma colaborativa para reportar y visualizar sitios arqueológicos en Chile, protegiendo información sensible.
+- Jerarquía estricta de roles: `founder` > `partner` > `experto` > `publico` (logueado).
+- Rutas protegidas mediante Middleware de Supabase.
+
+## 3. SISTEMA DE ACCESIBILIDAD Y MAPA (CÓDIGOS A/B/C)
+El archivo crítico para evaluar accesos es `lib/utils/accesibilidad.ts` (`puedeVerSitio`, `puedeVerCoordenadasExactas`).
+- Código A (Abierto/Controlado): Visible para todos. Coordenada exacta para todos. Renderizado en `MapView.tsx` como Pin SVG verde oscuro (#526A3A) en todos los niveles de zoom.
+- Códigos B (Protegido) y C (Restringido): 
+  - Solo los roles `experto`, `partner` y `founder` pueden ver la coordenada exacta.
+  - Para el rol `publico`, se aplica un desplazamiento aleatorio (radio 300m).
+  - Comportamiento estricto por Zoom en `MapView.tsx`:
+    - Zoom 0-8: Se ve como Pin SVG (en coordenada desplazada si es público).
+    - Zoom 9-14: Se ve como "Área difusa" (círculo DivIcon fijo de 30px).
+    - Zoom 15-19: Oculto completamente (null).
+- Nunca se debe modificar la lógica de renderizado por zoom o los chequeos de rol en el mapa sin autorización explícita.
+
+## 4. FLUJO DE SOLICITUDES DE CONTACTO
+- Origen: El usuario interactúa con un sitio B o C en el mapa.
+- Flujo:
+  1. Abre `FichaSitioModal` sobre el mapa.
+  2. Si no tiene acceso a los datos, hace clic en "Solicitar información".
+  3. Se crea un registro en la tabla `solicitudes_contacto` con estado 'pendiente'.
+  4. Un `partner` o `founder` revisa la pestaña "Solicitudes Recibidas" en `/perfil`.
+  5. Al aprobar, se ejecuta un UPSERT en la tabla `info_contacto_sitios` y se actualiza el estado de la solicitud.
+  6. El usuario ahora puede ver la información aprobada en `FichaSitioModal`.
+- No alterar la relación entre `FichaSitioModal` y el estado de las solicitudes.
+
+## 5. DIRECTRICES DE CÓDIGO Y ARQUITECTURA
+- No modificar archivos de UI móvil sin probar que los controles custom apilados en la esquina inferior derecha del mapa no se sobrepongan con la Navbar/Footer.
+- Legal: La barra inferior móvil no contiene links legales; estos residen en `/mas`, `/terminos` y `/privacidad` por cumplimiento de Google OAuth.
+- Comunicación de IA: Piensa paso a paso, planifica antes de codificar, no elimines validaciones existentes y propón checkpoints en cada avance significativo. Mantén coherencia absoluta en los términos (Reporte, Sitio, Hallazgo, Tipología).
