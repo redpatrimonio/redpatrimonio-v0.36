@@ -298,23 +298,21 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
                 )}
               </div>
 
-              {/* Compartir — solo código A */}
-              {codigo === 'A' && (
-                <div style={{ padding: '12px 24px 20px' }}>
-                  <button
-                    onClick={handleCompartir}
-                    style={{
-                      width: '100%', padding: '10px 0',
-                      backgroundColor: 'white', color: '#10454B',
-                      border: '1.5px solid #10454B', borderRadius: 10,
-                      fontSize: '13px', fontWeight: 600,
-                      cursor: 'pointer', letterSpacing: '0.02em',
-                    }}
-                  >
-                    📤 Compartir sitio
-                  </button>
-                </div>
-              )}
+              {/* Compartir — siempre visible */}
+              <div style={{ padding: '12px 24px 20px' }}>
+                <button
+                  onClick={handleCompartir}
+                  style={{
+                    width: '100%', padding: '10px 0',
+                    backgroundColor: 'white', color: '#10454B',
+                    border: '1.5px solid #10454B', borderRadius: 10,
+                    fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer', letterSpacing: '0.02em',
+                  }}
+                >
+                  📤 Compartir sitio
+                </button>
+              </div>
 
             </div>
           </div>
