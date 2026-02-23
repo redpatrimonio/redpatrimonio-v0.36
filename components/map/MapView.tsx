@@ -18,7 +18,7 @@ L.Icon.Default.mergeOptions({
 
 interface SitioMapa {
   id_reporte: string
-  nombre_sitio: string
+  nombre_reporte: string
   latitud: number
   longitud: number
   region: string
@@ -181,9 +181,9 @@ export function MapView() {
     try {
       const { data, error } = await supabase
         .from('reportes_nuevos')
-        .select('id_reporte, nombre_sitio, latitud, longitud, region, comuna, categoria_general, categoria_sitio, tipologia_especifica, imagen_url, codigo_accesibilidad')
+        .select('id_reporte, nombre_reporte, latitud, longitud, region, comuna, categoria_general, categoria_sitio, tipologia_especifica, imagen_url, codigo_accesibilidad')
         .eq('estado_validacion', 'verde')
-        .order('nombre_sitio')
+        .order('nombre_reporte')
 
       if (error) throw error
 
@@ -280,7 +280,7 @@ export function MapView() {
                   {sitio.imagen_url ? (
                     <img
                       src={sitio.imagen_url}
-                      alt={sitio.nombre_sitio}
+                      alt={sitio.nombre_reporte}
                       style={{
                         width: '70px',
                         height: '70px',
@@ -315,7 +315,7 @@ export function MapView() {
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                       marginBottom: '4px',
-                    }}>{sitio.nombre_sitio}</p>
+                    }}>{sitio.nombre_reporte}</p>
                     <p style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '3px' }}>
                       <span>📍</span>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

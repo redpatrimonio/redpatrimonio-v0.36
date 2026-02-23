@@ -18,7 +18,7 @@ interface Foto {
 
 interface SitioCompleto {
   id_reporte: string
-  nombre_sitio: string
+  nombre_reporte: string
   descripcion_ubicacion: string | null
   latitud: number
   longitud: number
@@ -58,12 +58,26 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
       if (sitioError) throw sitioError
       setSitio(sitioData)
 
+      // 1. Intentar cargar desde reportes_medios (esquema nuevo)
       const { data: fotosData } = await supabase
         .from('reportes_medios')
         .select('id_medio, url_publica, descripcion_imagen')
         .eq('id_reporte', idSitio)
         .order('prioridad_visualizacion', { ascending: false })
-      setFotos(fotosData || [])
+
+      if (fotosData && fotosData.length > 0) {
+        setFotos(fotosData)
+      } else {
+        // 2. Fallback: Intentar cargar desde tabla 'medios' (esquema antiguo)
+        // Nota: En el esquema antiguo el campo se llama id_sitio pero a veces se usaba id_reporte indistintamente
+        const { data: mediosData } = await supabase
+          .from('medios')
+          .select('id_medio, url_publica, descripcion_imagen')
+          .eq('id_sitio', idSitio)
+          .order('prioridad_visualizacion', { ascending: false })
+
+        setFotos(mediosData || [])
+      }
     } catch (err) {
       console.error('Error cargando sitio:', err)
     } finally {
@@ -74,7 +88,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
   function handleCompartir() {
     const url = `${window.location.origin}/mapa?sitio=${idSitio}`
     if (navigator.share) {
-      navigator.share({ title: sitio?.nombre_sitio, text: `${sitio?.nombre_sitio} - Red Patrimonio Chile`, url })
+      navigator.share({ title: sitio?.nombre_reporte, text: `${sitio?.nombre_reporte} - Red Patrimonio Chile`, url })
     } else {
       navigator.clipboard.writeText(url)
       alert('Link copiado al portapapeles')
@@ -137,7 +151,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
                   {/* Imagen contenida sin recorte */}
                   <img
                     src={fotos[fotoActual].url_publica}
-                    alt={fotos[fotoActual].descripcion_imagen || sitio.nombre_sitio}
+                    alt={fotos[fotoActual].descripcion_imagen || sitio.nombre_reporte}
                     style={{ width: '100%', maxHeight: '50vh', objectFit: 'contain', display: 'block' }}
                   />
 
@@ -237,7 +251,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
                   fontSize: '22px', fontWeight: 700, color: '#10454B',
                   lineHeight: 1.25, marginBottom: 4,
                 }}>
-                  {sitio.nombre_sitio}
+                  {sitio.nombre_reporte}
                 </h2>
                 <p style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 500, letterSpacing: '0.02em' }}>
                   {sitio.comuna}
@@ -332,7 +346,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
         >
           <img
             src={fotos[fotoActual].url_publica}
-            alt={fotos[fotoActual].descripcion_imagen || sitio.nombre_sitio}
+            alt={fotos[fotoActual].descripcion_imagen || sitio.nombre_reporte}
             style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain' }}
             onClick={e => e.stopPropagation()}
           />
@@ -351,7 +365,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
       {mostrarSolicitud && (
         <SolicitarContactoModal
           idSitio={idSitio}
-          nombreSitio={sitio.nombre_sitio}
+          nombreSitio={sitio.nombre_reporte}
           onClose={() => setMostrarSolicitud(false)}
         />
       )}

@@ -34,6 +34,7 @@ interface ReporteCompleto {
   origen_acceso: string
   nivel_accesibilidad: string
   codigo_accesibilidad: string | null
+  imagen_url: string | null
 }
 
 interface Foto {
@@ -157,6 +158,12 @@ export default function AprobarReportePage() {
         formData.nivel_accesibilidad as 'abierto' | 'controlado' | 'protegido' | 'restringido'
       )
 
+      // Si no tiene imagen_url, intentar tomarla de las fotos cargadas
+      let finalImagenUrl = formData.imagen_url || reporte?.imagen_url
+      if (!finalImagenUrl && fotos.length > 0) {
+        finalImagenUrl = fotos[0].url_publica
+      }
+
       // Actualizar reporte con todos los campos
       const { error: updateError } = await supabase
         .from('reportes_nuevos')
@@ -168,6 +175,7 @@ export default function AprobarReportePage() {
           // Asegurar que los campos de accesibilidad estén actualizados
           origen_acceso: formData.origen_acceso,
           nivel_accesibilidad: formData.nivel_accesibilidad,
+          imagen_url: finalImagenUrl
         })
         .eq('id_reporte', id)
 

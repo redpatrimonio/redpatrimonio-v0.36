@@ -33,7 +33,7 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || [])
-    
+
     if (files.length + fotos.length > 5) {
       setError('Máximo 5 fotos permitidas')
       return
@@ -142,6 +142,14 @@ export function StepFotos({ reporteData, onBack }: StepFotosProps) {
 
           if (medioError) {
             console.error('Error guardando medio:', medioError)
+          }
+
+          // Si es la primera foto, actualizar imagen_url en el reporte para el mapa
+          if (i === 0) {
+            await supabase
+              .from('reportes_nuevos')
+              .update({ imagen_url: urlData.publicUrl })
+              .eq('id_reporte', reporte.id_reporte)
           }
         }
       }
