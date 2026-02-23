@@ -30,6 +30,10 @@ interface SitioCompleto {
   periodo_cronologico: string | null
   estado_conservacion: string | null
   codigo_accesibilidad: string
+  // Créditos
+  usuario_autor?: { nombre_completo: string } | null
+  usuario_revisor?: { nombre_completo: string } | null
+  usuario_publicador?: { nombre_completo: string } | null
 }
 
 interface FichaSitioModalProps {
@@ -52,11 +56,11 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
     try {
       const { data: sitioData, error: sitioError } = await supabase
         .from('reportes_nuevos')
-        .select('*')
+        .select('*, usuario_autor:usuarios_autorizados!id_usuario(nombre_completo), usuario_revisor:usuarios_autorizados!id_usuario_revisor(nombre_completo), usuario_publicador:usuarios_autorizados!id_usuario_publico(nombre_completo)')
         .eq('id_reporte', idSitio)
         .single()
       if (sitioError) throw sitioError
-      setSitio(sitioData)
+      setSitio(sitioData as any)
 
       // 1. Intentar cargar desde reportes_medios (esquema nuevo)
       const { data: fotosData } = await supabase
@@ -129,7 +133,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
     <>
       {/* ── Backdrop ── */}
       <div
-        className="fixed inset-0 z-50"
+        className="fixed inset-0 z-[1000]"
         style={{ backgroundColor: 'rgba(0,0,0,0.72)' }}
         onClick={onClose}
       >
@@ -243,7 +247,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
             </div>
 
             {/* ══════════ ZONA DATOS (scrollable) ══════════ */}
-            <div className="overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1" style={{ paddingBottom: '40px' }}>
 
               {/* Encabezado: Título + Subtítulo */}
               <div style={{ padding: '20px 24px 16px' }}>
@@ -312,6 +316,32 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
                 )}
               </div>
 
+              {/* Reconocimientos / Créditos */}
+              {(sitio.usuario_autor || sitio.usuario_revisor || sitio.usuario_publicador) && (
+                <div style={{ padding: '16px 24px', backgroundColor: '#fcfaf7', borderBottom: '1px solid #f3f4f6' }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#10454B', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>
+                    Institucionalidad y Créditos
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {sitio.usuario_autor && (
+                      <p style={{ fontSize: '12px', color: '#4b5563' }}>
+                        <span style={{ fontWeight: 600, color: '#10454B' }}>Reportado por:</span> {sitio.usuario_autor.nombre_completo}
+                      </p>
+                    )}
+                    {sitio.usuario_revisor && (
+                      <p style={{ fontSize: '12px', color: '#4b5563' }}>
+                        <span style={{ fontWeight: 600, color: '#10454B' }}>Revisado por:</span> {sitio.usuario_revisor.nombre_completo}
+                      </p>
+                    )}
+                    {sitio.usuario_publicador && (
+                      <p style={{ fontSize: '12px', color: '#4b5563' }}>
+                        <span style={{ fontWeight: 600, color: '#10454B' }}>Publicado por:</span> {sitio.usuario_publicador.nombre_completo}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Compartir — siempre visible */}
               <div style={{ padding: '12px 24px 20px' }}>
                 <button
@@ -324,7 +354,7 @@ export function FichaSitioModal({ idSitio, onClose }: FichaSitioModalProps) {
                     cursor: 'pointer', letterSpacing: '0.02em',
                   }}
                 >
-                  📤 Compartir sitio
+                  Compartir sitio
                 </button>
               </div>
 
