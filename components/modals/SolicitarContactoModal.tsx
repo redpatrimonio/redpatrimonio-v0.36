@@ -19,7 +19,8 @@ export function SolicitarContactoModal({
   onClose,
   onSuccess 
 }: SolicitarContactoModalProps) {
-  const { user } = useAuth()
+  // FIX C-2: era "user", AuthProvider exporta "usuario"
+  const { usuario } = useAuth()
   const [motivo, setMotivo] = useState('')
   const [infoAdicional, setInfoAdicional] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -28,7 +29,8 @@ export function SolicitarContactoModal({
   async function handleEnviar(e: React.FormEvent) {
     e.preventDefault()
     
-    if (!user || !motivo.trim()) return
+    // FIX C-2: era user.id
+    if (!usuario || !motivo.trim()) return
     
     setEnviando(true)
     setError(null)
@@ -38,7 +40,8 @@ export function SolicitarContactoModal({
         .from('solicitudes_contacto')
         .insert({
           id_sitio: idSitio,
-          id_usuario_solicitante: user.id,
+          // FIX C-2: era user.id
+          id_usuario_solicitante: usuario.id_usuario,
           motivo_solicitud: motivo.trim(),
           info_adicional_solicitante: infoAdicional.trim() || null
         })
@@ -57,8 +60,9 @@ export function SolicitarContactoModal({
   }
 
   return (
+    // FIX z-index: era z-50, ahora z-[2000] para quedar sobre FichaSitioModal
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000] p-4"
       onClick={onClose}
     >
       <div 
@@ -73,7 +77,6 @@ export function SolicitarContactoModal({
         </p>
 
         <form onSubmit={handleEnviar} className="space-y-4">
-          {/* Motivo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Motivo de la solicitud *
@@ -88,7 +91,6 @@ export function SolicitarContactoModal({
             />
           </div>
 
-          {/* Info adicional */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Información adicional (opcional)
@@ -102,14 +104,12 @@ export function SolicitarContactoModal({
             />
           </div>
 
-          {/* Error */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               <p className="text-red-700 text-sm">{error}</p>
             </div>
           )}
 
-          {/* Botones */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"
