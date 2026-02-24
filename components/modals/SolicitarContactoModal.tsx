@@ -87,7 +87,7 @@ export function SolicitarContactoModal({
               placeholder="Explica brevemente por qué necesitas esta información..."
               required
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600"
             />
           </div>
 
@@ -100,7 +100,7 @@ export function SolicitarContactoModal({
               onChange={(e) => setInfoAdicional(e.target.value)}
               placeholder="Detalles sobre tu investigación, institución, etc."
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600"
             />
           </div>
 
