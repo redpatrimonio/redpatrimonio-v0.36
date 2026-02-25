@@ -6,8 +6,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { FichaSitioModal } from '@/components/modals/FichaSitioModal'
 import { puedeVerSitio, puedeVerCoordenadasExactas } from '@/lib/utils/accesibilidad'
+import { BienvenidaMapaModal } from '@/components/modals/BienvenidaMapaModal'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
 
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -292,7 +294,7 @@ export function MapView() {
             return <Marker key={sitio.id_reporte} position={coords} icon={codigo === 'B' ? pinB : pinC}><Popup>{popup}</Popup></Marker>
           })}
 
-        </MapContainer>
+         </MapContainer>
       </div>
 
       {sitioSeleccionado && (
@@ -301,6 +303,11 @@ export function MapView() {
           onClose={() => setSitioSeleccionado(null)}
         />
       )}
+      
+      {/* ── Nuevo Modal de Bienvenida ── */}
+      <BienvenidaMapaModal />
+      
     </>
   )
 }
+
