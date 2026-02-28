@@ -235,7 +235,10 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
         </p>
         <div className="flex gap-2 items-start">
           <div className="flex-1">
-            <label className="block text-xs text-gray-500 mb-1">Latitud (-90 a 90)</label>
+            <label className="block text-xs text-gray-500 mb-1">
+  Latitud
+  <span className="block text-gray-400">(-90 a 90)</span>
+</label>
             <input
               type="text"
               value={latStr}
@@ -245,7 +248,10 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
             />
           </div>
           <div className="flex-1">
-            <label className="block text-xs text-gray-500 mb-1">Longitud (-180 a 180)</label>
+            <label className="block text-xs text-gray-500 mb-1">
+  Longitud
+  <span className="block text-gray-400">(-180 a 180)</span>
+</label>
             <input
               type="text"
               value={lngStr}
