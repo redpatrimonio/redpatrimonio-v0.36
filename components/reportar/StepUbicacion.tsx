@@ -15,15 +15,11 @@ interface StepUbicacionProps {
   }) => void
 }
 
-// Geocoding reverso con Nominatim
 async function getReverseGeocode(lat: number, lng: number) {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
-    const res = await fetch(url, {
-      headers: { 'Accept-Language': 'es' }
-    })
+    const res = await fetch(url, { headers: { 'Accept-Language': 'es' } })
     const data = await res.json()
-
     return {
       region: data.address?.state || data.address?.region || '',
       comuna:
@@ -39,47 +35,23 @@ async function getReverseGeocode(lat: number, lng: number) {
   }
 }
 
-/**
- * Normaliza el string de región que devuelve Nominatim al nombre exacto
- * que usamos en nuestro array REGIONES (nombres cortos sin "Región de").
- *
- * Nominatim (es) ejemplos:
- *   "Región Metropolitana de Santiago" → "Metropolitana"
- *   "Región de Valparaíso"            → "Valparaíso"
- *   "Región de Arica y Parinacota"    → "Arica y Parinacota"
- *   "Región de La Araucanía"          → "Araucanía"
- *   "Región del Biobío"               → "Biobío"
- *   "Región de Los Ríos"              → "Los Ríos"
- *   "Región de Aysén del General..."  → "Aysén"
- *   "Región de Magallanes..."         → "Magallanes"
- */
 function normalizarRegion(rawRegion: string): string {
   if (!rawRegion) return ''
 
-  // Mapa explícito para variantes conocidas de Nominatim → clave exacta en REGIONES
   const mapaExplicito: Record<string, string> = {
-    // Metropolitana
     'región metropolitana de santiago': 'Metropolitana',
     'región metropolitana': 'Metropolitana',
     'metropolitana de santiago': 'Metropolitana',
-    // Araucanía (Nominatim incluye "La")
     'región de la araucanía': 'Araucanía',
-    // Biobío lleva "del"
     'región del biobío': 'Biobío',
-    // Los Lagos / Los Ríos
     'región de los lagos': 'Los Lagos',
     'región de los ríos': 'Los Ríos',
-    // Aysén — nombre oficial largo
     'región de aysén del general carlos ibáñez del campo': 'Aysén',
-    // Magallanes — nombre oficial largo
     'región de magallanes y de la antártica chilena': 'Magallanes',
     'región de magallanes y la antártica chilena': 'Magallanes',
-    // O'Higgins
     "región del libertador general bernardo o'higgins": "O'Higgins",
     "región de o'higgins": "O'Higgins",
-    // Maule
     'región del maule': 'Maule',
-    // Estándar "Región de X"
     'región de valparaíso': 'Valparaíso',
     'región de coquimbo': 'Coquimbo',
     'región de atacama': 'Atacama',
@@ -90,16 +62,11 @@ function normalizarRegion(rawRegion: string): string {
   }
 
   const lowerRaw = rawRegion.toLowerCase().trim()
-
-  // 1) Búsqueda exacta en el mapa explícito
   if (mapaExplicito[lowerRaw]) return mapaExplicito[lowerRaw]
-
-  // 2) Búsqueda parcial en el mapa explícito (por si Nominatim agrega texto extra)
   for (const [key, value] of Object.entries(mapaExplicito)) {
     if (lowerRaw.includes(key) || key.includes(lowerRaw)) return value
   }
 
-  // 3) Quitar prefijos genéricos y buscar en REGIONES
   const limpio = rawRegion
     .replace(/^Regi[oó]n\s+Metropolitana\s+de\s+Santiago/i, 'Metropolitana')
     .replace(/^Regi[oó]n\s+de\s+la\s+/i, '')
@@ -108,13 +75,11 @@ function normalizarRegion(rawRegion: string): string {
     .replace(/^Regi[oó]n\s+de\s+/i, '')
     .trim()
 
-  // 4) Coincidencia exacta (case-insensitive) en REGIONES
   const exacta = (REGIONES as readonly string[]).find(
     r => r.toLowerCase() === limpio.toLowerCase()
   )
   if (exacta) return exacta
 
-  // 5) Coincidencia parcial en REGIONES (fallback)
   const parcial = (REGIONES as readonly string[]).find(r =>
     limpio.toLowerCase().includes(r.toLowerCase()) ||
     r.toLowerCase().includes(limpio.toLowerCase())
@@ -125,6 +90,11 @@ function normalizarRegion(rawRegion: string): string {
 export function StepUbicacion({ onNext }: StepUbicacionProps) {
   const [latitud, setLatitud] = useState<number | null>(null)
   const [longitud, setLongitud] = useState<number | null>(null)
+  // --- NUEVO: strings para los inputs manuales ---
+  const [latStr, setLatStr] = useState('')
+  const [lngStr, setLngStr] = useState('')
+  const [errorCoords, setErrorCoords] = useState('')
+  // -----------------------------------------------
   const [region, setRegion] = useState('')
   const [comuna, setComuna] = useState('')
   const [comunasDisponibles, setComunasDisponibles] = useState<string[]>([])
@@ -132,53 +102,47 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
   const [cargandoGPS, setCargandoGPS] = useState(false)
   const [cargandoGeocode, setCargandoGeocode] = useState(false)
 
-  /**
-   * Aplica geocoding inverso a las coordenadas y actualiza
-   * automáticamente los dropdowns de región y comuna.
-   */
   async function aplicarGeocode(lat: number, lng: number) {
     setCargandoGeocode(true)
-
     const geo = await getReverseGeocode(lat, lng)
     const regionNormalizada = normalizarRegion(geo.region)
-
     if (regionNormalizada) {
       setRegion(regionNormalizada)
       const comunas = COMUNAS[regionNormalizada] || []
       setComunasDisponibles(comunas)
-
       const comunaEncontrada = comunas.find(c =>
         geo.comuna.toLowerCase().includes(c.toLowerCase()) ||
         c.toLowerCase().includes(geo.comuna.toLowerCase())
       )
       setComuna(comunaEncontrada ?? '')
     } else {
-      // No se pudo mapear: dejar vacíos para que el usuario elija manualmente
       setRegion('')
       setComuna('')
       setComunasDisponibles([])
     }
-
     setCargandoGeocode(false)
+  }
+
+  // Actualiza todo: estado numérico + strings de inputs + geocoding
+  async function aplicarCoordenadas(lat: number, lng: number) {
+    setLatitud(lat)
+    setLongitud(lng)
+    setLatStr(lat.toFixed(6))
+    setLngStr(lng.toFixed(6))
+    await aplicarGeocode(lat, lng)
   }
 
   async function handleUseCurrentLocation() {
     setCargandoGPS(true)
     setError('')
-
     if (!navigator.geolocation) {
       setError('Tu navegador no soporta geolocalización')
       setCargandoGPS(false)
       return
     }
-
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const lat = position.coords.latitude
-        const lng = position.coords.longitude
-        setLatitud(lat)
-        setLongitud(lng)
-        await aplicarGeocode(lat, lng)
+        await aplicarCoordenadas(position.coords.latitude, position.coords.longitude)
         setCargandoGPS(false)
       },
       (err) => {
@@ -190,10 +154,30 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
   }
 
   async function handleMapClick(lat: number, lng: number) {
-    setLatitud(lat)
-    setLongitud(lng)
-    await aplicarGeocode(lat, lng)
+    await aplicarCoordenadas(lat, lng)
   }
+
+  // --- NUEVO: aplicar coordenadas ingresadas manualmente ---
+  async function handleManualApply() {
+    setErrorCoords('')
+    const lat = parseFloat(latStr.replace(',', '.'))
+    const lng = parseFloat(lngStr.replace(',', '.'))
+
+    if (isNaN(lat) || isNaN(lng)) {
+      setErrorCoords('Ingresa valores numéricos válidos')
+      return
+    }
+    if (lat < -90 || lat > 90) {
+      setErrorCoords('Latitud debe estar entre -90 y 90')
+      return
+    }
+    if (lng < -180 || lng > 180) {
+      setErrorCoords('Longitud debe estar entre -180 y 180')
+      return
+    }
+    await aplicarCoordenadas(lat, lng)
+  }
+  // ---------------------------------------------------------
 
   function handleRegionChange(nuevaRegion: string) {
     setRegion(nuevaRegion)
@@ -243,7 +227,54 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
         />
       </div>
 
-      {/* Coordenadas */}
+      {/* --- NUEVO: Inputs manuales de coordenadas --- */}
+      <div>
+        <p className="text-sm font-medium text-gray-700 mb-2">
+          O ingresa coordenadas manualmente{' '}
+          <span className="text-gray-400 font-normal">(ej. desde GPS Garmin)</span>
+        </p>
+        <div className="flex gap-2 items-start">
+          <div className="flex-1">
+            <label className="block text-xs text-gray-500 mb-1">Latitud (-90 a 90)</label>
+            <input
+              type="text"
+              value={latStr}
+              onChange={(e) => setLatStr(e.target.value)}
+              placeholder="-33.456789"
+              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs text-gray-500 mb-1">Longitud (-180 a 180)</label>
+            <input
+              type="text"
+              value={lngStr}
+              onChange={(e) => setLngStr(e.target.value)}
+              placeholder="-70.678901"
+              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
+            />
+          </div>
+          <div className="pt-5">
+            <button
+              onClick={handleManualApply}
+              disabled={cargando || !latStr || !lngStr}
+              className="px-4 py-2 text-sm rounded-lg font-medium transition disabled:bg-gray-200 disabled:text-gray-400"
+              style={{
+                backgroundColor: latStr && lngStr && !cargando ? '#10454B' : undefined,
+                color: latStr && lngStr && !cargando ? '#B18256' : undefined,
+              }}
+            >
+              Aplicar
+            </button>
+          </div>
+        </div>
+        {errorCoords && (
+          <p className="text-xs text-red-600 mt-1">{errorCoords}</p>
+        )}
+      </div>
+      {/* --------------------------------------------- */}
+
+      {/* Coordenadas activas */}
       {latitud && longitud && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <p className="text-sm text-green-800">
@@ -252,7 +283,7 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
         </div>
       )}
 
-      {/* Banner: Cargando ubicación */}
+      {/* Banner: Cargando geocoding */}
       {cargandoGeocode && (
         <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
           <svg
@@ -261,25 +292,14 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
             fill="none"
             viewBox="0 0 24 24"
           >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
-            />
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           <p className="text-sm text-blue-700">Cargando ubicación...</p>
         </div>
       )}
 
-      {/* Región DROPDOWN */}
+      {/* Región */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Región <span className="text-red-500">*</span>
@@ -294,14 +314,12 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
             {cargandoGeocode ? 'Cargando ubicación...' : 'Selecciona una región'}
           </option>
           {REGIONES.map((r) => (
-            <option key={r} value={r} className="text-gray-900">
-              {r}
-            </option>
+            <option key={r} value={r} className="text-gray-900">{r}</option>
           ))}
         </select>
       </div>
 
-      {/* Comuna DROPDOWN (dependiente de región) */}
+      {/* Comuna */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Comuna <span className="text-red-500">*</span>
@@ -320,34 +338,28 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
                 : 'Selecciona una comuna'}
           </option>
           {comunasDisponibles.map((c) => (
-            <option key={c} value={c} className="text-gray-900">
-              {c}
-            </option>
+            <option key={c} value={c} className="text-gray-900">{c}</option>
           ))}
         </select>
       </div>
 
-      {/* Error */}
+      {/* Error general */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {/* Botón Siguiente */}
+      {/* Siguiente */}
       <button
         onClick={handleNext}
         disabled={!latitud || !longitud || !region || !comuna || cargandoGeocode}
         className="w-full py-3 rounded-lg font-medium transition disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
         style={{
           backgroundColor:
-            latitud && longitud && region && comuna && !cargandoGeocode
-              ? '#10454B'
-              : undefined,
+            latitud && longitud && region && comuna && !cargandoGeocode ? '#10454B' : undefined,
           color:
-            latitud && longitud && region && comuna && !cargandoGeocode
-              ? 'white'
-              : undefined,
+            latitud && longitud && region && comuna && !cargandoGeocode ? 'white' : undefined,
         }}
       >
         Siguiente
