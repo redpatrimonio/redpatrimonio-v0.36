@@ -27,3 +27,48 @@ export type EstadoValidacion = 'rojo' | 'amarillo' | 'verde'
 
 // Tipo para Supabase Client
 export type { Database }
+
+import type { CapaTipo } from './database'
+
+// Estado de visibilidad de capas en el mapa (para los toggles)
+export interface EstadoCapas {
+  geografico: boolean
+  turistico: boolean
+  comercial: boolean
+  memoria: boolean
+}
+
+// Configuración visual por capa
+export interface ConfigCapa {
+  label: string
+  color: string
+  emoji: string
+  zoomDefault: number
+}
+
+export const CONFIG_CAPAS: Record<CapaTipo | 'memoria', ConfigCapa> = {
+  geografico: {
+    label: 'Geografía / Natural',
+    color: '#2d6a4f',
+    emoji: '🏔',
+    zoomDefault: 6,
+  },
+  turistico: {
+    label: 'Turístico / Cultural',
+    color: '#1d3557',
+    emoji: '🏛',
+    zoomDefault: 10,
+  },
+  comercial: {
+    label: 'Comercial',
+    color: '#e76f51',
+    emoji: '🏪',
+    zoomDefault: 12,
+  },
+  memoria: {
+    label: 'Memoria de Sitio',
+    color: '#6b3fa0',
+    emoji: '👁',
+    zoomDefault: 10,
+  },
+}

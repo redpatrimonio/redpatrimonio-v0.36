@@ -1444,3 +1444,50 @@ export const Constants = {
     Enums: {},
   },
 } as const
+// ==========================================
+// CAPAS NO ARQUEOLÓGICAS
+// ==========================================
+
+export type CapaTipo = 'geografico' | 'turistico' | 'comercial'
+
+export type LugarEstado = 'activo' | 'inactivo' | 'pendiente'
+
+export interface LugarCapa {
+  id: string
+  nombre: string
+  descripcion: string | null
+  capa: CapaTipo
+  subcategoria: string | null
+  latitud: number
+  longitud: number
+  geometria?: unknown | null        // PostGIS, se expande a futuro
+  url_imagen: string | null
+  url_externo: string | null
+  zoom_minimo: number
+  estado: LugarEstado
+  es_premium: boolean
+  creado_por: string | null
+  fecha_creacion: string
+}
+
+// ==========================================
+// MEMORIA INVISIBLE
+// ==========================================
+
+export interface SitioMemoria {
+  id: string
+  nombre: string
+  descripcion: string | null
+  latitud: number
+  longitud: number
+  geometria?: unknown | null
+  id_sitio_vinculado: string | null  // FK opcional a sitios_master
+  que_lo_cubre: string | null
+  periodo_ocultamiento: string | null
+  url_publicacion: string | null
+  url_imagen: string | null
+  zoom_minimo: number
+  estado: LugarEstado
+  creado_por: string | null
+  fecha_creacion: string
+}

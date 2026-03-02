@@ -9,6 +9,9 @@ import { puedeVerSitio, puedeVerCoordenadasExactas } from '@/lib/utils/accesibil
 import { BienvenidaMapaModal } from '@/components/modals/BienvenidaMapaModal'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { CapasNoArqueologicas } from '@/components/map/CapasNoArqueologicas'
+import { ToggleCapas } from '@/components/map/ToggleCapas'
+import type { EstadoCapas } from '@/types/index'
 
 
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
@@ -124,8 +127,18 @@ export function MapView() {
   const [loading, setLoading] = useState(true)
   const [sitioSeleccionado, setSitioSeleccionado] = useState<string | null>(null)
   const [zoomActual, setZoomActual] = useState(6)
+  const [capasActivas, setCapasActivas] = useState<EstadoCapas>({
+    geografico: true,
+    turistico: true,
+    comercial: true,
+    memoria: true,
+  })
   const supabase = createClient()
   const coordsDesplazadasRef = useRef<Record<string, [number, number]>>({})
+
+  function handleToggleCapa(capa: keyof EstadoCapas) {
+    setCapasActivas(prev => ({ ...prev, [capa]: !prev[capa] }))
+  }
 
   function getCoordsDesplazadas(sitio: SitioMapa): [number, number] {
     if (!coordsDesplazadasRef.current[sitio.id_reporte]) {
@@ -133,6 +146,7 @@ export function MapView() {
     }
     return coordsDesplazadasRef.current[sitio.id_reporte]
   }
+
 
   async function fetchSitios() {
     try {
@@ -200,16 +214,20 @@ export function MapView() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ZoomWatcher onZoomChange={setZoomActual} />
-          <ControlesMapa />
+         
+         <ControlesMapa />
+<ToggleCapas capasActivas={capasActivas} onChange={handleToggleCapa} />
+<CapasNoArqueologicas capasActivas={capasActivas} />
 
-          {sitios.map(sitio => {
-            const codigo = sitio.codigo_accesibilidad
-            const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
-            const coords: [number, number] = verExacto
-              ? [sitio.latitud, sitio.longitud]
-              : getCoordsDesplazadas(sitio)
+{sitios.map(sitio => {
+  const codigo = sitio.codigo_accesibilidad
+  const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
+  const coords: [number, number] = verExacto
+    ? [sitio.latitud, sitio.longitud]
+    : getCoordsDesplazadas(sitio)
 
-            const tipologias: string[] = sitio.tipologia_especifica ?? []
+  const tipologias: string[] = sitio.tipologia_especifica ?? []
+
 
             // FIX: Lógica de botón diferenciada por código y rol
             // B + público → "Solicitar info"
