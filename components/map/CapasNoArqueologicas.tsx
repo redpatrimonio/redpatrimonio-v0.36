@@ -4,11 +4,14 @@ import { Marker, Popup, useMapEvents } from 'react-leaflet'
 import { useState } from 'react'
 import { useLugaresCapa } from '@/lib/hooks/useLugaresCapa'
 import {
-  iconoGeografico,
+  iconoPatrimonioNatural,
+  iconoMuseo,
+  iconoLugarInteres,
   iconoTuristico,
+  iconoBarRestaurant,
   iconoComercial,
   iconoComercialPremium,
-  iconoMemoria,
+  iconoRastrosMemoria,
 } from '@/components/map/IconosCapas'
 import type { EstadoCapas } from '@/types/index'
 import type { LugarCapa, SitioMemoria } from '@/types/database'
@@ -49,7 +52,7 @@ function PopupLugar({ nombre, descripcion, subcategoria, url_externo, url_imagen
           rel="noopener noreferrer"
           style={{ display: 'block', marginTop: '10px', fontSize: '12px', color: '#10454B', fontWeight: 600, textDecoration: 'none' }}
         >
-          Ver más →
+          Ver mas
         </a>
       )}
     </div>
@@ -68,16 +71,26 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
 
   return (
     <>
-      {/* Capas lugares_capas */}
+      {/* Capas desde lugares_capas */}
       {lugares.map((lugar: LugarCapa) => {
-        if (!capasActivas[lugar.capa]) return null
+        // Si la capa tiene toggle, respetarlo.
+        // Si la capa no tiene toggle aun (capas nuevas), mostrar por defecto.
+        const capaKey = lugar.capa as keyof EstadoCapas
+        if (capaKey in capasActivas && !capasActivas[capaKey]) return null
+
+        // Zoom minimo controlado por campo en BD
         if (zoomActual < lugar.zoom_minimo) return null
 
-        const icono = lugar.capa === 'geografico'
-          ? iconoGeografico
-          : lugar.capa === 'turistico'
-            ? iconoTuristico
-            : lugar.es_premium ? iconoComercialPremium : iconoComercial
+        // Seleccion de icono por valor del campo capa
+        const capa = lugar.capa as string
+        const icono =
+          capa === 'geografico'         ? iconoPatrimonioNatural :
+          capa === 'patrimonio_natural'  ? iconoPatrimonioNatural :
+          capa === 'museo'               ? iconoMuseo :
+          capa === 'lugar_interes'       ? iconoLugarInteres :
+          capa === 'turistico'           ? iconoTuristico :
+          capa === 'bar_restaurant'      ? iconoBarRestaurant :
+          lugar.es_premium                    ? iconoComercialPremium : iconoComercial
 
         return (
           <Marker key={lugar.id} position={[lugar.latitud, lugar.longitud]} icon={icono}>
@@ -94,12 +107,12 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
         )
       })}
 
-      {/* Capa memoria */}
+      {/* Capa rastros de memoria (tabla separada) */}
       {capasActivas.memoria && memoria.map((sitio: SitioMemoria) => {
         if (zoomActual < sitio.zoom_minimo) return null
 
         return (
-          <Marker key={sitio.id} position={[sitio.latitud, sitio.longitud]} icon={iconoMemoria}>
+          <Marker key={sitio.id} position={[sitio.latitud, sitio.longitud]} icon={iconoRastrosMemoria}>
             <Popup>
               <PopupLugar
                 nombre={sitio.nombre}

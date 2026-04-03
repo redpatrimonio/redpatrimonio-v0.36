@@ -11,6 +11,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CapasNoArqueologicas } from '@/components/map/CapasNoArqueologicas'
 import { ToggleCapas } from '@/components/map/ToggleCapas'
+import { iconoArqueologico, areaB, areaC } from '@/components/map/IconosCapas'
 import type { EstadoCapas } from '@/types/index'
 
 
@@ -34,38 +35,6 @@ interface SitioMapa {
   imagen_url: string | null
   codigo_accesibilidad: 'A' | 'B' | 'C'
 }
-
-function crearIconoPin(color: string): L.DivIcon {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="23" height="35">
-    <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z"
-      fill="${color}" stroke="white" stroke-width="1.5"/>
-    <circle cx="12" cy="12" r="4.5"
-      fill="white" fill-opacity="0.55" stroke="white" stroke-width="1"/>
-  </svg>`
-  return L.divIcon({
-    className: '',
-    html: svg,
-    iconSize: [23, 35],
-    iconAnchor: [11, 35],
-    popupAnchor: [0, -36],
-  })
-}
-
-function crearIconoArea(color: string): L.DivIcon {
-  return L.divIcon({
-    className: '',
-    html: `<div style="width:30px;height:30px;border-radius:50%;background-color:${color};opacity:0.4;cursor:pointer;"></div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -16],
-  })
-}
-
-const pinA = crearIconoPin('#526A3A')
-const pinB = crearIconoPin('#2563eb')
-const pinC = crearIconoPin('#374151')
-const areaB = crearIconoArea('#3b82f6')
-const areaC = crearIconoArea('#374151')
 
 function desplazarCoordenada(lat: number, lng: number, radioMetros: number): [number, number] {
   const radioGrados = radioMetros / 111320
@@ -147,7 +116,6 @@ export function MapView() {
     return coordsDesplazadasRef.current[sitio.id_reporte]
   }
 
-
   async function fetchSitios() {
     try {
       const { data, error } = await supabase
@@ -214,25 +182,20 @@ export function MapView() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ZoomWatcher onZoomChange={setZoomActual} />
-         
-         <ControlesMapa />
-<ToggleCapas capasActivas={capasActivas} onChange={handleToggleCapa} />
-<CapasNoArqueologicas capasActivas={capasActivas} />
 
-{sitios.map(sitio => {
-  const codigo = sitio.codigo_accesibilidad
-  const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
-  const coords: [number, number] = verExacto
-    ? [sitio.latitud, sitio.longitud]
-    : getCoordsDesplazadas(sitio)
+          <ControlesMapa />
+          <ToggleCapas capasActivas={capasActivas} onChange={handleToggleCapa} />
+          <CapasNoArqueologicas capasActivas={capasActivas} />
 
-  const tipologias: string[] = sitio.tipologia_especifica ?? []
+          {sitios.map(sitio => {
+            const codigo = sitio.codigo_accesibilidad
+            const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
+            const coords: [number, number] = verExacto
+              ? [sitio.latitud, sitio.longitud]
+              : getCoordsDesplazadas(sitio)
 
+            const tipologias: string[] = sitio.tipologia_especifica ?? []
 
-            // FIX: Lógica de botón diferenciada por código y rol
-            // B + público → "Solicitar info"
-            // C + experto/partner/founder → "Solicitar info"
-            // Todo lo demás → "Ver ficha"
             const necesitaSolicitar =
               (codigo === 'B' && rolUsuario === 'publico') ||
               (codigo === 'C' && ['experto', 'partner', 'founder'].includes(rolUsuario || ''))
@@ -285,7 +248,7 @@ export function MapView() {
 
                 <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '0 0 10px 0' }} />
 
-                {/* FIX: Botón con texto dinámico según código y rol */}
+                {/* Botón */}
                 <div style={{ padding: '0 14px 14px 14px' }}>
                   <button
                     onClick={() => setSitioSeleccionado(sitio.id_reporte)}
@@ -299,20 +262,26 @@ export function MapView() {
               </div>
             )
 
+            // ── Render por código y zoom ─────────────────────────────────────
+            // A → siempre visible, icono arqueológico
             if (codigo === 'A') {
-              return <Marker key={sitio.id_reporte} position={coords} icon={pinA}><Popup>{popup}</Popup></Marker>
+              return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
             }
-            if (codigo === 'B' && verExacto) {
-              return <Marker key={sitio.id_reporte} position={coords} icon={pinB}><Popup>{popup}</Popup></Marker>
+
+            // B o C con coordenadas exactas (experto/partner/founder) → icono arqueológico
+            if (verExacto) {
+              return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
             }
-            if (zoomActual >= 15) return null
-            if (zoomActual >= 9) {
+
+            // B o C sin coordenadas exactas → comportamiento por zoom
+            if (zoomActual >= 15) return null                      // zoom cercano: ocultar
+            if (zoomActual >= 9) {                                 // zoom medio: área difusa
               return <Marker key={sitio.id_reporte} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
             }
-            return <Marker key={sitio.id_reporte} position={coords} icon={codigo === 'B' ? pinB : pinC}><Popup>{popup}</Popup></Marker>
+            return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>  // zoom lejano: icono
           })}
 
-         </MapContainer>
+        </MapContainer>
       </div>
 
       {sitioSeleccionado && (
@@ -321,11 +290,9 @@ export function MapView() {
           onClose={() => setSitioSeleccionado(null)}
         />
       )}
-      
-      {/* ── Nuevo Modal de Bienvenida ── */}
+
       <BienvenidaMapaModal />
-      
+
     </>
   )
 }
-
