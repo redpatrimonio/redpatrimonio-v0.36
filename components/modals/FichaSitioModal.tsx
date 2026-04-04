@@ -31,7 +31,6 @@ interface Publicacion {
   url_pdf: string
 }
 
-// ── Vista normalizada común para ambas tablas ──────────────────────────────
 interface SitioNormalizado {
   id: string
   nombre: string
@@ -74,7 +73,6 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
   async function cargarDatos() {
     setLoading(true)
     try {
-      // ── 1. Datos del sitio según origen ──────────────────────────────────
       if (origen === 'master') {
         const { data, error } = await supabase
           .from('sitios_master')
@@ -123,11 +121,7 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
         })
       }
 
-      // ── 2. Medios ─────────────────────────────────────────────────────────
-      // master → tabla medios (id_sitio)
-      // reporte → tabla reportes_medios (id_reporte), fallback a medios si vacío
       let mediosData: any[] = []
-
       if (origen === 'master') {
         const { data } = await supabase
           .from('medios')
@@ -142,7 +136,6 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
           .eq('id_reporte', idSitio)
           .order('prioridad_visualizacion', { ascending: false })
         mediosData = data ?? []
-        // Fallback: si el reporte no tiene medios propios, buscar en medios via id_reporte
         if (mediosData.length === 0) {
           const { data: fallback } = await supabase
             .from('medios')
@@ -158,7 +151,6 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
       setLinksVideo(mediosData.filter(m => m.tipo_medio === 'link_video'))
       setLinks3d(mediosData.filter(m => m.tipo_medio === 'link_3d'))
 
-      // ── 3. Publicaciones ──────────────────────────────────────────────────
       const campoId = origen === 'master' ? 'id_sitio' : 'id_reporte'
       const { data: pubData } = await supabase
         .from('sitios_publicaciones')
@@ -208,6 +200,8 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
   const puedeVerCoordenadas = puedeVerCoordenadasExactas(codigo, rolUsuario)
   const puedeVerInfoContacto = codigo === 'A' || (codigo === 'B' && puedeVerCoordenadas) || esExpertoOMas(rolUsuario)
 
+  const googleMapsUrl = `https://www.google.com/maps?q=${sitio.latitud},${sitio.longitud}`
+
   const datosTecnicos = [
     { label: 'Categoría', value: sitio.categoria_general },
     { label: 'Tipología', value: sitio.tipologias?.join(' · ') },
@@ -219,7 +213,6 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
 
   const hayMultimedia = linksVideo.length > 0 || links3d.length > 0
 
-  // Badge de origen
   const badgeOrigen = origen === 'reporte'
     ? { label: 'Reporte comunitario', color: '#92400e', bg: '#fef3c7' }
     : { label: 'Sitio validado', color: '#065f46', bg: '#d1fae5' }
@@ -306,7 +299,7 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
             {/* ── Contenido scrolleable ── */}
             <div className="overflow-y-auto flex-1" style={{ paddingBottom: '84px' }}>
 
-              {/* Título + badge origen + 360° */}
+              {/* Título + badge + 360° */}
               <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
                   <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#10454B', lineHeight: 1.25, marginBottom: 6 }}>
@@ -423,16 +416,48 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
                 )}
               </div>
 
-              {/* Compartir */}
-              <div style={{ padding: '12px 24px 20px' }}>
+              {/* ── Botones de acción ── */}
+              <div style={{ padding: '12px 24px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+                {/* Abrir en Google Maps — solo si puede ver coordenadas exactas */}
+                {puedeVerCoordenadas && (
+                  <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      width: '100%', padding: '10px 0',
+                      backgroundColor: '#10454B', color: 'white',
+                      border: 'none', borderRadius: 10,
+                      fontSize: '13px', fontWeight: 600,
+                      cursor: 'pointer', letterSpacing: '0.02em',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    Abrir en Google Maps
+                  </a>
+                )}
+
+                {/* Compartir */}
                 <button
                   onClick={handleCompartir}
-                  style={{ width: '100%', padding: '10px 0', backgroundColor: 'white', color: '#10454B', border: '1.5px solid #10454B', borderRadius: 10, fontSize: '13px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.02em' }}
+                  style={{
+                    width: '100%', padding: '10px 0',
+                    backgroundColor: 'white', color: '#10454B',
+                    border: '1.5px solid #10454B', borderRadius: 10,
+                    fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer', letterSpacing: '0.02em',
+                  }}
                 >
                   Compartir sitio
                 </button>
-              </div>
 
+              </div>
             </div>
           </div>
         </div>
