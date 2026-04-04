@@ -10,10 +10,10 @@ import { BienvenidaMapaModal } from '@/components/modals/BienvenidaMapaModal'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CapasNoArqueologicas } from '@/components/map/CapasNoArqueologicas'
+import { SitiosMaster } from '@/components/map/SitiosMaster'
 import { ToggleCapas } from '@/components/map/ToggleCapas'
 import { iconoArqueologico, areaB, areaC } from '@/components/map/IconosCapas'
 import type { EstadoCapas } from '@/types/index'
-
 
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -22,7 +22,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '',
 })
 
-interface SitioMapa {
+// ── Tipo para reportes de comunidad (reportes_nuevos) ─────────────────────────
+interface ReporteComunidad {
   id_reporte: string
   nombre_reporte: string
   latitud: number
@@ -92,9 +93,9 @@ function ControlesMapa() {
 
 export function MapView() {
   const { usuario } = useAuth()
-  const [sitios, setSitios] = useState<SitioMapa[]>([])
-  const [loading, setLoading] = useState(true)
+  const [reportes, setReportes] = useState<ReporteComunidad[]>([])
   const [sitioSeleccionado, setSitioSeleccionado] = useState<string | null>(null)
+  const [origenSeleccionado, setOrigenSeleccionado] = useState<'master' | 'reporte' | null>(null)
   const [zoomActual, setZoomActual] = useState(6)
   const [capasActivas, setCapasActivas] = useState<EstadoCapas>({
     geografico: true,
@@ -109,43 +110,28 @@ export function MapView() {
     setCapasActivas(prev => ({ ...prev, [capa]: !prev[capa] }))
   }
 
-  function getCoordsDesplazadas(sitio: SitioMapa): [number, number] {
-    if (!coordsDesplazadasRef.current[sitio.id_reporte]) {
-      coordsDesplazadasRef.current[sitio.id_reporte] = desplazarCoordenada(sitio.latitud, sitio.longitud, 300)
+  function getCoordsDesplazadas(id: string, lat: number, lng: number): [number, number] {
+    if (!coordsDesplazadasRef.current[id]) {
+      coordsDesplazadasRef.current[id] = desplazarCoordenada(lat, lng, 300)
     }
-    return coordsDesplazadasRef.current[sitio.id_reporte]
+    return coordsDesplazadasRef.current[id]
   }
 
-  async function fetchSitios() {
-    try {
+  // ── Reportes de comunidad (reportes_nuevos) ──────────────────────────────────
+  useEffect(() => {
+    async function fetchReportes() {
       const { data, error } = await supabase
         .from('reportes_nuevos')
         .select('id_reporte, nombre_reporte, latitud, longitud, region, comuna, categoria_general, categoria_sitio, tipologia_especifica, imagen_url, codigo_accesibilidad')
         .eq('estado_validacion', 'verde')
         .order('nombre_reporte')
-      if (error) throw error
+      if (error) { console.error('Reportes fetch error:', error); return }
       const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
       const filtrados = (data || []).filter(s => puedeVerSitio(s.codigo_accesibilidad as 'A' | 'B' | 'C', rolUsuario))
-      setSitios(filtrados)
-    } catch (err) {
-      console.error('Error fetching sitios:', err)
-    } finally {
-      setLoading(false)
+      setReportes(filtrados)
     }
-  }
-
-  useEffect(() => { fetchSitios() }, [usuario])
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando mapa...</p>
-        </div>
-      </div>
-    )
-  }
+    fetchReportes()
+  }, [usuario])
 
   const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
 
@@ -182,19 +168,24 @@ export function MapView() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ZoomWatcher onZoomChange={setZoomActual} />
-
           <ControlesMapa />
           <ToggleCapas capasActivas={capasActivas} onChange={handleToggleCapa} />
-          <CapasNoArqueologicas capasActivas={capasActivas} />
 
-          {sitios.map(sitio => {
-            const codigo = sitio.codigo_accesibilidad
+          {/* Capa 1: sitios validados desde sitios_master */}
+          <SitiosMaster
+            zoomActual={zoomActual}
+            onSeleccionar={(id) => { setSitioSeleccionado(id); setOrigenSeleccionado('master') }}
+          />
+
+          {/* Capa 2: reportes de comunidad desde reportes_nuevos */}
+          {reportes.map(reporte => {
+            const codigo = reporte.codigo_accesibilidad
             const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
             const coords: [number, number] = verExacto
-              ? [sitio.latitud, sitio.longitud]
-              : getCoordsDesplazadas(sitio)
+              ? [reporte.latitud, reporte.longitud]
+              : getCoordsDesplazadas(reporte.id_reporte, reporte.latitud, reporte.longitud)
 
-            const tipologias: string[] = sitio.tipologia_especifica ?? []
+            const tipologias: string[] = reporte.tipologia_especifica ?? []
 
             const necesitaSolicitar =
               (codigo === 'B' && rolUsuario === 'publico') ||
@@ -202,43 +193,34 @@ export function MapView() {
 
             const popup = (
               <div style={{ width: '272px', fontFamily: 'inherit' }}>
-                {/* Fila superior: miniatura + info */}
                 <div style={{ display: 'flex', gap: '10px', padding: '14px 14px 10px 14px', alignItems: 'flex-start' }}>
-                  {sitio.imagen_url ? (
-                    <img
-                      src={sitio.imagen_url}
-                      alt={sitio.nombre_reporte}
-                      style={{ width: '70px', height: '70px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, backgroundColor: '#e5e7eb' }}
-                    />
+                  {reporte.imagen_url ? (
+                    <img src={reporte.imagen_url} alt={reporte.nombre_reporte}
+                      style={{ width: '70px', height: '70px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, backgroundColor: '#e5e7eb' }} />
                   ) : (
                     <div style={{ width: '70px', height: '70px', borderRadius: '8px', backgroundColor: '#e5e7eb', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>🏺</div>
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '4px' }}>
-                      {sitio.nombre_reporte}
+                      {reporte.nombre_reporte}
                     </p>
                     <p style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '3px' }}>
                       <span>📍</span>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sitio.comuna}</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{reporte.comuna}</span>
                     </p>
-                    {!verExacto && (
-                      <p style={{ fontSize: '10px', color: '#d97706', marginTop: '3px' }}>Ubicación aproximada</p>
-                    )}
+                    {!verExacto && <p style={{ fontSize: '10px', color: '#d97706', marginTop: '3px' }}>Ubicación aproximada</p>}
                   </div>
                 </div>
 
-                {/* Badges */}
-                {(sitio.categoria_general || tipologias.length > 0) && (
+                {(reporte.categoria_general || tipologias.length > 0) && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', padding: '0 14px 10px 14px' }}>
-                    {sitio.categoria_general && (
+                    {reporte.categoria_general && (
                       <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e6f0ef', color: '#10454B', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-                        {sitio.categoria_general}
+                        {reporte.categoria_general}
                       </span>
                     )}
                     {tipologias.slice(0, 2).map((tip, i) => (
-                      <span key={i} style={{ fontSize: '10px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e0f2fe', color: '#0369a1' }}>
-                        {tip}
-                      </span>
+                      <span key={i} style={{ fontSize: '10px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e0f2fe', color: '#0369a1' }}>{tip}</span>
                     ))}
                     {tipologias.length > 2 && (
                       <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '999px', backgroundColor: '#f3f4f6', color: '#6b7280' }}>+{tipologias.length - 2}</span>
@@ -248,10 +230,9 @@ export function MapView() {
 
                 <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '0 0 10px 0' }} />
 
-                {/* Botón */}
                 <div style={{ padding: '0 14px 14px 14px' }}>
                   <button
-                    onClick={() => setSitioSeleccionado(sitio.id_reporte)}
+                    onClick={() => { setSitioSeleccionado(reporte.id_reporte); setOrigenSeleccionado('reporte') }}
                     style={{ width: '100%', padding: '8px 0', backgroundColor: '#10454B', color: '#B6875D', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'background-color 0.15s', letterSpacing: '0.02em' }}
                     onMouseOver={e => (e.currentTarget.style.backgroundColor = '#0b3237')}
                     onMouseOut={e => (e.currentTarget.style.backgroundColor = '#10454B')}
@@ -262,27 +243,21 @@ export function MapView() {
               </div>
             )
 
-            // ── Código A: siempre visible en todos los zooms ─────────────────
             if (codigo === 'A') {
-              return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
+              return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
             }
-
-            // ── B o C con coordenadas exactas (experto/partner/founder) ──────
-            // Siempre visible, coordenadas reales
             if (verExacto) {
-              return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
+              return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
             }
-
-            // ── B o C sin coordenadas exactas (público) ──────────────────────
-            // zoom 1–9:  ícono vasija (ubicación desplazada 300m)
-            // zoom 10–15: área difusa semitransparente
-            // zoom ≥16:  oculto
             if (zoomActual >= 16) return null
             if (zoomActual >= 10) {
-              return <Marker key={sitio.id_reporte} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
+              return <Marker key={reporte.id_reporte} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
             }
-            return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
+            return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
           })}
+
+          {/* Capa 3: lugares no arqueológicos (lugares_capas + memoria) */}
+          <CapasNoArqueologicas capasActivas={capasActivas} />
 
         </MapContainer>
       </div>
@@ -290,12 +265,11 @@ export function MapView() {
       {sitioSeleccionado && (
         <FichaSitioModal
           idSitio={sitioSeleccionado}
-          onClose={() => setSitioSeleccionado(null)}
+          onClose={() => { setSitioSeleccionado(null); setOrigenSeleccionado(null) }}
         />
       )}
 
       <BienvenidaMapaModal />
-
     </>
   )
 }
