@@ -20,25 +20,33 @@ interface Props {
   capasActivas: EstadoCapas
 }
 
-function PopupLugar({ nombre, descripcion, subcategoria, url_externo, url_imagen, capa }: {
+function PopupLugar({
+  nombre, descripcion, subcategoria, url_externo, url_imagen, capa, latitud, longitud
+}: {
   nombre: string
   descripcion: string | null
   subcategoria: string | null
   url_externo: string | null
   url_imagen: string | null
   capa?: string
+  latitud: number
+  longitud: number
 }) {
   const [imgError, setImgError] = useState(false)
 
   const fallbackEmoji =
-    capa === 'museo' ? '🏛️' :
-    capa === 'lugar_interes' ? '🏳️' :
+    capa === 'museo'                                       ? '🏛️' :
+    capa === 'lugar_interes'                               ? '🏳️' :
     capa === 'geografico' || capa === 'patrimonio_natural' ? '⛰️' :
-    capa === 'memoria' ? '👣' :
-    capa === 'turistico' ? '🏴' : '📍'
+    capa === 'memoria'                                     ? '👣' :
+    capa === 'turistico'                                   ? '🏴' : '📍'
+
+  const googleMapsUrl = `https://www.google.com/maps?q=${latitud},${longitud}`
 
   return (
     <div style={{ width: '240px', fontFamily: 'inherit', padding: '12px' }}>
+
+      {/* Imagen o fallback emoji */}
       {url_imagen && !imgError ? (
         <img
           src={url_imagen}
@@ -51,25 +59,68 @@ function PopupLugar({ nombre, descripcion, subcategoria, url_externo, url_imagen
           {fallbackEmoji}
         </div>
       ) : null}
+
+      {/* Nombre */}
       <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', marginBottom: '4px' }}>{nombre}</p>
+
+      {/* Subcategoria badge */}
       {subcategoria && (
         <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#f3f4f6', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
           {subcategoria}
         </span>
       )}
+
+      {/* Descripcion */}
       {descripcion && (
         <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px', lineHeight: '1.4' }}>{descripcion}</p>
       )}
-      {url_externo && (
+
+      {/* Botones */}
+      <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+
+        {/* Google Maps — siempre visible para capas no arqueologicas */}
         <a
-          href={url_externo}
+          href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ display: 'block', marginTop: '10px', fontSize: '12px', color: '#10454B', fontWeight: 600, textDecoration: 'none' }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            padding: '8px 0',
+            backgroundColor: '#10454B', color: 'white',
+            borderRadius: '8px',
+            fontSize: '12px', fontWeight: 600,
+            textDecoration: 'none',
+            letterSpacing: '0.02em',
+          }}
         >
-          Ver mas
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          Abrir en Google Maps
         </a>
-      )}
+
+        {/* Ver mas — solo si tiene url_externo */}
+        {url_externo && (
+          <a
+            href={url_externo}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'block', textAlign: 'center',
+              padding: '7px 0',
+              backgroundColor: 'white', color: '#10454B',
+              border: '1.5px solid #10454B',
+              borderRadius: '8px',
+              fontSize: '12px', fontWeight: 600,
+              textDecoration: 'none',
+              letterSpacing: '0.02em',
+            }}
+          >
+            Ver más
+          </a>
+        )}
+      </div>
     </div>
   )
 }
@@ -111,6 +162,8 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
                 url_externo={lugar.url_externo}
                 url_imagen={lugar.url_imagen}
                 capa={capa}
+                latitud={lugar.latitud}
+                longitud={lugar.longitud}
               />
             </Popup>
           </Marker>
@@ -130,6 +183,8 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
                 url_externo={sitio.url_publicacion ?? null}
                 url_imagen={sitio.url_imagen}
                 capa="memoria"
+                latitud={sitio.latitud}
+                longitud={sitio.longitud}
               />
             </Popup>
           </Marker>
