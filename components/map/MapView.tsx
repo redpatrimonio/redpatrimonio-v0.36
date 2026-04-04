@@ -262,23 +262,26 @@ export function MapView() {
               </div>
             )
 
-            // ── Render por código y zoom ─────────────────────────────────────
-            // A → siempre visible, icono arqueológico
+            // ── Código A: siempre visible en todos los zooms ─────────────────
             if (codigo === 'A') {
               return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
             }
 
-            // B o C con coordenadas exactas (experto/partner/founder) → icono arqueológico
+            // ── B o C con coordenadas exactas (experto/partner/founder) ──────
+            // Siempre visible, coordenadas reales
             if (verExacto) {
               return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
             }
 
-            // B o C sin coordenadas exactas → comportamiento por zoom
-            if (zoomActual >= 15) return null                      // zoom cercano: ocultar
-            if (zoomActual >= 9) {                                 // zoom medio: área difusa
+            // ── B o C sin coordenadas exactas (público) ──────────────────────
+            // zoom 1–9:  ícono vasija (ubicación desplazada 300m)
+            // zoom 10–15: área difusa semitransparente
+            // zoom ≥16:  oculto
+            if (zoomActual >= 16) return null
+            if (zoomActual >= 10) {
               return <Marker key={sitio.id_reporte} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
             }
-            return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>  // zoom lejano: icono
+            return <Marker key={sitio.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
           })}
 
         </MapContainer>
