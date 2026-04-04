@@ -95,7 +95,7 @@ export function MapView() {
   const [reportes, setReportes] = useState<ReporteComunidad[]>([])
   const [sitioSeleccionado, setSitioSeleccionado] = useState<string | null>(null)
   const [origenSeleccionado, setOrigenSeleccionado] = useState<'master' | 'reporte'>('master')
-  const [zoomActual, setZoomActual] = useState(6)
+  const [zoomActual, setZoomActual] = useState(5)
   const [capasActivas, setCapasActivas] = useState<EstadoCapas>({
     geografico: true,
     turistico: true,
@@ -156,7 +156,7 @@ export function MapView() {
       <div className="h-screen w-full">
         <MapContainer
           center={[-33.4489, -70.6693]}
-          zoom={6}
+          zoom={5}
           zoomControl={false}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
