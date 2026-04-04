@@ -18,6 +18,7 @@ interface SitioMaster {
   categoria_sitio: string | null
   tipologias: string[] | null
   codigo_accesibilidad: 'A' | 'B' | 'C'
+  imagen_principal: string | null
 }
 
 function desplazarCoordenada(lat: number, lng: number, radioMetros: number): [number, number] {
@@ -50,17 +51,39 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
 
   useEffect(() => {
     async function fetchSitios() {
-      const { data, error } = await supabase
+      const { data: sitiosData, error } = await supabase
         .from('sitios_master')
         .select('id_sitio, nombre_sitio, latitud, longitud, region, comuna, categoria_general, categoria_sitio, tipologias, codigo_accesibilidad')
         .eq('estado_validacion', 'verde')
         .order('nombre_sitio')
       if (error) { console.error('SitiosMaster fetch error:', error); return }
+
       const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
-      const filtrados = (data || []).filter(s =>
+      const filtrados = (sitiosData || []).filter(s =>
         puedeVerSitio(s.codigo_accesibilidad as 'A' | 'B' | 'C', rolUsuario)
       )
-      setSitios(filtrados)
+
+      // Fetch imagen principal (prioridad 1) para cada sitio
+      const ids = filtrados.map(s => s.id_sitio)
+      let imagenesPorSitio: Record<string, string> = {}
+
+      if (ids.length > 0) {
+        const { data: mediosData } = await supabase
+          .from('medios')
+          .select('id_sitio, url_publica, tipo_medio')
+          .in('id_sitio', ids)
+          .eq('tipo_medio', 'foto')
+          .eq('prioridad_visualizacion', 1)
+
+        for (const m of mediosData || []) {
+          imagenesPorSitio[m.id_sitio] = m.url_publica
+        }
+      }
+
+      setSitios(filtrados.map(s => ({
+        ...s,
+        imagen_principal: imagenesPorSitio[s.id_sitio] ?? null
+      })))
     }
     fetchSitios()
   }, [usuario])
@@ -85,7 +108,18 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
         const popup = (
           <div style={{ width: '272px', fontFamily: 'inherit' }}>
             <div style={{ display: 'flex', gap: '10px', padding: '14px 14px 10px 14px', alignItems: 'flex-start' }}>
-              <div style={{ width: '70px', height: '70px', borderRadius: '8px', backgroundColor: '#e5e7eb', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>🏺</div>
+              {/* Imagen o placeholder */}
+              <div style={{ width: '70px', height: '70px', borderRadius: '8px', backgroundColor: '#e5e7eb', flexShrink: 0, overflow: 'hidden' }}>
+                {sitio.imagen_principal ? (
+                  <img
+                    src={sitio.imagen_principal}
+                    alt={sitio.nombre_sitio}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>🏺</div>
+                )}
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '4px' }}>
                   {sitio.nombre_sitio}
@@ -133,17 +167,12 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
           </div>
         )
 
-        // Código A — siempre visible
         if (codigo === 'A') {
           return <Marker key={sitio.id_sitio} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
         }
-
-        // B o C con coordenadas exactas
         if (verExacto) {
           return <Marker key={sitio.id_sitio} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
         }
-
-        // B o C público — zoom 1-9: ícono, zoom 10-15: área difusa, ≥16: oculto
         if (zoomActual >= 16) return null
         if (zoomActual >= 10) {
           return <Marker key={sitio.id_sitio} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
