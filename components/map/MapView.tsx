@@ -22,7 +22,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '',
 })
 
-// ── Tipo para reportes de comunidad (reportes_nuevos) ─────────────────────────
 interface ReporteComunidad {
   id_reporte: string
   nombre_reporte: string
@@ -95,7 +94,7 @@ export function MapView() {
   const { usuario } = useAuth()
   const [reportes, setReportes] = useState<ReporteComunidad[]>([])
   const [sitioSeleccionado, setSitioSeleccionado] = useState<string | null>(null)
-  const [origenSeleccionado, setOrigenSeleccionado] = useState<'master' | 'reporte' | null>(null)
+  const [origenSeleccionado, setOrigenSeleccionado] = useState<'master' | 'reporte'>('master')
   const [zoomActual, setZoomActual] = useState(6)
   const [capasActivas, setCapasActivas] = useState<EstadoCapas>({
     geografico: true,
@@ -117,7 +116,6 @@ export function MapView() {
     return coordsDesplazadasRef.current[id]
   }
 
-  // ── Reportes de comunidad (reportes_nuevos) ──────────────────────────────────
   useEffect(() => {
     async function fetchReportes() {
       const { data, error } = await supabase
@@ -233,7 +231,7 @@ export function MapView() {
                 <div style={{ padding: '0 14px 14px 14px' }}>
                   <button
                     onClick={() => { setSitioSeleccionado(reporte.id_reporte); setOrigenSeleccionado('reporte') }}
-                    style={{ width: '100%', padding: '8px 0', backgroundColor: '#10454B', color: '#B6875D', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'background-color 0.15s', letterSpacing: '0.02em' }}
+                    style={{ width: '100%', padding: '8px 0', backgroundColor: '#10454B', color: '#B6875D', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', letterSpacing: '0.02em' }}
                     onMouseOver={e => (e.currentTarget.style.backgroundColor = '#0b3237')}
                     onMouseOut={e => (e.currentTarget.style.backgroundColor = '#10454B')}
                   >
@@ -256,16 +254,18 @@ export function MapView() {
             return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
           })}
 
-          {/* Capa 3: lugares no arqueológicos (lugares_capas + memoria) */}
+          {/* Capa 3: lugares no arqueológicos */}
           <CapasNoArqueologicas capasActivas={capasActivas} />
 
         </MapContainer>
       </div>
 
+      {/* FichaSitioModal — origen siempre definido */}
       {sitioSeleccionado && (
         <FichaSitioModal
           idSitio={sitioSeleccionado}
-          onClose={() => { setSitioSeleccionado(null); setOrigenSeleccionado(null) }}
+          origen={origenSeleccionado}
+          onClose={() => setSitioSeleccionado(null)}
         />
       )}
 
