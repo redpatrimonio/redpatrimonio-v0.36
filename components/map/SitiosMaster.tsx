@@ -63,7 +63,6 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
         puedeVerSitio(s.codigo_accesibilidad as 'A' | 'B' | 'C', rolUsuario)
       )
 
-      // Fetch imagen principal (prioridad 1) para cada sitio
       const ids = filtrados.map(s => s.id_sitio)
       let imagenesPorSitio: Record<string, string> = {}
 
@@ -100,15 +99,15 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
           : getCoordsDesplazadas(sitio)
 
         const tipologias: string[] = sitio.tipologias ?? []
-
         const necesitaSolicitar =
           (codigo === 'B' && rolUsuario === 'publico') ||
           (codigo === 'C' && ['experto', 'partner', 'founder'].includes(rolUsuario || ''))
 
+        const googleMapsUrl = `https://www.google.com/maps?q=${sitio.latitud},${sitio.longitud}`
+
         const popup = (
           <div style={{ width: '272px', fontFamily: 'inherit' }}>
             <div style={{ display: 'flex', gap: '10px', padding: '14px 14px 10px 14px', alignItems: 'flex-start' }}>
-              {/* Imagen o placeholder */}
               <div style={{ width: '70px', height: '70px', borderRadius: '8px', backgroundColor: '#e5e7eb', flexShrink: 0, overflow: 'hidden' }}>
                 {sitio.imagen_principal ? (
                   <img
@@ -154,7 +153,7 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
 
             <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '0 0 10px 0' }} />
 
-            <div style={{ padding: '0 14px 14px 14px' }}>
+            <div style={{ padding: '0 14px 14px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
                 onClick={() => onSeleccionar(sitio.id_sitio)}
                 style={{ width: '100%', padding: '8px 0', backgroundColor: '#10454B', color: '#B6875D', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'background-color 0.15s', letterSpacing: '0.02em' }}
@@ -163,6 +162,21 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
               >
                 {necesitaSolicitar ? <><span>📨</span> Solicitar info de contacto</> : <><span>📄</span> Ver ficha</>}
               </button>
+
+              {verExacto && (
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ width: '100%', padding: '7px 0', backgroundColor: 'white', color: '#10454B', border: '1.5px solid #10454B', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', letterSpacing: '0.02em', textDecoration: 'none' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  Abrir en Google Maps
+                </a>
+              )}
             </div>
           </div>
         )
