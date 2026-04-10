@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { FichaSitioModal } from '@/components/modals/FichaSitioModal'
@@ -90,6 +91,26 @@ function ControlesMapa() {
   )
 }
 
+// Icono de cluster arqueológico: círculo oscuro #10454B
+function crearIconoClusterArqueologico(cluster: L.MarkerCluster) {
+  const count = cluster.getChildCount()
+  const size = count < 10 ? 36 : count < 50 ? 42 : 48
+  return L.divIcon({
+    html: `<div style="
+      width:${size}px; height:${size}px;
+      background:#10454B;
+      border:2.5px solid #B6875D;
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      color:white; font-size:${size < 42 ? 12 : 13}px; font-weight:700;
+      font-family:inherit; box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    ">${count}</div>`,
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  })
+}
+
 export function MapView() {
   const { usuario } = useAuth()
   const [reportes, setReportes] = useState<ReporteComunidad[]>([])
@@ -169,92 +190,102 @@ export function MapView() {
           <ControlesMapa />
           <ToggleCapas capasActivas={capasActivas} onChange={handleToggleCapa} />
 
-          {/* Capa 1: sitios validados desde sitios_master */}
-          <SitiosMaster
-            zoomActual={zoomActual}
-            onSeleccionar={(id) => { setSitioSeleccionado(id); setOrigenSeleccionado('master') }}
-          />
+          {/* ── CLUSTER ARQUEOLÓGICO ── sitios_master + reportes verde */}
+          <MarkerClusterGroup
+            iconCreateFunction={crearIconoClusterArqueologico}
+            maxClusterRadius={60}
+            disableClusteringAtZoom={14}
+            spiderfyOnMaxZoom={true}
+            showCoverageOnHover={false}
+            chunkedLoading={true}
+          >
+            {/* Capa 1: sitios validados desde sitios_master */}
+            <SitiosMaster
+              zoomActual={zoomActual}
+              onSeleccionar={(id) => { setSitioSeleccionado(id); setOrigenSeleccionado('master') }}
+            />
 
-          {/* Capa 2: reportes de comunidad desde reportes_nuevos */}
-          {reportes.map(reporte => {
-            const codigo = reporte.codigo_accesibilidad
-            const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
-            const coords: [number, number] = verExacto
-              ? [reporte.latitud, reporte.longitud]
-              : getCoordsDesplazadas(reporte.id_reporte, reporte.latitud, reporte.longitud)
+            {/* Capa 2: reportes de comunidad desde reportes_nuevos */}
+            {reportes.map(reporte => {
+              const codigo = reporte.codigo_accesibilidad
+              const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
+              const coords: [number, number] = verExacto
+                ? [reporte.latitud, reporte.longitud]
+                : getCoordsDesplazadas(reporte.id_reporte, reporte.latitud, reporte.longitud)
 
-            const tipologias: string[] = reporte.tipologia_especifica ?? []
+              const tipologias: string[] = reporte.tipologia_especifica ?? []
 
-            const necesitaSolicitar =
-              (codigo === 'B' && rolUsuario === 'publico') ||
-              (codigo === 'C' && ['experto', 'partner', 'founder'].includes(rolUsuario || ''))
+              const necesitaSolicitar =
+                (codigo === 'B' && rolUsuario === 'publico') ||
+                (codigo === 'C' && ['experto', 'partner', 'founder'].includes(rolUsuario || ''))
 
-            const popup = (
-              <div style={{ width: '272px', fontFamily: 'inherit' }}>
-                <div style={{ display: 'flex', gap: '10px', padding: '14px 14px 10px 14px', alignItems: 'flex-start' }}>
-                  {reporte.imagen_url ? (
-                    <img src={reporte.imagen_url} alt={reporte.nombre_reporte}
-                      style={{ width: '70px', height: '70px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, backgroundColor: '#e5e7eb' }} />
-                  ) : (
-                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', backgroundColor: '#e5e7eb', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>🏺</div>
+              const popup = (
+                <div style={{ width: '272px', fontFamily: 'inherit' }}>
+                  <div style={{ display: 'flex', gap: '10px', padding: '14px 14px 10px 14px', alignItems: 'flex-start' }}>
+                    {reporte.imagen_url ? (
+                      <img src={reporte.imagen_url} alt={reporte.nombre_reporte}
+                        style={{ width: '70px', height: '70px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, backgroundColor: '#e5e7eb' }} />
+                    ) : (
+                      <div style={{ width: '70px', height: '70px', borderRadius: '8px', backgroundColor: '#e5e7eb', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>🏺</div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '4px' }}>
+                        {reporte.nombre_reporte}
+                      </p>
+                      <p style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <span>📍</span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{reporte.comuna}</span>
+                      </p>
+                      {!verExacto && <p style={{ fontSize: '10px', color: '#d97706', marginTop: '3px' }}>Ubicación aproximada</p>}
+                    </div>
+                  </div>
+
+                  {(reporte.categoria_general || tipologias.length > 0) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', padding: '0 14px 10px 14px' }}>
+                      {reporte.categoria_general && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e6f0ef', color: '#10454B', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                          {reporte.categoria_general}
+                        </span>
+                      )}
+                      {tipologias.slice(0, 2).map((tip, i) => (
+                        <span key={i} style={{ fontSize: '10px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e0f2fe', color: '#0369a1' }}>{tip}</span>
+                      ))}
+                      {tipologias.length > 2 && (
+                        <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '999px', backgroundColor: '#f3f4f6', color: '#6b7280' }}>+{tipologias.length - 2}</span>
+                      )}
+                    </div>
                   )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '4px' }}>
-                      {reporte.nombre_reporte}
-                    </p>
-                    <p style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                      <span>📍</span>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{reporte.comuna}</span>
-                    </p>
-                    {!verExacto && <p style={{ fontSize: '10px', color: '#d97706', marginTop: '3px' }}>Ubicación aproximada</p>}
+
+                  <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '0 0 10px 0' }} />
+
+                  <div style={{ padding: '0 14px 14px 14px' }}>
+                    <button
+                      onClick={() => { setSitioSeleccionado(reporte.id_reporte); setOrigenSeleccionado('reporte') }}
+                      style={{ width: '100%', padding: '8px 0', backgroundColor: '#10454B', color: '#B6875D', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', letterSpacing: '0.02em' }}
+                      onMouseOver={e => (e.currentTarget.style.backgroundColor = '#0b3237')}
+                      onMouseOut={e => (e.currentTarget.style.backgroundColor = '#10454B')}
+                    >
+                      {necesitaSolicitar ? <><span>📨</span> Solicitar info de contacto</> : <><span>📄</span> Ver ficha</>}
+                    </button>
                   </div>
                 </div>
+              )
 
-                {(reporte.categoria_general || tipologias.length > 0) && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', padding: '0 14px 10px 14px' }}>
-                    {reporte.categoria_general && (
-                      <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e6f0ef', color: '#10454B', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-                        {reporte.categoria_general}
-                      </span>
-                    )}
-                    {tipologias.slice(0, 2).map((tip, i) => (
-                      <span key={i} style={{ fontSize: '10px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e0f2fe', color: '#0369a1' }}>{tip}</span>
-                    ))}
-                    {tipologias.length > 2 && (
-                      <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '999px', backgroundColor: '#f3f4f6', color: '#6b7280' }}>+{tipologias.length - 2}</span>
-                    )}
-                  </div>
-                )}
-
-                <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '0 0 10px 0' }} />
-
-                <div style={{ padding: '0 14px 14px 14px' }}>
-                  <button
-                    onClick={() => { setSitioSeleccionado(reporte.id_reporte); setOrigenSeleccionado('reporte') }}
-                    style={{ width: '100%', padding: '8px 0', backgroundColor: '#10454B', color: '#B6875D', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', letterSpacing: '0.02em' }}
-                    onMouseOver={e => (e.currentTarget.style.backgroundColor = '#0b3237')}
-                    onMouseOut={e => (e.currentTarget.style.backgroundColor = '#10454B')}
-                  >
-                    {necesitaSolicitar ? <><span>📨</span> Solicitar info de contacto</> : <><span>📄</span> Ver ficha</>}
-                  </button>
-                </div>
-              </div>
-            )
-
-            if (codigo === 'A') {
+              if (codigo === 'A') {
+                return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
+              }
+              if (verExacto) {
+                return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
+              }
+              if (zoomActual >= 16) return null
+              if (zoomActual >= 10) {
+                return <Marker key={reporte.id_reporte} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
+              }
               return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
-            }
-            if (verExacto) {
-              return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
-            }
-            if (zoomActual >= 16) return null
-            if (zoomActual >= 10) {
-              return <Marker key={reporte.id_reporte} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
-            }
-            return <Marker key={reporte.id_reporte} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
-          })}
+            })}
+          </MarkerClusterGroup>
 
-          {/* Capa 3: lugares no arqueológicos */}
+          {/* ── CLUSTER PÚBLICO ── lugares_capas + sitios_memoria (ver CapasNoArqueologicas) */}
           <CapasNoArqueologicas capasActivas={capasActivas} />
 
         </MapContainer>
