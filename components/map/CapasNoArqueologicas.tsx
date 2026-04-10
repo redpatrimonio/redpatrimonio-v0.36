@@ -1,6 +1,7 @@
 'use client'
 
 import { Marker, Popup, useMapEvents } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useState } from 'react'
 import { useLugaresCapa } from '@/lib/hooks/useLugaresCapa'
 import {
@@ -15,6 +16,7 @@ import {
 } from '@/components/map/IconosCapas'
 import type { EstadoCapas } from '@/types/index'
 import type { LugarCapa, SitioMemoria } from '@/types/database'
+import L from 'leaflet'
 
 interface Props {
   capasActivas: EstadoCapas
@@ -125,6 +127,26 @@ function PopupLugar({
   )
 }
 
+// Icono de cluster público: círculo gris neutro, más pequeño que el arqueológico
+function crearIconoClusterPublico(cluster: L.MarkerCluster) {
+  const count = cluster.getChildCount()
+  const size = count < 10 ? 30 : count < 50 ? 36 : 42
+  return L.divIcon({
+    html: `<div style="
+      width:${size}px; height:${size}px;
+      background:#4B5563;
+      border:2px solid rgba(255,255,255,0.6);
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      color:white; font-size:${size < 36 ? 11 : 12}px; font-weight:600;
+      font-family:inherit; box-shadow:0 2px 6px rgba(0,0,0,0.25);
+    ">${count}</div>`,
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  })
+}
+
 export function CapasNoArqueologicas({ capasActivas }: Props) {
   const { lugares, memoria, loading } = useLugaresCapa()
   const [zoomActual, setZoomActual] = useState(5)
@@ -135,13 +157,30 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
 
   if (loading) return null
 
-  return (
-    <>
-      {lugares.map((lugar: LugarCapa) => {
-        const capaKey = lugar.capa as keyof EstadoCapas
-        if (capaKey in capasActivas && !capasActivas[capaKey]) return null
-        if (zoomActual < lugar.zoom_minimo) return null
+  // Filtrar por capa activa y zoom_minimo antes de pasarlos al cluster
+  const lugaresFiltrados = lugares.filter((lugar: LugarCapa) => {
+    const capaKey = lugar.capa as keyof EstadoCapas
+    if (capaKey in capasActivas && !capasActivas[capaKey]) return false
+    if (zoomActual < lugar.zoom_minimo) return false
+    return true
+  })
 
+  const memoriaFiltrada = memoria.filter((sitio: SitioMemoria) => {
+    if (!capasActivas.memoria) return false
+    if (zoomActual < sitio.zoom_minimo) return false
+    return true
+  })
+
+  return (
+    <MarkerClusterGroup
+      iconCreateFunction={crearIconoClusterPublico}
+      maxClusterRadius={50}
+      disableClusteringAtZoom={14}
+      spiderfyOnMaxZoom={true}
+      showCoverageOnHover={false}
+      chunkedLoading={true}
+    >
+      {lugaresFiltrados.map((lugar: LugarCapa) => {
         const capa = lugar.capa as string
         const icono =
           capa === 'geografico'         ? iconoPatrimonioNatural :
@@ -170,26 +209,22 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
         )
       })}
 
-      {capasActivas.memoria && memoria.map((sitio: SitioMemoria) => {
-        if (zoomActual < sitio.zoom_minimo) return null
-
-        return (
-          <Marker key={sitio.id} position={[sitio.latitud, sitio.longitud]} icon={iconoRastrosMemoria}>
-            <Popup>
-              <PopupLugar
-                nombre={sitio.nombre}
-                descripcion={sitio.descripcion}
-                subcategoria={sitio.que_lo_cubre ?? null}
-                url_externo={sitio.url_publicacion ?? null}
-                url_imagen={sitio.url_imagen}
-                capa="memoria"
-                latitud={sitio.latitud}
-                longitud={sitio.longitud}
-              />
-            </Popup>
-          </Marker>
-        )
-      })}
-    </>
+      {memoriaFiltrada.map((sitio: SitioMemoria) => (
+        <Marker key={sitio.id} position={[sitio.latitud, sitio.longitud]} icon={iconoRastrosMemoria}>
+          <Popup>
+            <PopupLugar
+              nombre={sitio.nombre}
+              descripcion={sitio.descripcion}
+              subcategoria={sitio.que_lo_cubre ?? null}
+              url_externo={sitio.url_publicacion ?? null}
+              url_imagen={sitio.url_imagen}
+              capa="memoria"
+              latitud={sitio.latitud}
+              longitud={sitio.longitud}
+            />
+          </Popup>
+        </Marker>
+      ))}
+    </MarkerClusterGroup>
   )
 }
