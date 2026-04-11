@@ -10,9 +10,10 @@ interface Props {
 
 const ORDEN: { clave: keyof EstadoCapas; label: string; color: string }[] = [
   { clave: 'geografico', label: CONFIG_CAPAS.geografico.label, color: CONFIG_CAPAS.geografico.color },
+  { clave: 'museo',      label: CONFIG_CAPAS.museo.label,      color: CONFIG_CAPAS.museo.color },
   { clave: 'turistico',  label: CONFIG_CAPAS.turistico.label,  color: CONFIG_CAPAS.turistico.color },
-  { clave: 'comercial',  label: CONFIG_CAPAS.comercial.label,  color: CONFIG_CAPAS.comercial.color },
   { clave: 'memoria',    label: CONFIG_CAPAS.memoria.label,    color: CONFIG_CAPAS.memoria.color },
+  { clave: 'comercial',  label: CONFIG_CAPAS.comercial.label,  color: CONFIG_CAPAS.comercial.color },
 ]
 
 export function ToggleCapas({ capasActivas, onChange }: Props) {
@@ -40,7 +41,6 @@ export function ToggleCapas({ capasActivas, onChange }: Props) {
             transition: 'background-color 0.15s',
           }}
         >
-          {/* Ícono de capas (3 líneas apiladas) */}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
             stroke={abierto ? 'white' : '#374151'} strokeWidth="2" strokeLinecap="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z"/>
