@@ -36,6 +36,7 @@ export interface EstadoCapas {
   turistico: boolean
   comercial: boolean
   memoria: boolean
+  museo: boolean
 }
 
 // Configuración visual por capa
@@ -46,7 +47,7 @@ export interface ConfigCapa {
   zoomDefault: number
 }
 
-export const CONFIG_CAPAS: Record<CapaTipo | 'memoria', ConfigCapa> = {
+export const CONFIG_CAPAS: Record<CapaTipo | 'memoria' | 'museo', ConfigCapa> = {
   geografico: {
     label: 'Geografía / Natural',
     color: '#2d6a4f',
@@ -70,5 +71,11 @@ export const CONFIG_CAPAS: Record<CapaTipo | 'memoria', ConfigCapa> = {
     color: '#6b3fa0',
     emoji: '👁',
     zoomDefault: 10,
+  },
+  museo: {
+    label: 'Museos',
+    color: '#4A6B8A',
+    emoji: '🏛',
+    zoomDefault: 8,
   },
 }
