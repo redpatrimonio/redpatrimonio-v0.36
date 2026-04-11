@@ -9,7 +9,6 @@ import {
   iconoMuseo,
   iconoLugarInteres,
   iconoTuristico,
-  iconoBarRestaurant,
   iconoComercial,
   iconoComercialPremium,
   iconoRastrosMemoria,
@@ -58,10 +57,10 @@ function PopupLugar({
   const [imgError, setImgError] = useState(false)
 
   const fallbackEmoji =
-    capa === 'museo'                                       ? '🏛️' :
-    capa === 'lugar_interes'                               ? '🏳️' :
-    capa === 'geografico' || capa === 'patrimonio_natural' ? '⛰️' :
-    capa === 'turistico'                                   ? '🏴' : '📍'
+    capa === 'museo'       ? '🏛️' :
+    capa === 'lugar_interes' ? '🏳️' :
+    capa === 'geografico'  ? '⛰️' :
+    capa === 'turistico'   ? '🏴' : '📍'
 
   const googleMapsUrl = `https://www.google.com/maps?q=${latitud},${longitud}`
 
@@ -122,7 +121,6 @@ function PopupLugar({
   )
 }
 
-// Tipo mínimo requerido por iconCreateFunction — evita depender de @types/leaflet MarkerCluster
 type ClusterLike = { getChildCount: () => number }
 
 function crearCluster(color: string, borderColor: string) {
@@ -170,43 +168,37 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
 
   if (loading) return null
 
-  const porCapa = (capa: string) =>
-    lugares.filter((l: LugarCapa) => {
-      if (l.capa !== capa) return false
-      const capaKey = capa as keyof EstadoCapas
-      if (capaKey in capasActivas && !capasActivas[capaKey]) return false
-      if (zoomActual < l.zoom_minimo) return false
-      return true
-    })
+  // Usamos capaStr (string) para evitar errores de narrowing del enum en filtros compuestos
+  const geograficos = lugares.filter((l: LugarCapa) => {
+    const c = l.capa as string
+    return c === 'geografico' && capasActivas.geografico && zoomActual >= l.zoom_minimo
+  })
 
-  const geograficos = porCapa('geografico')
-  const museos      = porCapa('museo')
-  const turisticos  = lugares.filter((l: LugarCapa) => {
-    if (l.capa !== 'turistico' && l.capa !== 'lugar_interes') return false
-    if (!capasActivas.turistico) return false
-    if (zoomActual < l.zoom_minimo) return false
-    return true
+  const museos = lugares.filter((l: LugarCapa) => {
+    const c = l.capa as string
+    return c === 'museo' && capasActivas.museo && zoomActual >= l.zoom_minimo
   })
+
+  const turisticos = lugares.filter((l: LugarCapa) => {
+    const c = l.capa as string
+    return (c === 'turistico' || c === 'lugar_interes') && capasActivas.turistico && zoomActual >= l.zoom_minimo
+  })
+
   const comerciales = lugares.filter((l: LugarCapa) => {
-    if (l.capa !== 'comercial' && l.capa !== 'bar_restaurant') return false
-    if (!capasActivas.comercial) return false
-    if (zoomActual < l.zoom_minimo) return false
-    return true
+    const c = l.capa as string
+    return c === 'comercial' && capasActivas.comercial && zoomActual >= l.zoom_minimo
   })
-  const memoriaFiltrada = memoria.filter((s: SitioMemoria) => {
-    if (!capasActivas.memoria) return false
-    if (zoomActual < s.zoom_minimo) return false
-    return true
-  })
+
+  const memoriaFiltrada = memoria.filter((s: SitioMemoria) =>
+    capasActivas.memoria && zoomActual >= s.zoom_minimo
+  )
 
   function iconoLugar(l: LugarCapa): L.DivIcon {
-    const capa = l.capa as string
-    if (capa === 'geografico')         return iconoPatrimonioNatural
-    if (capa === 'patrimonio_natural') return iconoPatrimonioNatural
-    if (capa === 'museo')              return iconoMuseo
-    if (capa === 'lugar_interes')      return iconoLugarInteres
-    if (capa === 'turistico')          return iconoTuristico
-    if (capa === 'bar_restaurant')     return iconoBarRestaurant
+    const c = l.capa as string
+    if (c === 'geografico')    return iconoPatrimonioNatural
+    if (c === 'museo')         return iconoMuseo
+    if (c === 'lugar_interes') return iconoLugarInteres
+    if (c === 'turistico')     return iconoTuristico
     return l.es_premium ? iconoComercialPremium : iconoComercial
   }
 
