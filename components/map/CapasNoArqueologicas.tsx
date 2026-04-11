@@ -22,6 +22,50 @@ interface Props {
   capasActivas: EstadoCapas
 }
 
+// SVG huella de pie — formal, trazo fino, sin relleno sólido
+function HuellaPlaceholder() {
+  return (
+    <div style={{
+      width: '100%',
+      height: '100px',
+      borderRadius: '8px',
+      backgroundColor: '#f5f5f5',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: '8px',
+    }}>
+      <svg
+        width="44"
+        height="64"
+        viewBox="0 0 44 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        style={{ opacity: 0.32 }}
+      >
+        {/* Planta del pie */}
+        <path
+          d="M22 62 C10 62 6 50 6 40 C6 30 8 22 12 16 C15 11 18 8 22 8 C26 8 29 11 32 16 C36 22 38 30 38 40 C38 50 34 62 22 62 Z"
+          stroke="#1f2937"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        {/* Dedo gordo */}
+        <ellipse cx="16" cy="6" rx="4" ry="5.5" stroke="#1f2937" strokeWidth="1.5" />
+        {/* Segundo dedo */}
+        <ellipse cx="22" cy="4" rx="3" ry="4.5" stroke="#1f2937" strokeWidth="1.5" />
+        {/* Tercer dedo */}
+        <ellipse cx="27.5" cy="5.5" rx="2.8" ry="4" stroke="#1f2937" strokeWidth="1.5" />
+        {/* Cuarto dedo */}
+        <ellipse cx="32" cy="8" rx="2.4" ry="3.5" stroke="#1f2937" strokeWidth="1.5" />
+        {/* Meñique */}
+        <ellipse cx="35.5" cy="12" rx="2" ry="3" stroke="#1f2937" strokeWidth="1.5" />
+      </svg>
+    </div>
+  )
+}
+
 function PopupLugar({
   nombre, descripcion, subcategoria, url_externo, url_imagen, capa, latitud, longitud
 }: {
@@ -40,27 +84,43 @@ function PopupLugar({
     capa === 'museo'                                       ? '🏛️' :
     capa === 'lugar_interes'                               ? '🏳️' :
     capa === 'geografico' || capa === 'patrimonio_natural' ? '⛰️' :
-    capa === 'memoria'                                     ? '👣' :
     capa === 'turistico'                                   ? '🏴' : '📍'
 
   const googleMapsUrl = `https://www.google.com/maps?q=${latitud},${longitud}`
 
-  return (
-    <div style={{ width: '240px', fontFamily: 'inherit', padding: '12px' }}>
-
-      {/* Imagen o fallback emoji */}
-      {url_imagen && !imgError ? (
+  // Bloque de imagen: 3 casos
+  // 1. url_imagen existe y carga bien → <img>
+  // 2. url_imagen existe pero falla   → emoji fallback
+  // 3. url_imagen es null + capa memoria → HuellaPlaceholder SVG
+  // 4. url_imagen es null + otra capa → nada
+  const bloqueImagen = (() => {
+    if (url_imagen && !imgError) {
+      return (
         <img
           src={url_imagen}
           alt={nombre}
           onError={() => setImgError(true)}
           style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }}
         />
-      ) : url_imagen && imgError ? (
+      )
+    }
+    if (url_imagen && imgError) {
+      return (
         <div style={{ width: '100%', height: '100px', borderRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', marginBottom: '8px' }}>
           {fallbackEmoji}
         </div>
-      ) : null}
+      )
+    }
+    if (!url_imagen && capa === 'memoria') {
+      return <HuellaPlaceholder />
+    }
+    return null
+  })()
+
+  return (
+    <div style={{ width: '240px', fontFamily: 'inherit', padding: '12px' }}>
+
+      {bloqueImagen}
 
       {/* Nombre */}
       <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', marginBottom: '4px' }}>{nombre}</p>
@@ -80,7 +140,6 @@ function PopupLugar({
       {/* Botones */}
       <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
 
-        {/* Google Maps — siempre visible para capas no arqueologicas */}
         <a
           href={googleMapsUrl}
           target="_blank"
@@ -102,7 +161,6 @@ function PopupLugar({
           Abrir en Google Maps
         </a>
 
-        {/* Ver mas — solo si tiene url_externo */}
         {url_externo && (
           <a
             href={url_externo}
@@ -127,7 +185,6 @@ function PopupLugar({
   )
 }
 
-// Icono de cluster público: círculo gris neutro, más pequeño que el arqueológico
 function crearIconoClusterPublico(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount()
   const size = count < 10 ? 30 : count < 50 ? 36 : 42
@@ -157,7 +214,6 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
 
   if (loading) return null
 
-  // Filtrar por capa activa y zoom_minimo antes de pasarlos al cluster
   const lugaresFiltrados = lugares.filter((lugar: LugarCapa) => {
     const capaKey = lugar.capa as keyof EstadoCapas
     if (capaKey in capasActivas && !capasActivas[capaKey]) return false
