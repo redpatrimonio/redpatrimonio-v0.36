@@ -122,9 +122,11 @@ function PopupLugar({
   )
 }
 
-// Cluster genérico configurable por color
+// Tipo mínimo requerido por iconCreateFunction — evita depender de @types/leaflet MarkerCluster
+type ClusterLike = { getChildCount: () => number }
+
 function crearCluster(color: string, borderColor: string) {
-  return function(cluster: L.MarkerCluster) {
+  return function(cluster: ClusterLike) {
     const count = cluster.getChildCount()
     const size = count < 10 ? 30 : count < 50 ? 36 : 42
     return L.divIcon({
@@ -144,7 +146,6 @@ function crearCluster(color: string, borderColor: string) {
   }
 }
 
-// Un cluster por tipo de capa, con sus propios colores
 const clusterGeografico = crearCluster('#2d6a4f', 'rgba(255,255,255,0.6)')
 const clusterMuseo      = crearCluster('#4A6B8A', 'rgba(255,255,255,0.6)')
 const clusterTuristico  = crearCluster('#1d3557', 'rgba(255,255,255,0.6)')
@@ -169,7 +170,6 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
 
   if (loading) return null
 
-  // Filtra y clasifica lugares por capa
   const porCapa = (capa: string) =>
     lugares.filter((l: LugarCapa) => {
       if (l.capa !== capa) return false
@@ -179,16 +179,15 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
       return true
     })
 
-  const geograficos  = porCapa('geografico')
-  const museos       = porCapa('museo')
-  // turistico agrupa: turistico + lugar_interes (comparten toggle)
-  const turisticos   = lugares.filter((l: LugarCapa) => {
+  const geograficos = porCapa('geografico')
+  const museos      = porCapa('museo')
+  const turisticos  = lugares.filter((l: LugarCapa) => {
     if (l.capa !== 'turistico' && l.capa !== 'lugar_interes') return false
     if (!capasActivas.turistico) return false
     if (zoomActual < l.zoom_minimo) return false
     return true
   })
-  const comerciales  = lugares.filter((l: LugarCapa) => {
+  const comerciales = lugares.filter((l: LugarCapa) => {
     if (l.capa !== 'comercial' && l.capa !== 'bar_restaurant') return false
     if (!capasActivas.comercial) return false
     if (zoomActual < l.zoom_minimo) return false
@@ -232,27 +231,22 @@ export function CapasNoArqueologicas({ capasActivas }: Props) {
 
   return (
     <>
-      {/* Cluster Geográfico */}
       <MarkerClusterGroup iconCreateFunction={clusterGeografico} {...CLUSTER_OPTS}>
         {geograficos.map(markerLugar)}
       </MarkerClusterGroup>
 
-      {/* Cluster Museos */}
       <MarkerClusterGroup iconCreateFunction={clusterMuseo} {...CLUSTER_OPTS}>
         {museos.map(markerLugar)}
       </MarkerClusterGroup>
 
-      {/* Cluster Turístico */}
       <MarkerClusterGroup iconCreateFunction={clusterTuristico} {...CLUSTER_OPTS}>
         {turisticos.map(markerLugar)}
       </MarkerClusterGroup>
 
-      {/* Cluster Comercial */}
       <MarkerClusterGroup iconCreateFunction={clusterComercial} {...CLUSTER_OPTS}>
         {comerciales.map(markerLugar)}
       </MarkerClusterGroup>
 
-      {/* Cluster Memoria */}
       <MarkerClusterGroup iconCreateFunction={clusterMemoria} {...CLUSTER_OPTS}>
         {memoriaFiltrada.map((s: SitioMemoria) => (
           <Marker key={s.id} position={[s.latitud, s.longitud]} icon={iconoRastrosMemoria}>
