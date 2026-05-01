@@ -6,9 +6,9 @@ import { useAuth } from '@/components/auth/AuthProvider'
 const tiposReporte = [
   {
     id: 'hallazgo',
-    titulo: 'Hallazgo Arqueol\u00f3gico',
-    descripcion: 'Registra un sitio o hallazgo arqueol\u00f3gico. Requiere cuenta. El reporte entra como pendiente y es revisado por un experto antes de publicarse en el mapa.',
-    icono: '\ud83c\udfdb',
+    titulo: 'Hallazgo Arqueológico',
+    descripcion: 'Registra un sitio o hallazgo. Requiere cuenta y revisión experta.',
+    icono: '🏛',
     href: '/reportar',
     requiereLogin: true,
     activo: true,
@@ -16,9 +16,9 @@ const tiposReporte = [
   },
   {
     id: 'riesgo',
-    titulo: 'Arqueolog\u00eda en Riesgo',
-    descripcion: 'Reporta una amenaza o da\u00f1o a un sitio arqueol\u00f3gico. Puede enviarse sin cuenta. El aviso es revisado internamente.',
-    icono: '\u26a0\ufe0f',
+    titulo: 'Arqueología en Riesgo',
+    descripcion: 'Reporta una amenaza o daño a un sitio. No necesitas cuenta.',
+    icono: '⚠️',
     href: '/reportar/riesgo',
     requiereLogin: false,
     activo: true,
@@ -26,23 +26,23 @@ const tiposReporte = [
   },
   {
     id: 'lugar',
-    titulo: 'Lugar de Inter\u00e9s',
-    descripcion: 'Registra museos, sitios tur\u00edsticos u otros lugares de inter\u00e9s patrimonial.',
-    icono: '\ud83d\udccd',
+    titulo: 'Lugar de Interés',
+    descripcion: 'Museos, sitios turísticos u otros lugares de interés patrimonial.',
+    icono: '📍',
     href: null,
     requiereLogin: true,
     activo: false,
-    badge: 'Pr\u00f3ximamente',
+    badge: 'Próximamente',
   },
   {
     id: 'memoria',
     titulo: 'Memoria e Historia Local',
-    descripcion: 'Documenta lugares asociados a historia local, tradici\u00f3n oral o memoria colectiva.',
-    icono: '\ud83d\udcd6',
+    descripcion: 'Documenta lugares de historia local, tradición oral o memoria colectiva.',
+    icono: '📖',
     href: null,
     requiereLogin: true,
     activo: false,
-    badge: 'Pr\u00f3ximamente',
+    badge: 'Próximamente',
   },
 ]
 
@@ -50,74 +50,81 @@ export default function ReportarInicioPage() {
   const { user } = useAuth()
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-lg mx-auto">
 
-        <div className="mb-8 text-center">
-          <p className="text-sm font-medium text-gray-400 uppercase tracking-widest mb-2">Paso 1 de 4</p>
-          <h1 className="text-2xl font-bold text-gray-800 mb-3">\u00bfQu\u00e9 quieres reportar?</h1>
-          <p className="text-gray-500 text-sm max-w-md mx-auto">
-            Selecciona el tipo de registro que mejor describe tu hallazgo o contribuci\u00f3n.
-            Esto define el formulario y el flujo de revisi\u00f3n.
+        {/* Header */}
+        <div className="mb-6">
+          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#10454B' }}>Paso 1 de 4</p>
+          <h1 className="text-2xl font-extrabold mb-1.5" style={{ color: '#111827' }}>¿Qué quieres reportar?</h1>
+          <p className="text-sm" style={{ color: '#6b7280' }}>
+            Selecciona el tipo de registro que mejor describe tu hallazgo.
           </p>
         </div>
 
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 mb-7 text-sm text-amber-800 flex gap-2">
-          <span>\u2139\ufe0f</span>
-          <span>
-            Todo reporte ingresa con estado <strong>pendiente</strong>. Un experto o partner revisa y aprueba
-            antes de que aparezca en el mapa p\u00fablico. Los hallazgos arqueol\u00f3gicos con coordenadas sensibles
-            se publican con <strong>\u00e1rea difusa de 300m</strong> hasta su aprobaci\u00f3n.
-          </span>
+        {/* Banner compacto */}
+        <div className="rounded-lg border px-3 py-2.5 mb-5 flex items-center justify-between gap-3"
+          style={{ borderColor: '#fcd34d', background: '#fffbeb' }}>
+          <div className="flex items-start gap-2">
+            <span className="text-sm flex-shrink-0">ℹ️</span>
+            <p className="text-xs" style={{ color: '#92400e' }}>
+              Todo reporte ingresa <strong>pendiente</strong> y es revisado antes de publicarse.
+            </p>
+          </div>
+          <Link href="/resguardos"
+            className="text-xs font-semibold flex-shrink-0 underline"
+            style={{ color: '#10454B' }}>
+            Ver resguardos →
+          </Link>
         </div>
 
-        <div className="flex flex-col gap-4">
+        {/* Cards */}
+        <div className="flex flex-col gap-3">
           {tiposReporte.map((tipo) => {
             const needsLogin = tipo.requiereLogin && !user
 
             const contenido = (
               <div
-                className={`rounded-xl border-2 p-5 flex gap-4 items-start transition-all ${
+                className={`rounded-xl border-2 p-4 flex gap-3.5 items-start transition-all ${
                   !tipo.activo
                     ? 'border-gray-200 bg-white opacity-50 cursor-not-allowed'
-                    : 'border-gray-200 bg-white hover:border-[#154A4E] hover:shadow-sm cursor-pointer'
+                    : needsLogin
+                    ? 'border-gray-200 bg-white cursor-default'
+                    : 'border-gray-200 bg-white hover:border-[#10454B] hover:shadow-sm cursor-pointer'
                 }`}
               >
-                <span className="text-3xl mt-0.5">{tipo.icono}</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="font-semibold text-gray-800">{tipo.titulo}</h2>
+                <span className="text-2xl mt-0.5 flex-shrink-0">{tipo.icono}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                    <h2 className="font-bold text-sm" style={{ color: '#111827' }}>{tipo.titulo}</h2>
                     {tipo.badge && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 font-medium" style={{ color: '#6b7280' }}>
                         {tipo.badge}
                       </span>
                     )}
-                    {tipo.requiereLogin && (
-                      <span
-                        className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ backgroundColor: '\u0023EEF4F4', color: '\u0023154A4E' }}
-                      >
+                    {tipo.requiereLogin && tipo.activo && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: '#e8f4f5', color: '#10454B' }}>
                         Requiere cuenta
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">{tipo.descripcion}</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>{tipo.descripcion}</p>
                   {needsLogin && tipo.activo && (
-                    <p className="text-xs text-amber-700 mt-2">
+                    <p className="text-xs mt-1.5" style={{ color: '#b45309' }}>
                       Necesitas{' '}
-                      <Link href="/login" className="underline font-medium">iniciar sesi\u00f3n</Link>
-                      {' '}para continuar con este tipo de reporte.
+                      <Link href="/auth/login" className="underline font-medium">iniciar sesión</Link>
+                      {' '}para continuar.
                     </p>
                   )}
                 </div>
                 {tipo.activo && !needsLogin && (
-                  <span className="text-gray-300 text-xl self-center">\u203a</span>
+                  <span className="text-xl self-center flex-shrink-0" style={{ color: '#d1d5db' }}>›</span>
                 )}
               </div>
             )
 
-            if (!tipo.activo) return <div key={tipo.id}>{contenido}</div>
-            if (needsLogin) return <div key={tipo.id}>{contenido}</div>
+            if (!tipo.activo || needsLogin) return <div key={tipo.id}>{contenido}</div>
             return (
               <Link key={tipo.id} href={tipo.href!}>
                 {contenido}
