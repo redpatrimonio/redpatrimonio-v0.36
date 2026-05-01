@@ -3,29 +3,29 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 
-const MapaPicker = dynamic(() => import('@/components/mapa/MapaPicker'), { ssr: false })
+const MapPicker = dynamic(() => import('@/components/map/MapPicker'), { ssr: false })
 
 const TIPOS_RIESGO = [
-  'Construcci\u00f3n / Obra',
+  'Construcción / Obra',
   'Huaqueo / Saqueo',
   'Incendio',
-  'Inundaci\u00f3n / Erosion',
-  'Agricultura / Ganader\u00eda',
-  'Mineria',
+  'Inundación / Erosión',
+  'Agricultura / Ganadería',
+  'Minería',
   'Vandalismo',
   'Abandono / Deterioro',
   'Otro',
 ]
 
 const URGENCIA_LABELS: Record<number, string> = {
-  1: 'Baja \u2014 Da\u00f1o menor o pasado',
-  2: 'Moderada \u2014 Deterioro visible',
-  3: 'Importante \u2014 Riesgo activo',
-  4: 'Alta \u2014 Amenaza inminente',
-  5: 'Cr\u00edtica \u2014 Destrucci\u00f3n en curso',
+  1: 'Baja — Daño menor o pasado',
+  2: 'Moderada — Deterioro visible',
+  3: 'Importante — Riesgo activo',
+  4: 'Alta — Amenaza inminente',
+  5: 'Crítica — Destrucción en curso',
 }
 
 type Paso = 1 | 2 | 3
@@ -39,22 +39,21 @@ export default function RiesgoPage() {
   const [paso, setPaso] = useState<Paso>(1)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [idReporte, setIdReporte] = useState<string | null>(null)
 
-  // Paso 1 — Qué está pasando
+  // Paso 1
   const [tipoRiesgo, setTipoRiesgo] = useState('')
   const [amenazas, setAmenazas] = useState('')
   const [temporalidad, setTemporalidad] = useState<'activo' | 'inminente' | 'pasado' | ''>('')
   const [urgencia, setUrgencia] = useState<number>(3)
 
-  // Paso 2 — Dónde
+  // Paso 2
   const [latitud, setLatitud] = useState<number | null>(null)
   const [longitud, setLongitud] = useState<number | null>(null)
   const [region, setRegion] = useState('')
   const [comuna, setComuna] = useState('')
   const [descripcionUbicacion, setDescripcionUbicacion] = useState('')
 
-  // Paso 3 — Quién y fotos
+  // Paso 3
   const [autorReporte, setAutorReporte] = useState('')
   const [telefono, setTelefono] = useState('')
   const [archivos, setArchivos] = useState<File[]>([])
@@ -77,7 +76,7 @@ export default function RiesgoPage() {
   }
 
   async function handleSubmit() {
-    if (!latitud || !longitud) { setError('Debes marcar la ubicaci\u00f3n en el mapa.'); return }
+    if (!latitud || !longitud) { setError('Debes marcar la ubicación en el mapa.'); return }
     if (!tipoRiesgo) { setError('Selecciona el tipo de riesgo.'); return }
     if (!temporalidad) { setError('Indica la temporalidad del riesgo.'); return }
     setEnviando(true)
@@ -112,9 +111,7 @@ export default function RiesgoPage() {
       if (errReporte || !reporte) throw new Error(errReporte?.message || 'Error al guardar el reporte.')
 
       const reporteId = reporte.id_reporte
-      setIdReporte(reporteId)
 
-      // Subir fotos
       if (archivos.length > 0) {
         for (let i = 0; i < archivos.length; i++) {
           const file = archivos[i]
@@ -123,7 +120,7 @@ export default function RiesgoPage() {
           const { error: errStorage } = await supabase.storage
             .from('reportes-medios')
             .upload(path, file, { upsert: false })
-          if (errStorage) continue // no bloquear por foto fallida
+          if (errStorage) continue
 
           const { data: urlData } = supabase.storage.from('reportes-medios').getPublicUrl(path)
           await supabase.from('reportes_medios').insert({
@@ -147,14 +144,12 @@ export default function RiesgoPage() {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-xl mx-auto">
 
-        {/* Header */}
         <div className="mb-6 text-center">
           <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">Paso {paso} de 3</p>
-          <h1 className="text-xl font-bold text-gray-800">⚠️ Arqueolog\u00eda en Riesgo</h1>
-          <p className="text-sm text-gray-500 mt-1">Tu reporte es an\u00f3nimo y no requiere cuenta.</p>
+          <h1 className="text-xl font-bold text-gray-800">⚠️ Arqueología en Riesgo</h1>
+          <p className="text-sm text-gray-500 mt-1">Tu reporte es anónimo y no requiere cuenta.</p>
         </div>
 
-        {/* Barra de progreso */}
         <div className="flex gap-1 mb-8">
           {[1, 2, 3].map(n => (
             <div key={n} className="flex-1 h-1.5 rounded-full"
@@ -166,7 +161,7 @@ export default function RiesgoPage() {
         {paso === 1 && (
           <div className="flex flex-col gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">\u00bfQu\u00e9 tipo de riesgo es? *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">¿Qué tipo de riesgo es? *</label>
               <div className="grid grid-cols-2 gap-2">
                 {TIPOS_RIESGO.map(t => (
                   <button key={t} type="button"
@@ -183,15 +178,15 @@ export default function RiesgoPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Descripci\u00f3n del da\u00f1o o amenaza</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Descripción del daño o amenaza</label>
               <textarea rows={3} value={amenazas} onChange={e => setAmenazas(e.target.value)}
-                placeholder="Describe lo que viste o lo que est\u00e1 ocurriendo..."
+                placeholder="Describe lo que viste o lo que está ocurriendo..."
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#154A4E]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">\u00bfEst\u00e1 ocurriendo ahora? *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">¿Está ocurriendo ahora? *</label>
               <div className="flex gap-2">
                 {(['activo', 'inminente', 'pasado'] as const).map(t => (
                   <button key={t} type="button"
@@ -201,7 +196,7 @@ export default function RiesgoPage() {
                         ? 'border-[#154A4E] bg-[#EEF4F4] font-medium'
                         : 'border-gray-200 bg-white hover:border-gray-400'
                     }`}>
-                    {t === 'activo' ? 'S\u00ed, activo' : t === 'inminente' ? 'Inminente' : 'Ya ocurri\u00f3'}
+                    {t === 'activo' ? 'Sí, activo' : t === 'inminente' ? 'Inminente' : 'Ya ocurrió'}
                   </button>
                 ))}
               </div>
@@ -216,11 +211,16 @@ export default function RiesgoPage() {
                 className="w-full accent-[#154A4E]"
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>Baja</span><span>Cr\u00edtica</span>
+                <span>Baja</span><span>Crítica</span>
               </div>
             </div>
 
-            <button onClick={() => { if (!tipoRiesgo || !temporalidad) { setError('Completa los campos obligatorios.'); return } setError(null); setPaso(2) }}
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <button onClick={() => {
+              if (!tipoRiesgo || !temporalidad) { setError('Completa los campos obligatorios.'); return }
+              setError(null); setPaso(2)
+            }}
               className="w-full py-3 rounded-lg font-semibold text-white transition"
               style={{ backgroundColor: '#154A4E' }}>
               Continuar ›
@@ -232,9 +232,9 @@ export default function RiesgoPage() {
         {paso === 2 && (
           <div className="flex flex-col gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Marca la ubicaci\u00f3n en el mapa *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Marca la ubicación en el mapa *</label>
               <div className="rounded-xl overflow-hidden border border-gray-200" style={{ height: 300 }}>
-                <MapaPicker
+                <MapPicker
                   onLocationSelect={(lat: number, lng: number) => { setLatitud(lat); setLongitud(lng) }}
                 />
               </div>
@@ -245,7 +245,7 @@ export default function RiesgoPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Regi\u00f3n</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Región</label>
                 <input value={region} onChange={e => setRegion(e.target.value)}
                   placeholder="ej: Atacama"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#154A4E]"
@@ -254,26 +254,31 @@ export default function RiesgoPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Comuna</label>
                 <input value={comuna} onChange={e => setComuna(e.target.value)}
-                  placeholder="ej: Copiap\u00f3"
+                  placeholder="ej: Copiapó"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#154A4E]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripci\u00f3n de la ubicaci\u00f3n</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción de la ubicación</label>
               <input value={descripcionUbicacion} onChange={e => setDescripcionUbicacion(e.target.value)}
                 placeholder="ej: 500m al norte del fundo, al lado del canal..."
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#154A4E]"
               />
             </div>
 
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
             <div className="flex gap-3">
               <button onClick={() => { setError(null); setPaso(1) }}
                 className="flex-1 py-3 rounded-lg border-2 border-gray-300 font-semibold text-gray-600 hover:border-gray-400 transition">
                 ‹ Volver
               </button>
-              <button onClick={() => { if (!latitud || !longitud) { setError('Marca el punto en el mapa.'); return } setError(null); setPaso(3) }}
+              <button onClick={() => {
+                if (!latitud || !longitud) { setError('Marca el punto en el mapa.'); return }
+                setError(null); setPaso(3)
+              }}
                 className="flex-1 py-3 rounded-lg font-semibold text-white transition"
                 style={{ backgroundColor: '#154A4E' }}>
                 Continuar ›
@@ -286,19 +291,19 @@ export default function RiesgoPage() {
         {paso === 3 && (
           <div className="flex flex-col gap-5">
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Tu identidad es opcional. Solo la ver\u00e1 el equipo interno si necesitamos contactarte.
+              Tu identidad es opcional. Solo la verá el equipo interno si necesitamos contactarte.
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre o alias (opcional)</label>
               <input value={autorReporte} onChange={e => setAutorReporte(e.target.value)}
-                placeholder="C\u00f3mo quieres que te llamemos"
+                placeholder="Cómo quieres que te llamemos"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#154A4E]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tel\u00e9fono de contacto (opcional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono de contacto (opcional)</label>
               <input value={telefono} onChange={e => setTelefono(e.target.value)}
                 placeholder="+56 9 ..."
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#154A4E]"
@@ -313,7 +318,7 @@ export default function RiesgoPage() {
                     <img src={src} className="w-20 h-20 object-cover rounded-lg border border-gray-200" alt="" />
                     <button onClick={() => quitarFoto(i)}
                       className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
-                      \u00d7
+                      ×
                     </button>
                   </div>
                 ))}
@@ -345,8 +350,6 @@ export default function RiesgoPage() {
             </div>
           </div>
         )}
-
-        {error && paso !== 3 && <p className="mt-3 text-sm text-red-600 text-center">{error}</p>}
 
       </div>
     </div>
