@@ -92,7 +92,8 @@ function ControlesMapa() {
 }
 
 // Icono de cluster arqueológico: círculo oscuro #10454B
-function crearIconoClusterArqueologico(cluster: L.MarkerCluster) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function crearIconoClusterArqueologico(cluster: any) {
   const count = cluster.getChildCount()
   const size = count < 10 ? 36 : count < 50 ? 42 : 48
   return L.divIcon({
