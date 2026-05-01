@@ -15,7 +15,7 @@ export function Navbar() {
     router.push('/login')
   }
 
-  const isActive = (path: string) => pathname === path
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
   return (
     <nav className="border-b border-gray-700 sticky top-0 z-50" style={{ backgroundColor: '#154A4E' }}>
@@ -37,7 +37,7 @@ export function Navbar() {
               <div className="w-20 h-8 bg-gray-600 animate-pulse rounded"></div>
             ) : user ? (
               <>
-                <Link href="/reportar" className={`font-medium transition ${isActive('/reportar') ? 'text-yellow-300' : 'text-gray-200 hover:text-yellow-300'}`}>
+                <Link href="/reportar-inicio" className={`font-medium transition ${isActive('/reportar-inicio') || isActive('/reportar') ? 'text-yellow-300' : 'text-gray-200 hover:text-yellow-300'}`}>
                   Reportar
                 </Link>
                 <Link href="/perfil" className={`font-medium transition ${isActive('/perfil') ? 'text-yellow-300' : 'text-gray-200 hover:text-yellow-300'}`}>
@@ -52,7 +52,7 @@ export function Navbar() {
                 style={{ backgroundColor: '#B6875D' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#9a6f4d'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#B6875D'}>
-                Iniciar Sesión
+                Iniciar Sesi\u00f3n
               </Link>
             )}
           </div>
