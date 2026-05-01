@@ -123,6 +123,7 @@ export function MapView() {
     turistico: true,
     comercial: true,
     memoria: true,
+    museo: true,
   })
   const supabase = createClient()
   const coordsDesplazadasRef = useRef<Record<string, [number, number]>>({})
@@ -200,13 +201,11 @@ export function MapView() {
             showCoverageOnHover={false}
             chunkedLoading={true}
           >
-            {/* Capa 1: sitios validados desde sitios_master */}
             <SitiosMaster
               zoomActual={zoomActual}
               onSeleccionar={(id) => { setSitioSeleccionado(id); setOrigenSeleccionado('master') }}
             />
 
-            {/* Capa 2: reportes de comunidad desde reportes_nuevos */}
             {reportes.map(reporte => {
               const codigo = reporte.codigo_accesibilidad
               const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
@@ -286,13 +285,11 @@ export function MapView() {
             })}
           </MarkerClusterGroup>
 
-          {/* ── CLUSTER PÚBLICO ── lugares_capas + sitios_memoria (ver CapasNoArqueologicas) */}
           <CapasNoArqueologicas capasActivas={capasActivas} />
 
         </MapContainer>
       </div>
 
-      {/* FichaSitioModal — origen siempre definido */}
       {sitioSeleccionado && (
         <FichaSitioModal
           idSitio={sitioSeleccionado}
