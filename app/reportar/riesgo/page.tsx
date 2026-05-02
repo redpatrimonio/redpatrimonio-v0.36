@@ -20,22 +20,9 @@ const TIPOS_OBRA = [
 ]
 
 const REGIONES = [
-  'Arica y Parinacota',
-  'Tarapacá',
-  'Antofagasta',
-  'Atacama',
-  'Coquimbo',
-  'Valparaíso',
-  'Metropolitana',
-  "O'Higgins",
-  'Maule',
-  'Ñuble',
-  'Biobío',
-  'La Araucanía',
-  'Los Ríos',
-  'Los Lagos',
-  'Aysén',
-  'Magallanes',
+  'Arica y Parinacota', 'Tarapacá', 'Antofagasta', 'Atacama', 'Coquimbo',
+  'Valparaíso', 'Metropolitana', "O'Higgins", 'Maule', 'Ñuble',
+  'Biobío', 'La Araucanía', 'Los Ríos', 'Los Lagos', 'Aysén', 'Magallanes',
 ]
 
 type Paso = 1 | 2 | 3 | 4
@@ -48,7 +35,6 @@ const TEMPO_OPTIONS = [
   { value: 'inminente' as const, icon: '⚠️', label: 'Va a ocurrir', desc: 'Hay un proyecto aprobado' },
 ]
 
-// Convierte YYYY-MM-DD → DD/MM/YYYY para mostrar
 function formatFechaChile(iso: string): string {
   if (!iso) return ''
   const [y, m, d] = iso.split('-')
@@ -68,6 +54,7 @@ export default function RiesgoPage() {
   // Paso 1 — Identidad
   const [identidad, setIdentidad] = useState<Identidad>('anonimo')
   const [dejarDatosPrivados, setDejarDatosPrivados] = useState(false)
+  const [autorizaContacto, setAutorizaContacto] = useState(false)
   const [nombre, setNombre] = useState('')
   const [correo, setCorreo] = useState('')
   const [telefono, setTelefono] = useState('')
@@ -91,9 +78,7 @@ export default function RiesgoPage() {
   const [notasExtra, setNotasExtra] = useState('')
 
   function toggleObra(tipo: string) {
-    setTiposObra(prev =>
-      prev.includes(tipo) ? prev.filter(t => t !== tipo) : [...prev, tipo]
-    )
+    setTiposObra(prev => prev.includes(tipo) ? prev.filter(t => t !== tipo) : [...prev, tipo])
   }
 
   function handleArchivos(e: React.ChangeEvent<HTMLInputElement>) {
@@ -118,11 +103,18 @@ export default function RiesgoPage() {
     window.scrollTo(0, 0)
   }
 
+  // Cuando cambia identidad, resetear estado derivado
+  function cambiarIdentidad(val: Identidad) {
+    setIdentidad(val)
+    setAutorizaContacto(false)
+    if (val === 'anonimo') setDejarDatosPrivados(false)
+  }
+
+  const tieneDatos = identidad === 'publico' || (identidad === 'anonimo' && dejarDatosPrivados)
+
   function resumenIdentidad() {
-    if (identidad === 'publico') {
-      return nombre ? `${nombre} (público)` : 'Personal/Comunidad'
-    }
-    if (dejarDatosPrivados && nombre) return `Anónimo · privado (${nombre})`
+    if (identidad === 'publico') return nombre ? `${nombre} (público)` : 'Personal / Comunidad'
+    if (dejarDatosPrivados && nombre) return `Anónimo · datos privados (${nombre})`
     if (dejarDatosPrivados) return 'Anónimo · con datos privados'
     return 'Anónimo'
   }
@@ -141,6 +133,7 @@ export default function RiesgoPage() {
     setError(null)
 
     try {
+      const esAnonimo = identidad === 'anonimo'
       const autorReporte = identidad === 'publico'
         ? (nombre || 'Personal/Comunidad')
         : (dejarDatosPrivados && nombre ? `[privado] ${nombre}` : null)
@@ -164,7 +157,10 @@ export default function RiesgoPage() {
         comuna: comuna || null,
         descripcion_ubicacion: comoSeLlega || null,
         autor_reporte: autorReporte,
-        telefono_usuario_contacto: (dejarDatosPrivados || identidad === 'publico') ? (telefono || null) : null,
+        es_anonimo: esAnonimo,
+        autoriza_contacto: autorizaContacto,
+        correo_usuario_contacto: tieneDatos ? (correo || null) : null,
+        telefono_usuario_contacto: tieneDatos ? (telefono || null) : null,
         id_usuario: user?.id || null,
         estado_validacion: 'rojo',
         nivel_acceso: 'Espacio Publico',
@@ -223,12 +219,9 @@ export default function RiesgoPage() {
               <p className="text-white/70 text-xs mt-0.5">Aviso ciudadano · RedPatrimonio</p>
             </div>
           </div>
-
           <div className="h-0.5" style={{ background: 'rgba(255,255,255,0.25)' }}>
-            <div className="h-full bg-white rounded-r transition-all duration-400"
-              style={{ width: `${(paso / 4) * 100}%` }} />
+            <div className="h-full bg-white rounded-r transition-all duration-400" style={{ width: `${(paso / 4) * 100}%` }} />
           </div>
-
           <div className="flex items-start px-5 pb-3 pt-2 gap-0">
             {pasoLabel.map((label, i) => {
               const n = i + 1
@@ -238,22 +231,12 @@ export default function RiesgoPage() {
                 <>
                   <div key={n} className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-                      style={{
-                        border: isActive || isDone ? '2px solid white' : '2px solid rgba(255,255,255,0.3)',
-                        background: isActive ? 'white' : isDone ? 'rgba(255,255,255,0.25)' : 'transparent',
-                        color: isActive ? '#10454B' : 'rgba(255,255,255,0.6)',
-                      }}>
+                      style={{ border: isActive || isDone ? '2px solid white' : '2px solid rgba(255,255,255,0.3)', background: isActive ? 'white' : isDone ? 'rgba(255,255,255,0.25)' : 'transparent', color: isActive ? '#10454B' : 'rgba(255,255,255,0.6)' }}>
                       {isDone ? '✓' : n}
                     </div>
-                    <span className="text-center leading-tight" style={{
-                      fontSize: '0.6rem',
-                      color: isActive || isDone ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)',
-                    }}>{label}</span>
+                    <span className="text-center leading-tight" style={{ fontSize: '0.6rem', color: isActive || isDone ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)' }}>{label}</span>
                   </div>
-                  {i < 3 && (
-                    <div className="flex-1 h-0.5 mt-2.5 mx-1 transition-all"
-                      style={{ background: isDone ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)' }} />
-                  )}
+                  {i < 3 && <div className="flex-1 h-0.5 mt-2.5 mx-1 transition-all" style={{ background: isDone ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)' }} />}
                 </>
               )
             })}
@@ -271,7 +254,8 @@ export default function RiesgoPage() {
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>En ambos casos tu aviso tiene el mismo valor y será revisado con la misma prioridad.</p>
               </div>
 
-              <div onClick={() => setIdentidad('anonimo')}
+              {/* Opción Anónimo */}
+              <div onClick={() => cambiarIdentidad('anonimo')}
                 className="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all"
                 style={{ borderColor: identidad === 'anonimo' ? '#10454B' : '#dde4e6', background: identidad === 'anonimo' ? '#e8f4f5' : '#f8fafb' }}>
                 <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center"
@@ -284,9 +268,9 @@ export default function RiesgoPage() {
                 </div>
               </div>
 
+              {/* Sub-opción datos privados */}
               {identidad === 'anonimo' && (
-                <div className="-mt-3 px-3.5 pb-3.5 pt-3 rounded-b-xl border-2 border-t-0"
-                  style={{ borderColor: '#b2dde1', background: '#e8f4f5' }}>
+                <div className="-mt-3 px-3.5 pb-3.5 pt-3 rounded-b-xl border-2 border-t-0" style={{ borderColor: '#b2dde1', background: '#e8f4f5' }}>
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" checked={dejarDatosPrivados} onChange={e => setDejarDatosPrivados(e.target.checked)}
                       className="mt-0.5 flex-shrink-0" style={{ accentColor: '#10454B' }} />
@@ -298,7 +282,8 @@ export default function RiesgoPage() {
                 </div>
               )}
 
-              <div onClick={() => setIdentidad('publico')}
+              {/* Opción Personal/Comunidad */}
+              <div onClick={() => cambiarIdentidad('publico')}
                 className="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all"
                 style={{ borderColor: identidad === 'publico' ? '#10454B' : '#dde4e6', background: identidad === 'publico' ? '#e8f4f5' : '#f8fafb' }}>
                 <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center"
@@ -311,9 +296,9 @@ export default function RiesgoPage() {
                 </div>
               </div>
 
-              {(identidad === 'publico' || (identidad === 'anonimo' && dejarDatosPrivados)) && (
-                <div className="flex flex-col gap-3.5 p-3.5 rounded-xl border"
-                  style={{ background: '#f2f5f6', borderColor: '#dde4e6' }}>
+              {/* Campos de contacto */}
+              {tieneDatos && (
+                <div className="flex flex-col gap-3.5 p-3.5 rounded-xl border" style={{ background: '#f2f5f6', borderColor: '#dde4e6' }}>
                   <div>
                     <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Nombre o alias <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                     <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Cómo quieres que te llamemos"
@@ -332,9 +317,20 @@ export default function RiesgoPage() {
                       className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition"
                       style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
                   </div>
+
+                  {/* Autoriza contacto — solo visible si hay datos */}
+                  <label className="flex items-start gap-3 cursor-pointer pt-1 border-t" style={{ borderColor: '#dde4e6' }}>
+                    <input type="checkbox" checked={autorizaContacto} onChange={e => setAutorizaContacto(e.target.checked)}
+                      className="mt-0.5 flex-shrink-0" style={{ accentColor: '#10454B' }} />
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: '#111827' }}>Autorizo ser contactado/a</p>
+                      <p className="text-xs" style={{ color: '#6b7280' }}>El equipo de RedPatrimonio puede escribirme si necesita más información sobre este aviso.</p>
+                    </div>
+                  </label>
                 </div>
               )}
 
+              {/* Banner privacidad */}
               <div className="flex items-start gap-2.5 rounded-lg p-3" style={{ background: '#e8f4f5', border: '1px solid #b2dde1' }}>
                 <svg className="flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 20 20" fill="none">
                   <path d="M10 2L3 5v5c0 4.418 3.134 8.559 7 9.5C16.866 18.559 20 14.418 20 10V5l-7-3z" fill="#10454B" opacity=".6"/>
@@ -347,8 +343,7 @@ export default function RiesgoPage() {
                 </p>
               </div>
 
-              <button onClick={() => avanzar(2)}
-                className="w-full py-3.5 rounded-xl font-bold text-white text-sm transition"
+              <button onClick={() => avanzar(2)} className="w-full py-3.5 rounded-xl font-bold text-white text-sm transition"
                 style={{ backgroundColor: '#10454B' }}>Continuar ›</button>
             </div>
           )}
@@ -361,7 +356,6 @@ export default function RiesgoPage() {
                 <h2 className="text-2xl font-extrabold leading-tight" style={{ color: '#111827' }}>¿Qué está pasando?</h2>
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>Cuéntanos con tus palabras. No hace falta saber arqueología para describir lo que ves.</p>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>¿Cuándo ocurre el daño? *</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -376,7 +370,6 @@ export default function RiesgoPage() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>¿Qué tipo de obra? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <div className="flex flex-wrap gap-1.5">
@@ -389,7 +382,6 @@ export default function RiesgoPage() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Qué viste exactamente?</label>
                 <textarea rows={4} value={descripcion} onChange={e => setDescripcion(e.target.value)}
@@ -397,9 +389,7 @@ export default function RiesgoPage() {
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
                   style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white', resize: 'vertical', minHeight: '90px' }} />
               </div>
-
               {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
-
               <div className="flex gap-3">
                 <button onClick={() => avanzar(1)} className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
                   style={{ borderColor: '#dde4e6', color: '#374151' }}>‹ Atrás</button>
@@ -418,7 +408,6 @@ export default function RiesgoPage() {
                 <h2 className="text-2xl font-extrabold leading-tight" style={{ color: '#111827' }}>¿Dónde ocurre?</h2>
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>La ubicación es clave. Usa tu GPS o describe el lugar lo mejor que puedas.</p>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Toca para marcar el lugar *</label>
                 <div className="rounded-xl overflow-hidden border" style={{ height: 280, borderColor: '#dde4e6' }}>
@@ -428,7 +417,6 @@ export default function RiesgoPage() {
                   <p className="text-xs mt-1" style={{ color: '#6b7280' }}>{latitud.toFixed(6)}, {longitud.toFixed(6)}</p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Región</label>
                 <select value={region} onChange={e => setRegion(e.target.value)}
@@ -438,14 +426,12 @@ export default function RiesgoPage() {
                   {REGIONES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Comuna</label>
                 <input value={comuna} onChange={e => setComuna(e.target.value)} placeholder="ej: Copiapó"
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
                   style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Cómo se llega? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <input value={comoSeLlega} onChange={e => setComoSeLlega(e.target.value)}
@@ -453,9 +439,7 @@ export default function RiesgoPage() {
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
                   style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
               </div>
-
               {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
-
               <div className="flex gap-3">
                 <button onClick={() => avanzar(2)} className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
                   style={{ borderColor: '#dde4e6', color: '#374151' }}>‹ Atrás</button>
@@ -475,6 +459,7 @@ export default function RiesgoPage() {
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>Agrega fotos si tienes. Revisa el resumen antes de enviar.</p>
               </div>
 
+              {/* Fotos */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Fotografías <span className="font-normal" style={{ color: '#6b7280' }}>(recomendado)</span></label>
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -499,7 +484,7 @@ export default function RiesgoPage() {
                 <p className="text-xs" style={{ color: '#6b7280' }}>JPG, PNG, HEIC — máx. 5 fotos</p>
               </div>
 
-              {/* Fecha en formato chileno DD/MM/YYYY */}
+              {/* Fecha — nativa del sistema, preview en formato chileno */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>
                   ¿Cuándo lo observaste? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span>
@@ -513,12 +498,13 @@ export default function RiesgoPage() {
                   style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
                 />
                 {fechaObservacion && (
-                  <p className="text-xs mt-1" style={{ color: '#6b7280' }}>
+                  <p className="text-xs mt-1 font-medium" style={{ color: '#10454B' }}>
                     {formatFechaChile(fechaObservacion)}
                   </p>
                 )}
               </div>
 
+              {/* Notas */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Quieres agregar algo más? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <textarea rows={3} value={notasExtra} onChange={e => setNotasExtra(e.target.value)}
@@ -554,11 +540,9 @@ export default function RiesgoPage() {
                   <button onClick={() => avanzar(3)} className="text-xs font-semibold flex-shrink-0" style={{ color: '#10454B' }}>Cambiar</button>
                 </div>
                 {fechaObservacion && (
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-xs font-semibold" style={{ color: '#6b7280' }}>Fecha observación</p>
-                      <p className="text-sm font-medium" style={{ color: '#111827' }}>{formatFechaChile(fechaObservacion)}</p>
-                    </div>
+                  <div>
+                    <p className="text-xs font-semibold" style={{ color: '#6b7280' }}>Fecha observación</p>
+                    <p className="text-sm font-medium" style={{ color: '#111827' }}>{formatFechaChile(fechaObservacion)}</p>
                   </div>
                 )}
               </div>
