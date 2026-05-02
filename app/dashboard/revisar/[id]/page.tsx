@@ -28,12 +28,30 @@ interface ReporteCompleto {
   recinto_privado: boolean
   estado_validacion: string
   timestamp_creado: string
+  // Contacto — comunes
+  autor_reporte: string | null
+  id_usuario: string | null
+  telefono_usuario_contacto: string | null
+  contacto_propietario_posible: boolean | null
+  contacto_propietario_info: string | null
+  // Contacto — solo riesgo
+  es_anonimo: boolean | null
+  autoriza_contacto: boolean | null
+  correo_usuario_contacto: string | null
+  // Situación — solo riesgo
+  temporalidad_riesgo: string | null
 }
 
 interface Foto {
   id_medio: string
   url_publica: string
   descripcion_imagen: string | null
+}
+
+const TEMPO_LABEL: Record<string, string> = {
+  pasado: '🪨 Ya ocurrió',
+  activo: '🚨 Está ocurriendo',
+  inminente: '⚠️ Va a ocurrir',
 }
 
 export default function RevisarReportePage() {
@@ -162,11 +180,32 @@ export default function RevisarReportePage() {
     )
   }
 
+  const esRiesgo = reporte.categoria_general === 'arqueologia_en_riesgo'
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 pb-20">
       <div className="max-w-4xl mx-auto space-y-6">
-        
-        {/* Header */}
+
+        {/* ── Banner RIESGO ── */}
+        {esRiesgo && (
+          <div className="rounded-xl px-5 py-4 flex items-start gap-3"
+            style={{ background: '#7f1d1d', border: '2px solid #dc2626' }}>
+            <span className="text-2xl flex-shrink-0">🚨</span>
+            <div>
+              <p className="text-white font-extrabold text-base leading-tight">ARQUEOLOGÍA EN RIESGO</p>
+              {reporte.temporalidad_riesgo && (
+                <p className="text-red-200 text-sm mt-0.5 font-semibold">
+                  {TEMPO_LABEL[reporte.temporalidad_riesgo] ?? reporte.temporalidad_riesgo}
+                </p>
+              )}
+              <p className="text-red-300 text-xs mt-1">
+                Este aviso requiere evaluación prioritaria antes de ser aprobado.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Header ── */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <button
@@ -191,7 +230,92 @@ export default function RevisarReportePage() {
           </div>
         )}
 
-        {/* Galería Fotos */}
+        {/* ── Información de contacto (solo lectura) ── */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-base font-bold text-gray-900 mb-4 pb-2 border-b flex items-center gap-2">
+            <span>👤</span> Quién reportó
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+
+            {/* Autor */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Nombre / Alias</p>
+              <p className="text-sm text-gray-900">
+                {reporte.autor_reporte
+                  ? reporte.autor_reporte.startsWith('[privado]')
+                    ? <span className="text-amber-700 font-medium">{reporte.autor_reporte.replace('[privado] ', '')} <span className="text-xs font-normal">(datos privados)</span></span>
+                    : reporte.autor_reporte
+                  : <span className="text-gray-400 italic">Anónimo</span>
+                }
+              </p>
+            </div>
+
+            {/* Identidad (solo riesgo) */}
+            {esRiesgo && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Identidad</p>
+                <p className="text-sm text-gray-900">
+                  {reporte.es_anonimo
+                    ? <span className="text-gray-500">Anónimo</span>
+                    : <span className="text-green-700 font-medium">Identificado</span>
+                  }
+                </p>
+              </div>
+            )}
+
+            {/* Correo (solo riesgo) */}
+            {esRiesgo && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Correo</p>
+                <p className="text-sm text-gray-900">
+                  {reporte.correo_usuario_contacto
+                    ? <a href={`mailto:${reporte.correo_usuario_contacto}`}
+                        className="text-blue-600 underline">{reporte.correo_usuario_contacto}</a>
+                    : <span className="text-gray-400 italic">No informado</span>
+                  }
+                </p>
+              </div>
+            )}
+
+            {/* Teléfono (ambos) */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Teléfono</p>
+              <p className="text-sm text-gray-900">
+                {reporte.telefono_usuario_contacto
+                  ? <a href={`tel:${reporte.telefono_usuario_contacto}`}
+                      className="text-blue-600 underline">{reporte.telefono_usuario_contacto}</a>
+                  : <span className="text-gray-400 italic">No informado</span>
+                }
+              </p>
+            </div>
+
+            {/* Autoriza contacto (solo riesgo) */}
+            {esRiesgo && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Autoriza contacto</p>
+                <p className="text-sm font-medium">
+                  {reporte.autoriza_contacto
+                    ? <span className="text-green-700">✓ Sí</span>
+                    : <span className="text-gray-400">No</span>
+                  }
+                </p>
+              </div>
+            )}
+
+            {/* Info propietario (solo hallazgo) */}
+            {!esRiesgo && reporte.contacto_propietario_posible && (
+              <div className="md:col-span-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Contacto propietario</p>
+                <p className="text-sm text-gray-900">
+                  {reporte.contacto_propietario_info || <span className="text-gray-400 italic">Sin detalle</span>}
+                </p>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+        {/* ── Galería Fotos ── */}
         {fotos.length > 0 && (
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Fotos ({fotos.length})</h3>
@@ -212,9 +336,9 @@ export default function RevisarReportePage() {
           </div>
         )}
 
-        {/* Formulario Editable */}
+        {/* ── Formulario Editable ── */}
         <div className="bg-white rounded-lg shadow p-6 space-y-6">
-          
+
           {/* Ubicación */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">Ubicación</h3>
@@ -399,7 +523,9 @@ export default function RevisarReportePage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">Observaciones</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amenazas</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {esRiesgo ? 'Descripción del daño / amenaza' : 'Amenazas'}
+                </label>
                 <textarea
                   value={formData.amenazas || ''}
                   onChange={(e) => setFormData({ ...formData, amenazas: e.target.value })}
@@ -422,7 +548,7 @@ export default function RevisarReportePage() {
 
         </div>
 
-        {/* Botones Acción */}
+        {/* ── Botones Acción ── */}
         <div className="flex gap-3 pb-4">
           <button
             onClick={handleGuardar}
