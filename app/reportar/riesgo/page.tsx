@@ -111,7 +111,6 @@ export default function RiesgoPage() {
     window.scrollTo(0, 0)
   }
 
-  // Resumen para paso 4
   function resumenIdentidad() {
     if (identidad === 'publico') {
       return nombre ? `${nombre} (público)` : 'Personal/Comunidad'
@@ -161,7 +160,9 @@ export default function RiesgoPage() {
         telefono_usuario_contacto: (dejarDatosPrivados || identidad === 'publico') ? (telefono || null) : null,
         id_usuario: user?.id || null,
         estado_validacion: 'rojo',
-        nivel_acceso: 'publico',
+        // nivel_acceso: valor debe coincidir con CHECK constraint
+        // Opciones válidas: 'Espacio Publico' | 'Area Protegida' | 'Acceso Restringido' | 'Prohibido'
+        nivel_acceso: 'Espacio Publico',
         categoria_general: 'arqueologia_en_riesgo',
       }
 
@@ -200,7 +201,6 @@ export default function RiesgoPage() {
     }
   }
 
-  // ─── UI helpers ───
   const pasoLabel = ['Identidad', 'Situación', 'Ubicación', 'Evidencia']
 
   return (
@@ -219,13 +219,11 @@ export default function RiesgoPage() {
             </div>
           </div>
 
-          {/* Progress bar */}
           <div className="h-0.5" style={{ background: 'rgba(255,255,255,0.25)' }}>
             <div className="h-full bg-white rounded-r transition-all duration-400"
               style={{ width: `${(paso / 4) * 100}%` }} />
           </div>
 
-          {/* Stepper */}
           <div className="flex items-start px-5 pb-3 pt-2 gap-0">
             {pasoLabel.map((label, i) => {
               const n = i + 1
@@ -257,7 +255,6 @@ export default function RiesgoPage() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 px-5 py-6">
 
           {/* ── PASO 1: IDENTIDAD ── */}
@@ -269,14 +266,10 @@ export default function RiesgoPage() {
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>En ambos casos tu aviso tiene el mismo valor y será revisado con la misma prioridad.</p>
               </div>
 
-              {/* Opción Anónimo */}
               <div
                 onClick={() => setIdentidad('anonimo')}
                 className="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all"
-                style={{
-                  borderColor: identidad === 'anonimo' ? '#10454B' : '#dde4e6',
-                  background: identidad === 'anonimo' ? '#e8f4f5' : '#f8fafb',
-                }}>
+                style={{ borderColor: identidad === 'anonimo' ? '#10454B' : '#dde4e6', background: identidad === 'anonimo' ? '#e8f4f5' : '#f8fafb' }}>
                 <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center"
                   style={{ borderColor: identidad === 'anonimo' ? '#10454B' : '#9ca3af' }}>
                   {identidad === 'anonimo' && <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#10454B' }} />}
@@ -287,18 +280,12 @@ export default function RiesgoPage() {
                 </div>
               </div>
 
-              {/* Sub-opción datos privados (solo si anónimo) */}
               {identidad === 'anonimo' && (
                 <div className="-mt-3 px-3.5 pb-3.5 pt-3 rounded-b-xl border-2 border-t-0"
                   style={{ borderColor: '#b2dde1', background: '#e8f4f5' }}>
                   <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={dejarDatosPrivados}
-                      onChange={e => setDejarDatosPrivados(e.target.checked)}
-                      className="mt-0.5 flex-shrink-0"
-                      style={{ accentColor: '#10454B' }}
-                    />
+                    <input type="checkbox" checked={dejarDatosPrivados} onChange={e => setDejarDatosPrivados(e.target.checked)}
+                      className="mt-0.5 flex-shrink-0" style={{ accentColor: '#10454B' }} />
                     <div>
                       <p className="text-sm font-semibold" style={{ color: '#111827' }}>Dejar datos de contacto de forma privada</p>
                       <p className="text-xs" style={{ color: '#6b7280' }}>Solo los ve el equipo de RedPatrimonio. No se publican nunca.</p>
@@ -307,14 +294,10 @@ export default function RiesgoPage() {
                 </div>
               )}
 
-              {/* Opción Personal/Comunidad */}
               <div
                 onClick={() => setIdentidad('publico')}
                 className="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all"
-                style={{
-                  borderColor: identidad === 'publico' ? '#10454B' : '#dde4e6',
-                  background: identidad === 'publico' ? '#e8f4f5' : '#f8fafb',
-                }}>
+                style={{ borderColor: identidad === 'publico' ? '#10454B' : '#dde4e6', background: identidad === 'publico' ? '#e8f4f5' : '#f8fafb' }}>
                 <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center"
                   style={{ borderColor: identidad === 'publico' ? '#10454B' : '#9ca3af' }}>
                   {identidad === 'publico' && <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#10454B' }} />}
@@ -325,38 +308,30 @@ export default function RiesgoPage() {
                 </div>
               </div>
 
-              {/* Campos de contacto */}
               {(identidad === 'publico' || (identidad === 'anonimo' && dejarDatosPrivados)) && (
                 <div className="flex flex-col gap-3.5 p-3.5 rounded-xl border"
                   style={{ background: '#f2f5f6', borderColor: '#dde4e6' }}>
                   <div>
                     <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Nombre o alias <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
-                    <input value={nombre} onChange={e => setNombre(e.target.value)}
-                      placeholder="Cómo quieres que te llamemos"
+                    <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Cómo quieres que te llamemos"
                       className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition"
-                      style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
-                    />
+                      style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Correo electrónico <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
-                    <input type="email" value={correo} onChange={e => setCorreo(e.target.value)}
-                      placeholder="tu@correo.cl"
+                    <input type="email" value={correo} onChange={e => setCorreo(e.target.value)} placeholder="tu@correo.cl"
                       className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition"
-                      style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
-                    />
+                      style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Teléfono <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
-                    <input value={telefono} onChange={e => setTelefono(e.target.value)}
-                      placeholder="+56 9 ..."
+                    <input value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56 9 ..."
                       className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition"
-                      style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
-                    />
+                      style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
                   </div>
                 </div>
               )}
 
-              {/* Banner privacidad */}
               <div className="flex items-start gap-2.5 rounded-lg p-3" style={{ background: '#e8f4f5', border: '1px solid #b2dde1' }}>
                 <svg className="flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 20 20" fill="none">
                   <path d="M10 2L3 5v5c0 4.418 3.134 8.559 7 9.5C16.866 18.559 20 14.418 20 10V5l-7-3z" fill="#10454B" opacity=".6"/>
@@ -371,9 +346,7 @@ export default function RiesgoPage() {
 
               <button onClick={() => avanzar(2)}
                 className="w-full py-3.5 rounded-xl font-bold text-white text-sm transition"
-                style={{ backgroundColor: '#10454B' }}>
-                Continuar ›
-              </button>
+                style={{ backgroundColor: '#10454B' }}>Continuar ›</button>
             </div>
           )}
 
@@ -386,18 +359,13 @@ export default function RiesgoPage() {
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>Cuéntanos con tus palabras. No hace falta saber arqueología para describir lo que ves.</p>
               </div>
 
-              {/* Temporalidad */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>¿Cuándo ocurre el daño? *</label>
                 <div className="grid grid-cols-3 gap-2">
                   {TEMPO_OPTIONS.map(opt => (
-                    <button key={opt.value} type="button"
-                      onClick={() => setTemporalidad(opt.value)}
+                    <button key={opt.value} type="button" onClick={() => setTemporalidad(opt.value)}
                       className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition"
-                      style={{
-                        borderColor: temporalidad === opt.value ? '#10454B' : '#dde4e6',
-                        background: temporalidad === opt.value ? '#e8f4f5' : '#f8fafb',
-                      }}>
+                      style={{ borderColor: temporalidad === opt.value ? '#10454B' : '#dde4e6', background: temporalidad === opt.value ? '#e8f4f5' : '#f8fafb' }}>
                       <span className="text-2xl">{opt.icon}</span>
                       <span className="text-xs font-bold" style={{ color: '#111827' }}>{opt.label}</span>
                       <span className="text-xs leading-tight" style={{ color: '#6b7280' }}>{opt.desc}</span>
@@ -406,51 +374,35 @@ export default function RiesgoPage() {
                 </div>
               </div>
 
-              {/* Tipo de obra */}
               <div>
-                <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>¿Qué tipo de obra está involucrada? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
+                <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>¿Qué tipo de obra? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <div className="flex flex-wrap gap-1.5">
                   {TIPOS_OBRA.map(tipo => (
-                    <button key={tipo} type="button"
-                      onClick={() => toggleObra(tipo)}
+                    <button key={tipo} type="button" onClick={() => toggleObra(tipo)}
                       className="px-3 py-1.5 rounded-full border-2 text-xs font-semibold transition"
-                      style={{
-                        borderColor: tiposObra.includes(tipo) ? '#10454B' : '#dde4e6',
-                        background: tiposObra.includes(tipo) ? '#e8f4f5' : '#f8fafb',
-                        color: tiposObra.includes(tipo) ? '#10454B' : '#374151',
-                      }}>
+                      style={{ borderColor: tiposObra.includes(tipo) ? '#10454B' : '#dde4e6', background: tiposObra.includes(tipo) ? '#e8f4f5' : '#f8fafb', color: tiposObra.includes(tipo) ? '#10454B' : '#374151' }}>
                       {tipo}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Descripción */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Qué viste exactamente?</label>
                 <textarea rows={4} value={descripcion} onChange={e => setDescripcion(e.target.value)}
                   placeholder="Describe lo que viste o lo que está ocurriendo. Cualquier detalle ayuda..."
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
-                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white', resize: 'vertical', minHeight: '90px' }}
-                />
+                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white', resize: 'vertical', minHeight: '90px' }} />
               </div>
 
               {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
 
               <div className="flex gap-3">
-                <button onClick={() => avanzar(1)}
-                  className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
-                  style={{ borderColor: '#dde4e6', color: '#374151' }}>
-                  ‹ Atrás
-                </button>
-                <button onClick={() => {
-                  if (!temporalidad) { setError('Indica cuándo ocurre el daño.'); return }
-                  avanzar(3)
-                }}
+                <button onClick={() => avanzar(1)} className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
+                  style={{ borderColor: '#dde4e6', color: '#374151' }}>‹ Atrás</button>
+                <button onClick={() => { if (!temporalidad) { setError('Indica cuándo ocurre el daño.'); return } avanzar(3) }}
                   className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm transition"
-                  style={{ backgroundColor: '#10454B' }}>
-                  Continuar ›
-                </button>
+                  style={{ backgroundColor: '#10454B' }}>Continuar ›</button>
               </div>
             </div>
           )}
@@ -464,22 +416,16 @@ export default function RiesgoPage() {
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>La ubicación es clave. Usa tu GPS o describe el lugar lo mejor que puedas.</p>
               </div>
 
-              {/* Mapa */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Toca para marcar el lugar *</label>
                 <div className="rounded-xl overflow-hidden border" style={{ height: 280, borderColor: '#dde4e6' }}>
-                  <MapPicker
-                    onLocationSelect={(lat: number, lng: number) => { setLatitud(lat); setLongitud(lng) }}
-                  />
+                  <MapPicker onLocationSelect={(lat: number, lng: number) => { setLatitud(lat); setLongitud(lng) }} />
                 </div>
                 {latitud && longitud && (
-                  <p className="text-xs mt-1" style={{ color: '#6b7280' }}>
-                    {latitud.toFixed(6)}, {longitud.toFixed(6)}
-                  </p>
+                  <p className="text-xs mt-1" style={{ color: '#6b7280' }}>{latitud.toFixed(6)}, {longitud.toFixed(6)}</p>
                 )}
               </div>
 
-              {/* Región select */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Región</label>
                 <select value={region} onChange={e => setRegion(e.target.value)}
@@ -490,42 +436,29 @@ export default function RiesgoPage() {
                 </select>
               </div>
 
-              {/* Comuna */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>Comuna</label>
-                <input value={comuna} onChange={e => setComuna(e.target.value)}
-                  placeholder="ej: Copiapó"
+                <input value={comuna} onChange={e => setComuna(e.target.value)} placeholder="ej: Copiapó"
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
-                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
-                />
+                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
               </div>
 
-              {/* Cómo se llega */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Cómo se llega? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <input value={comoSeLlega} onChange={e => setComoSeLlega(e.target.value)}
                   placeholder="ej: 500m al norte del fundo, al lado del canal..."
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
-                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
-                />
+                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
               </div>
 
               {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
 
               <div className="flex gap-3">
-                <button onClick={() => avanzar(2)}
-                  className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
-                  style={{ borderColor: '#dde4e6', color: '#374151' }}>
-                  ‹ Atrás
-                </button>
-                <button onClick={() => {
-                  if (!latitud || !longitud) { setError('Marca el punto en el mapa.'); return }
-                  avanzar(4)
-                }}
+                <button onClick={() => avanzar(2)} className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
+                  style={{ borderColor: '#dde4e6', color: '#374151' }}>‹ Atrás</button>
+                <button onClick={() => { if (!latitud || !longitud) { setError('Marca el punto en el mapa.'); return } avanzar(4) }}
                   className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm transition"
-                  style={{ backgroundColor: '#10454B' }}>
-                  Continuar ›
-                </button>
+                  style={{ backgroundColor: '#10454B' }}>Continuar ›</button>
               </div>
             </div>
           )}
@@ -539,7 +472,6 @@ export default function RiesgoPage() {
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>Agrega fotos si tienes. Revisa el resumen antes de enviar.</p>
               </div>
 
-              {/* Fotos */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Fotografías <span className="font-normal" style={{ color: '#6b7280' }}>(recomendado)</span></label>
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -564,26 +496,21 @@ export default function RiesgoPage() {
                 <p className="text-xs" style={{ color: '#6b7280' }}>JPG, PNG, HEIC — máx. 5 fotos</p>
               </div>
 
-              {/* Fecha observación */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Cuándo lo observaste? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <input type="date" value={fechaObservacion} onChange={e => setFechaObservacion(e.target.value)}
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
-                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
-                />
+                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
               </div>
 
-              {/* Notas extra */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Quieres agregar algo más? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <textarea rows={3} value={notasExtra} onChange={e => setNotasExtra(e.target.value)}
                   placeholder="Cualquier detalle adicional..."
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white', resize: 'vertical' }}
-                />
+                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white', resize: 'vertical' }} />
               </div>
 
-              {/* Resumen */}
               <div className="rounded-xl p-4 flex flex-col gap-2.5" style={{ background: '#f2f5f6', border: '1.5px solid #dde4e6' }}>
                 <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#10454B' }}>Confirma esta información</p>
                 <div className="flex items-start justify-between gap-2">
@@ -614,11 +541,8 @@ export default function RiesgoPage() {
               {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
 
               <div className="flex gap-3">
-                <button onClick={() => avanzar(3)}
-                  className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
-                  style={{ borderColor: '#dde4e6', color: '#374151' }}>
-                  ‹ Atrás
-                </button>
+                <button onClick={() => avanzar(3)} className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
+                  style={{ borderColor: '#dde4e6', color: '#374151' }}>‹ Atrás</button>
                 <button onClick={handleSubmit} disabled={enviando}
                   className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm transition disabled:opacity-60"
                   style={{ backgroundColor: '#B6875D' }}>
