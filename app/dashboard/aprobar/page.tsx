@@ -19,10 +19,6 @@ interface Reporte {
   categoria_general: string | null
 }
 
-interface Foto {
-  url_publica: string
-}
-
 export default function AprobarReportesPage() {
   const { usuario, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -55,21 +51,20 @@ export default function AprobarReportesPage() {
       if (reportesError) throw reportesError
       setReportes(data || [])
 
-// Cargar primera foto de cada reporte
-const fotosMap: Record<string, string> = {}
-for (const reporte of data || []) {
-  const { data: fotoData, error: fotoError } = await supabase
-    .from('reportes_medios')
-    .select('url_publica')
-    .eq('id_reporte', reporte.id_reporte)
-    .order('prioridad_visualizacion', { ascending: false })
-    .limit(1)
+      const fotosMap: Record<string, string> = {}
+      for (const reporte of data || []) {
+        const { data: fotoData } = await supabase
+          .from('reportes_medios')
+          .select('url_publica')
+          .eq('id_reporte', reporte.id_reporte)
+          .order('prioridad_visualizacion', { ascending: false })
+          .limit(1)
 
-  if (fotoData && fotoData.length > 0) {
-    fotosMap[reporte.id_reporte] = fotoData[0].url_publica
-  }
-}
-setFotos(fotosMap)
+        if (fotoData && fotoData.length > 0) {
+          fotosMap[reporte.id_reporte] = fotoData[0].url_publica
+        }
+      }
+      setFotos(fotosMap)
     } catch (err) {
       console.error('Error cargando reportes:', err)
       setError('Error al cargar reportes')
@@ -93,8 +88,20 @@ setFotos(fotosMap)
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Aprobar y Publicar</h1>
-        <p className="text-gray-600 mb-6">Reportes en estado amarillo listos para publicación</p>
+
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">Aprobar y Publicar</h1>
+            <p className="text-gray-600">Reportes en estado amarillo listos para publicación</p>
+          </div>
+          <button
+            onClick={() => router.push('/dashboard/publicados')}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm flex-shrink-0 mt-1"
+          >
+            <span>✓</span> Publicados
+          </button>
+        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -115,7 +122,6 @@ setFotos(fotosMap)
                 className="bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer overflow-hidden"
               >
                 <div className="flex flex-col sm:flex-row">
-                  {/* Foto */}
                   <div className="w-full sm:w-32 h-32 bg-gray-200 flex-shrink-0">
                     {fotos[reporte.id_reporte] ? (
                       <img
@@ -129,8 +135,6 @@ setFotos(fotosMap)
                       </div>
                     )}
                   </div>
-
-                  {/* Info */}
                   <div className="flex-1 p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
                       {reporte.nombre_reporte}
@@ -149,8 +153,6 @@ setFotos(fotosMap)
                       </span>
                     </div>
                   </div>
-
-                  {/* Flecha */}
                   <div className="flex items-center justify-center px-4 text-gray-400">
                     →
                   </div>
@@ -159,6 +161,7 @@ setFotos(fotosMap)
             ))}
           </div>
         )}
+
       </div>
     </div>
   )
