@@ -48,6 +48,13 @@ const TEMPO_OPTIONS = [
   { value: 'inminente' as const, icon: '⚠️', label: 'Va a ocurrir', desc: 'Hay un proyecto aprobado' },
 ]
 
+// Convierte YYYY-MM-DD → DD/MM/YYYY para mostrar
+function formatFechaChile(iso: string): string {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
+
 export default function RiesgoPage() {
   const supabase = createClient()
   const { user } = useAuth()
@@ -141,7 +148,7 @@ export default function RiesgoPage() {
       const descripcionFinal = [
         descripcion,
         tiposObra.length > 0 ? `Tipo obra: ${tiposObra.join(', ')}` : null,
-        fechaObservacion ? `Fecha observación: ${fechaObservacion}` : null,
+        fechaObservacion ? `Fecha observación: ${formatFechaChile(fechaObservacion)}` : null,
         notasExtra || null,
         comoSeLlega ? `Cómo se llega: ${comoSeLlega}` : null,
       ].filter(Boolean).join(' | ')
@@ -160,8 +167,6 @@ export default function RiesgoPage() {
         telefono_usuario_contacto: (dejarDatosPrivados || identidad === 'publico') ? (telefono || null) : null,
         id_usuario: user?.id || null,
         estado_validacion: 'rojo',
-        // nivel_acceso: valor debe coincidir con CHECK constraint
-        // Opciones válidas: 'Espacio Publico' | 'Area Protegida' | 'Acceso Restringido' | 'Prohibido'
         nivel_acceso: 'Espacio Publico',
         categoria_general: 'arqueologia_en_riesgo',
       }
@@ -257,7 +262,7 @@ export default function RiesgoPage() {
 
         <div className="flex-1 px-5 py-6">
 
-          {/* ── PASO 1: IDENTIDAD ── */}
+          {/* ── PASO 1 ── */}
           {paso === 1 && (
             <div className="flex flex-col gap-5">
               <div className="mb-1">
@@ -266,8 +271,7 @@ export default function RiesgoPage() {
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>En ambos casos tu aviso tiene el mismo valor y será revisado con la misma prioridad.</p>
               </div>
 
-              <div
-                onClick={() => setIdentidad('anonimo')}
+              <div onClick={() => setIdentidad('anonimo')}
                 className="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all"
                 style={{ borderColor: identidad === 'anonimo' ? '#10454B' : '#dde4e6', background: identidad === 'anonimo' ? '#e8f4f5' : '#f8fafb' }}>
                 <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center"
@@ -294,8 +298,7 @@ export default function RiesgoPage() {
                 </div>
               )}
 
-              <div
-                onClick={() => setIdentidad('publico')}
+              <div onClick={() => setIdentidad('publico')}
                 className="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all"
                 style={{ borderColor: identidad === 'publico' ? '#10454B' : '#dde4e6', background: identidad === 'publico' ? '#e8f4f5' : '#f8fafb' }}>
                 <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center"
@@ -350,7 +353,7 @@ export default function RiesgoPage() {
             </div>
           )}
 
-          {/* ── PASO 2: SITUACIÓN ── */}
+          {/* ── PASO 2 ── */}
           {paso === 2 && (
             <div className="flex flex-col gap-5">
               <div className="mb-1">
@@ -407,7 +410,7 @@ export default function RiesgoPage() {
             </div>
           )}
 
-          {/* ── PASO 3: UBICACIÓN ── */}
+          {/* ── PASO 3 ── */}
           {paso === 3 && (
             <div className="flex flex-col gap-5">
               <div className="mb-1">
@@ -463,7 +466,7 @@ export default function RiesgoPage() {
             </div>
           )}
 
-          {/* ── PASO 4: EVIDENCIA ── */}
+          {/* ── PASO 4 ── */}
           {paso === 4 && (
             <div className="flex flex-col gap-5">
               <div className="mb-1">
@@ -496,11 +499,24 @@ export default function RiesgoPage() {
                 <p className="text-xs" style={{ color: '#6b7280' }}>JPG, PNG, HEIC — máx. 5 fotos</p>
               </div>
 
+              {/* Fecha en formato chileno DD/MM/YYYY */}
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Cuándo lo observaste? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
-                <input type="date" value={fechaObservacion} onChange={e => setFechaObservacion(e.target.value)}
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>
+                  ¿Cuándo lo observaste? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={fechaObservacion}
+                  onChange={e => setFechaObservacion(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
-                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
+                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
+                />
+                {fechaObservacion && (
+                  <p className="text-xs mt-1" style={{ color: '#6b7280' }}>
+                    {formatFechaChile(fechaObservacion)}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -511,6 +527,7 @@ export default function RiesgoPage() {
                   style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white', resize: 'vertical' }} />
               </div>
 
+              {/* Resumen */}
               <div className="rounded-xl p-4 flex flex-col gap-2.5" style={{ background: '#f2f5f6', border: '1.5px solid #dde4e6' }}>
                 <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#10454B' }}>Confirma esta información</p>
                 <div className="flex items-start justify-between gap-2">
@@ -536,6 +553,14 @@ export default function RiesgoPage() {
                   </div>
                   <button onClick={() => avanzar(3)} className="text-xs font-semibold flex-shrink-0" style={{ color: '#10454B' }}>Cambiar</button>
                 </div>
+                {fechaObservacion && (
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: '#6b7280' }}>Fecha observación</p>
+                      <p className="text-sm font-medium" style={{ color: '#111827' }}>{formatFechaChile(fechaObservacion)}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
