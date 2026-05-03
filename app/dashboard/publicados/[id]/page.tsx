@@ -31,18 +31,15 @@ interface ReportePublicado {
   estado_validacion: string
   timestamp_creado: string
   timestamp_publicacion: string | null
-  // Contacto comunes
   autor_reporte: string | null
   id_usuario: string | null
   telefono_usuario_contacto: string | null
   contacto_propietario_posible: boolean | null
   contacto_propietario_info: string | null
-  // Contacto solo riesgo
   es_anonimo: boolean | null
   autoriza_contacto: boolean | null
   correo_usuario_contacto: string | null
   temporalidad_riesgo: string | null
-  // Publicación
   id_usuario_publico: string | null
 }
 
@@ -166,9 +163,13 @@ export default function PublicadoDetallePage() {
               </p>
             </div>
 
-            {/* Botón generar formulario */}
+            {/* Botón generar — riesgo navega a /denuncia/[id], hallazgo placeholder */}
             <button
-              onClick={() => alert('🛠️ Próximamente: ' + (esRiesgo ? 'Generar denuncia CMN' : 'Generar ficha de registro'))}
+              onClick={() =>
+                esRiesgo
+                  ? router.push(`/denuncia/${reporte.id_reporte}`)
+                  : alert('🛠️ Próximamente: Generar ficha de registro')
+              }
               className={`flex-shrink-0 px-4 py-2 rounded-lg font-semibold text-sm text-white transition ${
                 esRiesgo
                   ? 'bg-red-600 hover:bg-red-700'
@@ -350,7 +351,6 @@ export default function PublicadoDetallePage() {
   )
 }
 
-// Componente auxiliar para campos de solo lectura
 function Field({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
