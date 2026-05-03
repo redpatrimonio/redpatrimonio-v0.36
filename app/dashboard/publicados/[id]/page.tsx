@@ -163,20 +163,20 @@ export default function PublicadoDetallePage() {
               </p>
             </div>
 
-            {/* Botón generar — riesgo navega a /denuncia/[id], hallazgo placeholder */}
+            {/* Botón generar — riesgo → /denuncia/[id], hallazgo → /ficha/[id] */}
             <button
               onClick={() =>
                 esRiesgo
                   ? router.push(`/denuncia/${reporte.id_reporte}`)
-                  : alert('🛠️ Próximamente: Generar ficha de registro')
+                  : router.push(`/ficha/${reporte.id_reporte}`)
               }
               className={`flex-shrink-0 px-4 py-2 rounded-lg font-semibold text-sm text-white transition ${
                 esRiesgo
                   ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-teal-700 hover:bg-teal-800'
               }`}
             >
-              {esRiesgo ? '📎 Generar denuncia CMN' : '📎 Generar ficha registro'}
+              {esRiesgo ? '📎 Generar denuncia CMN' : '📋 Generar ficha registro'}
             </button>
           </div>
         </div>
