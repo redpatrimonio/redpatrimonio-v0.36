@@ -8,15 +8,18 @@ import { useAuth } from '@/components/auth/AuthProvider'
 
 const MapPicker = dynamic(() => import('@/components/map/MapPicker'), { ssr: false })
 
+// label: lo que ve el ciudadano
+// value: lo que se guarda en BD y mapea al CMN
 const TIPOS_OBRA = [
-  'Construcción inmobiliaria',
-  'Carretera / vialidad',
-  'Agricultura / arado',
-  'Minería',
-  'Extracción áridos',
-  'Forestal',
-  'Sin obra visible',
-  'No sé',
+  { label: 'Construcción / inmobiliaria', value: 'inmobiliario' },
+  { label: 'Carretera / camino', value: 'transporte' },
+  { label: 'Agricultura / arado', value: 'agropecuario' },
+  { label: 'Minería', value: 'mineria' },
+  { label: 'Extracción de áridos', value: 'extraccion_aridos' },
+  { label: 'Forestal', value: 'forestal' },
+  { label: 'Portuario / acuicultura', value: 'portuario' },
+  { label: 'Sin obra visible', value: 'sin_obra' },
+  { label: 'No sé', value: 'indeterminado' },
 ]
 
 const REGIONES = [
@@ -61,8 +64,12 @@ export default function RiesgoPage() {
 
   // Paso 2 — Situación
   const [temporalidad, setTemporalidad] = useState<Temporalidad>('')
-  const [tiposObra, setTiposObra] = useState<string[]>([])
+  const [tiposObra, setTiposObra] = useState<string[]>([]) // guarda values CMN
   const [descripcion, setDescripcion] = useState('')
+  const [nombreProyecto, setNombreProyecto] = useState('')
+  const [infractorConocido, setInfractorConocido] = useState(false)
+  const [infractorNombre, setInfractorNombre] = useState('')
+  const [infractorContacto, setInfractorContacto] = useState('')
 
   // Paso 3 — Ubicación
   const [latitud, setLatitud] = useState<number | null>(null)
@@ -77,8 +84,8 @@ export default function RiesgoPage() {
   const [fechaObservacion, setFechaObservacion] = useState('')
   const [notasExtra, setNotasExtra] = useState('')
 
-  function toggleObra(tipo: string) {
-    setTiposObra(prev => prev.includes(tipo) ? prev.filter(t => t !== tipo) : [...prev, tipo])
+  function toggleObra(value: string) {
+    setTiposObra(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value])
   }
 
   function handleArchivos(e: React.ChangeEvent<HTMLInputElement>) {
@@ -103,7 +110,6 @@ export default function RiesgoPage() {
     window.scrollTo(0, 0)
   }
 
-  // Cuando cambia identidad, resetear estado derivado
   function cambiarIdentidad(val: Identidad) {
     setIdentidad(val)
     setAutorizaContacto(false)
@@ -138,18 +144,23 @@ export default function RiesgoPage() {
         ? (nombre || 'Personal/Comunidad')
         : (dejarDatosPrivados && nombre ? `[privado] ${nombre}` : null)
 
-      const descripcionFinal = [
-        descripcion,
-        tiposObra.length > 0 ? `Tipo obra: ${tiposObra.join(', ')}` : null,
-        fechaObservacion ? `Fecha observación: ${formatFechaChile(fechaObservacion)}` : null,
+      // amenazas: solo texto libre del ciudadano, sin concatenaciones
+      const amenazasFinal = [
+        descripcion || null,
         notasExtra || null,
-        comoSeLlega ? `Cómo se llega: ${comoSeLlega}` : null,
-      ].filter(Boolean).join(' | ')
+      ].filter(Boolean).join(' | ') || null
+
+      // tipo_riesgo_principal: valor CMN del primer chip seleccionado
+      const tipoPrincipal = tiposObra[0] || null
+
+      // nombre_reporte: legible
+      const primerLabel = TIPOS_OBRA.find(t => t.value === tipoPrincipal)?.label
+      const nombreReporte = `Riesgo: ${primerLabel || temporalidad}`
 
       const payload: Record<string, unknown> = {
-        nombre_reporte: `Riesgo: ${tiposObra[0] || temporalidad}`,
-        tipo_riesgo_principal: tiposObra[0] || temporalidad,
-        amenazas: descripcionFinal || null,
+        nombre_reporte: nombreReporte,
+        tipo_riesgo_principal: tipoPrincipal,
+        amenazas: amenazasFinal,
         temporalidad_riesgo: temporalidad,
         latitud,
         longitud,
@@ -165,6 +176,12 @@ export default function RiesgoPage() {
         estado_validacion: 'rojo',
         nivel_acceso: 'Espacio Publico',
         categoria_general: 'arqueologia_en_riesgo',
+        // campos nuevos
+        fecha_observacion: fechaObservacion || null,
+        nombre_proyecto: nombreProyecto || null,
+        infractor_conocido: infractorConocido,
+        infractor_nombre: infractorConocido ? (infractorNombre || null) : null,
+        infractor_contacto: infractorConocido ? (infractorContacto || null) : null,
       }
 
       const { data: reporte, error: errReporte } = await supabase
@@ -318,7 +335,7 @@ export default function RiesgoPage() {
                       style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }} />
                   </div>
 
-                  {/* Autoriza contacto — solo visible si hay datos */}
+                  {/* Autoriza contacto */}
                   <label className="flex items-start gap-3 cursor-pointer pt-1 border-t" style={{ borderColor: '#dde4e6' }}>
                     <input type="checkbox" checked={autorizaContacto} onChange={e => setAutorizaContacto(e.target.checked)}
                       className="mt-0.5 flex-shrink-0" style={{ accentColor: '#10454B' }} />
@@ -356,6 +373,8 @@ export default function RiesgoPage() {
                 <h2 className="text-2xl font-extrabold leading-tight" style={{ color: '#111827' }}>¿Qué está pasando?</h2>
                 <p className="text-sm mt-1.5" style={{ color: '#6b7280' }}>Cuéntanos con tus palabras. No hace falta saber arqueología para describir lo que ves.</p>
               </div>
+
+              {/* Temporalidad */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>¿Cuándo ocurre el daño? *</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -370,18 +389,36 @@ export default function RiesgoPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Tipo de obra — chips con value CMN */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>¿Qué tipo de obra? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <div className="flex flex-wrap gap-1.5">
                   {TIPOS_OBRA.map(tipo => (
-                    <button key={tipo} type="button" onClick={() => toggleObra(tipo)}
+                    <button key={tipo.value} type="button" onClick={() => toggleObra(tipo.value)}
                       className="px-3 py-1.5 rounded-full border-2 text-xs font-semibold transition"
-                      style={{ borderColor: tiposObra.includes(tipo) ? '#10454B' : '#dde4e6', background: tiposObra.includes(tipo) ? '#e8f4f5' : '#f8fafb', color: tiposObra.includes(tipo) ? '#10454B' : '#374151' }}>
-                      {tipo}
+                      style={{ borderColor: tiposObra.includes(tipo.value) ? '#10454B' : '#dde4e6', background: tiposObra.includes(tipo.value) ? '#e8f4f5' : '#f8fafb', color: tiposObra.includes(tipo.value) ? '#10454B' : '#374151' }}>
+                      {tipo.label}
                     </button>
                   ))}
                 </div>
               </div>
+
+              {/* Nombre del proyecto */}
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>
+                  ¿Sabes el nombre del proyecto u obra? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span>
+                </label>
+                <input
+                  value={nombreProyecto}
+                  onChange={e => setNombreProyecto(e.target.value)}
+                  placeholder="ej: Loteo Cerro Norte, Proyecto minero La Estrella..."
+                  className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
+                  style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
+                />
+              </div>
+
+              {/* Descripción libre */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Qué viste exactamente?</label>
                 <textarea rows={4} value={descripcion} onChange={e => setDescripcion(e.target.value)}
@@ -389,6 +426,52 @@ export default function RiesgoPage() {
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
                   style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white', resize: 'vertical', minHeight: '90px' }} />
               </div>
+
+              {/* Infractor — sección colapsable */}
+              <div className="rounded-xl border-2" style={{ borderColor: infractorConocido ? '#10454B' : '#dde4e6', background: infractorConocido ? '#e8f4f5' : '#f8fafb' }}>
+                <label className="flex items-start gap-3 cursor-pointer p-3.5">
+                  <input
+                    type="checkbox"
+                    checked={infractorConocido}
+                    onChange={e => {
+                      setInfractorConocido(e.target.checked)
+                      if (!e.target.checked) { setInfractorNombre(''); setInfractorContacto('') }
+                    }}
+                    className="mt-0.5 flex-shrink-0"
+                    style={{ accentColor: '#10454B' }}
+                  />
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: '#111827' }}>¿Sabes quién está causando el daño?</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>Empresa, persona, proyecto — cualquier dato ayuda</p>
+                  </div>
+                </label>
+
+                {infractorConocido && (
+                  <div className="flex flex-col gap-3 px-3.5 pb-3.5 border-t" style={{ borderColor: '#b2dde1' }}>
+                    <div className="pt-3">
+                      <label className="block text-xs font-semibold mb-1" style={{ color: '#374151' }}>Nombre o empresa</label>
+                      <input
+                        value={infractorNombre}
+                        onChange={e => setInfractorNombre(e.target.value)}
+                        placeholder="ej: Constructora XYZ, Juan Pérez..."
+                        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition"
+                        style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1" style={{ color: '#374151' }}>¿Cómo contactarlo? <span className="font-normal" style={{ color: '#9ca3af' }}>(teléfono, correo, dirección)</span></label>
+                      <input
+                        value={infractorContacto}
+                        onChange={e => setInfractorContacto(e.target.value)}
+                        placeholder="cualquier dato que tengas..."
+                        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition"
+                        style={{ border: '1.5px solid #dde4e6', color: '#111827', background: 'white' }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
               <div className="flex gap-3">
                 <button onClick={() => avanzar(1)} className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition"
@@ -484,7 +567,7 @@ export default function RiesgoPage() {
                 <p className="text-xs" style={{ color: '#6b7280' }}>JPG, PNG, HEIC — máx. 5 fotos</p>
               </div>
 
-              {/* Fecha — nativa del sistema, preview en formato chileno */}
+              {/* Fecha observación */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>
                   ¿Cuándo lo observaste? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span>
@@ -504,7 +587,7 @@ export default function RiesgoPage() {
                 )}
               </div>
 
-              {/* Notas */}
+              {/* Notas extra */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: '#111827' }}>¿Quieres agregar algo más? <span className="font-normal" style={{ color: '#6b7280' }}>(opcional)</span></label>
                 <textarea rows={3} value={notasExtra} onChange={e => setNotasExtra(e.target.value)}
@@ -532,6 +615,17 @@ export default function RiesgoPage() {
                   </div>
                   <button onClick={() => avanzar(2)} className="text-xs font-semibold flex-shrink-0" style={{ color: '#10454B' }}>Cambiar</button>
                 </div>
+                {tiposObra.length > 0 && (
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: '#6b7280' }}>Tipo de obra</p>
+                      <p className="text-sm font-medium" style={{ color: '#111827' }}>
+                        {tiposObra.map(v => TIPOS_OBRA.find(t => t.value === v)?.label).filter(Boolean).join(', ')}
+                      </p>
+                    </div>
+                    <button onClick={() => avanzar(2)} className="text-xs font-semibold flex-shrink-0" style={{ color: '#10454B' }}>Cambiar</button>
+                  </div>
+                )}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs font-semibold" style={{ color: '#6b7280' }}>Ubicación</p>
@@ -543,6 +637,15 @@ export default function RiesgoPage() {
                   <div>
                     <p className="text-xs font-semibold" style={{ color: '#6b7280' }}>Fecha observación</p>
                     <p className="text-sm font-medium" style={{ color: '#111827' }}>{formatFechaChile(fechaObservacion)}</p>
+                  </div>
+                )}
+                {infractorConocido && infractorNombre && (
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: '#6b7280' }}>Presunto infractor</p>
+                      <p className="text-sm font-medium" style={{ color: '#111827' }}>{infractorNombre}</p>
+                    </div>
+                    <button onClick={() => avanzar(2)} className="text-xs font-semibold flex-shrink-0" style={{ color: '#10454B' }}>Cambiar</button>
                   </div>
                 )}
               </div>
