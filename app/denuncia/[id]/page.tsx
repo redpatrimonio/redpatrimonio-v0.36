@@ -7,25 +7,12 @@ import { useAuth } from '@/components/auth/AuthProvider'
 
 const supabase = createClient()
 
-// Opciones CMN oficiales para tipo de proyecto
 const TIPOS_PROYECTO_CMN = [
-  'Energía',
-  'Hidráulico',
-  'Inmobiliario',
-  'Agropecuario',
-  'Portuario',
-  'Fabril',
-  'Equipamiento',
-  'Saneamiento Ambiental',
-  'Minería',
-  'Forestal',
-  'Pesca y Acuicultura',
-  'Transporte',
-  'Mejoramiento de camino',
-  'Otro',
+  'Energía', 'Hidráulico', 'Inmobiliario', 'Agropecuario', 'Portuario',
+  'Fabril', 'Equipamiento', 'Saneamiento Ambiental', 'Minería',
+  'Forestal', 'Pesca y Acuicultura', 'Transporte', 'Mejoramiento de camino', 'Otro',
 ]
 
-// Mapeo de values internos a opciones CMN
 const TIPO_RIESGO_A_CMN: Record<string, string> = {
   inmobiliario: 'Inmobiliario',
   transporte: 'Transporte',
@@ -58,6 +45,15 @@ interface Reporte {
   infractor_nombre: string | null
   infractor_contacto: string | null
   timestamp_creado: string | null
+  // campos nuevos
+  rut_denunciante: string | null
+  profesion_denunciante: string | null
+  domicilio_denunciante: string | null
+  infractor_rut: string | null
+  infractor_domicilio: string | null
+  obra_actividad: string | null
+  nombre_propietario_predio: string | null
+  observaciones_denuncia: string | null
 }
 
 interface Medio {
@@ -104,6 +100,9 @@ export default function DenunciaPage() {
   const [comuna, setComuna] = useState('')
   const [ubicacionDetalle, setUbicacionDetalle] = useState('')
   const [coordenadas, setCoordenadas] = useState('')
+  const [nombreProyecto, setNombreProyecto] = useState('')
+  const [nombrePropietarioPredio, setNombrePropietarioPredio] = useState('')
+  const [observacionesDenuncia, setObservacionesDenuncia] = useState('')
 
   // ─ Datos del infractor
   const [infNombre, setInfNombre] = useState('')
@@ -111,9 +110,6 @@ export default function DenunciaPage() {
   const [infDireccion, setInfDireccion] = useState('')
   const [infTelefono, setInfTelefono] = useState('')
   const [infCorreo, setInfCorreo] = useState('')
-
-  // ─ Nombre proyecto
-  const [nombreProyecto, setNombreProyecto] = useState('')
 
   // ─ Fecha denuncia
   const [fechaDenuncia] = useState(hoy())
@@ -136,10 +132,10 @@ export default function DenunciaPage() {
       if (err || !r) throw new Error('No se encontró el reporte.')
       const reporte = r as Reporte
 
-      // Pre-llenar datos del hecho
+      // Datos del hecho
       const tipoCMN = TIPO_RIESGO_A_CMN[reporte.tipo_riesgo_principal || ''] || ''
       setTipoProyecto(tipoCMN)
-      setObraActividad(reporte.nombre_proyecto || '')
+      setObraActividad(reporte.obra_actividad || '')
       setFechaHecho(formatFecha(reporte.fecha_observacion || reporte.timestamp_creado))
       setDescripcionHechos(reporte.amenazas || '')
       setRegion(reporte.region || '')
@@ -149,15 +145,24 @@ export default function DenunciaPage() {
         setCoordenadas(`${reporte.latitud.toFixed(6)}, ${reporte.longitud.toFixed(6)}`)
       }
       setNombreProyecto(reporte.nombre_proyecto || '')
+      setNombrePropietarioPredio(reporte.nombre_propietario_predio || '')
+      setObservacionesDenuncia(reporte.observaciones_denuncia || '')
 
-      // Pre-llenar infractor si el ciudadano lo capturó
+      // Infractor
       if (reporte.infractor_conocido) {
         setInfNombre(reporte.infractor_nombre || '')
-        // contacto es texto libre — lo ponemos en teléfono por defecto
         setInfTelefono(reporte.infractor_contacto || '')
       }
+      setInfRut(reporte.infractor_rut || '')
+      setInfDireccion(reporte.infractor_domicilio || '')
 
-      // Fotos del reporte
+      // Denunciante desde BD (si ya se guardó antes) o desde perfil de usuario
+      setDenRut(reporte.rut_denunciante || '')
+      setDenProfesion(reporte.profesion_denunciante || 'Arqueólogo/a')
+      setDenDireccion(reporte.domicilio_denunciante || '')
+      if (user?.email) setDenCorreo(reporte.correo_usuario_contacto || user.email)
+
+      // Fotos
       const { data: medios } = await supabase
         .from('reportes_medios')
         .select('url_publica, tipo_medio')
@@ -166,9 +171,6 @@ export default function DenunciaPage() {
         .order('prioridad_visualizacion', { ascending: true })
 
       setFotos((medios as Medio[] || []).map(m => m.url_publica))
-
-      // Pre-llenar denunciante desde perfil del usuario si existe
-      if (user?.email) setDenCorreo(user.email)
 
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error al cargar el reporte.')
@@ -181,11 +183,20 @@ export default function DenunciaPage() {
     setGuardando(true)
     try {
       await supabase.from('reportes_nuevos').update({
-        // Guardamos los campos editados de vuelta al reporte
-        nombre_proyecto: nombreProyecto || null,
-        infractor_nombre: infNombre || null,
-        infractor_contacto: infTelefono || null,
-        amenazas: descripcionHechos || null,
+        nombre_proyecto:          nombreProyecto || null,
+        obra_actividad:           obraActividad || null,
+        amenazas:                 descripcionHechos || null,
+        nombre_propietario_predio: nombrePropietarioPredio || null,
+        observaciones_denuncia:   observacionesDenuncia || null,
+        // denunciante
+        rut_denunciante:          denRut || null,
+        profesion_denunciante:    denProfesion || null,
+        domicilio_denunciante:    denDireccion || null,
+        // infractor
+        infractor_nombre:         infNombre || null,
+        infractor_rut:            infRut || null,
+        infractor_domicilio:      infDireccion || null,
+        infractor_contacto:       infTelefono || null,
       }).eq('id_reporte', id)
       setGuardado(true)
       setTimeout(() => setGuardado(false), 3000)
@@ -196,8 +207,9 @@ export default function DenunciaPage() {
     }
   }
 
-  function exportarPDF() {
-    window.print()
+  function descargarWord() {
+    // TODO: conectar con /api/generar-denuncia en siguiente paso
+    alert('Próximamente: descarga en formato Word CMN')
   }
 
   if (loading) {
@@ -224,18 +236,9 @@ export default function DenunciaPage() {
 
   return (
     <>
-      {/* Estilos de impresión */}
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          .print-page { box-shadow: none !important; margin: 0 !important; padding: 20px !important; }
-          body { background: white !important; }
-          input, textarea, select { border: 1px solid #ccc !important; }
-        }
-      `}</style>
+      <div className="min-h-screen py-6 px-4" style={{ background: '#f2f5f6' }}>
 
-      <div className="min-h-screen py-6 px-4 no-print" style={{ background: '#f2f5f6' }}>
-        {/* Barra de acciones — no se imprime */}
+        {/* Barra de acciones */}
         <div className="max-w-3xl mx-auto mb-4 flex items-center justify-between gap-3 no-print">
           <button onClick={() => router.back()} className="text-sm font-medium" style={{ color: '#10454B' }}>← Volver</button>
           <div className="flex gap-2">
@@ -248,17 +251,17 @@ export default function DenunciaPage() {
               {guardando ? 'Guardando...' : guardado ? '✓ Guardado' : 'Guardar borrador'}
             </button>
             <button
-              onClick={exportarPDF}
+              onClick={descargarWord}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition"
               style={{ background: '#B6875D' }}
             >
-              Exportar PDF
+              Descargar Word
             </button>
           </div>
         </div>
 
         {/* Documento */}
-        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm p-8 print-page" style={{ fontFamily: 'Georgia, serif' }}>
+        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm p-8" style={{ fontFamily: 'Georgia, serif' }}>
 
           {/* Encabezado */}
           <div className="text-center mb-8 pb-6 border-b-2" style={{ borderColor: '#10454B' }}>
@@ -315,12 +318,19 @@ export default function DenunciaPage() {
             <Row label="Nombre del proyecto">
               <Input value={nombreProyecto} onChange={setNombreProyecto} placeholder="Nombre oficial si se conoce" />
             </Row>
+            <Row label="Nombre propietario del predio">
+              <Input value={nombrePropietarioPredio} onChange={setNombrePropietarioPredio} placeholder="Persona o empresa propietaria del predio" />
+            </Row>
             <Row label="Fecha del hecho">
               <Input value={fechaHecho} onChange={setFechaHecho} placeholder="dd/mm/aaaa" />
             </Row>
             <Row label="Descripción de los hechos">
               <Textarea value={descripcionHechos} onChange={setDescripcionHechos}
                 placeholder="Describa lo observado con el mayor detalle posible..." rows={5} />
+            </Row>
+            <Row label="Observaciones adicionales">
+              <Textarea value={observacionesDenuncia} onChange={setObservacionesDenuncia}
+                placeholder="Antecedentes relevantes, acciones previas, contexto..." rows={3} />
             </Row>
           </Section>
 
@@ -358,7 +368,7 @@ export default function DenunciaPage() {
 
           {/* SECCIÓN 5 — Evidencia fotográfica */}
           {fotos.length > 0 && (
-            <Section titulo="V. REGISTRO FOTOGR\u00c1FICO">
+            <Section titulo="V. REGISTRO FOTOGRÁFICO">
               <div className="grid grid-cols-2 gap-3 mt-2">
                 {fotos.map((url, i) => (
                   <div key={i} className="rounded overflow-hidden border" style={{ borderColor: '#e5e7eb' }}>
@@ -396,7 +406,7 @@ export default function DenunciaPage() {
   )
 }
 
-// ─ Componentes internos ligeros
+// ─ Componentes internos
 
 function Section({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
@@ -415,10 +425,10 @@ function Section({ titulo, children }: { titulo: string; children: React.ReactNo
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-3 gap-3 items-start">
-      <label className="text-sm pt-1.5 text-right pr-2" style={{ color: '#374151', fontFamily: 'sans-serif', gridColumn: '1' }}>
-        {label}:
+      <label className="text-xs font-semibold pt-2 col-span-1" style={{ color: '#374151', fontFamily: 'sans-serif' }}>
+        {label}
       </label>
-      <div style={{ gridColumn: '2 / 4' }}>{children}</div>
+      <div className="col-span-2">{children}</div>
     </div>
   )
 }
@@ -429,7 +439,7 @@ function Input({ value, onChange, placeholder }: { value: string; onChange: (v: 
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded px-2 py-1.5 text-sm outline-none"
+      className="w-full rounded px-2 py-1.5 text-sm"
       style={{ border: '1px solid #d1d5db', fontFamily: 'sans-serif', color: '#111827', background: 'white' }}
     />
   )
@@ -442,7 +452,7 @@ function Textarea({ value, onChange, placeholder, rows }: { value: string; onCha
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows || 3}
-      className="w-full rounded px-2 py-1.5 text-sm outline-none"
+      className="w-full rounded px-2 py-1.5 text-sm"
       style={{ border: '1px solid #d1d5db', fontFamily: 'sans-serif', color: '#111827', background: 'white', resize: 'vertical' }}
     />
   )
