@@ -45,7 +45,6 @@ interface Reporte {
   infractor_nombre: string | null
   infractor_contacto: string | null
   timestamp_creado: string | null
-  // campos nuevos
   rut_denunciante: string | null
   profesion_denunciante: string | null
   domicilio_denunciante: string | null
@@ -83,7 +82,6 @@ export default function DenunciaPage() {
   const [guardado, setGuardado] = useState(false)
   const [fotos, setFotos] = useState<string[]>([])
 
-  // ─ Datos del denunciante (arqueólogo)
   const [denNombre, setDenNombre] = useState('')
   const [denRut, setDenRut] = useState('')
   const [denProfesion, setDenProfesion] = useState('Arqueólogo/a')
@@ -91,7 +89,6 @@ export default function DenunciaPage() {
   const [denTelefono, setDenTelefono] = useState('')
   const [denDireccion, setDenDireccion] = useState('')
 
-  // ─ Datos del hecho
   const [tipoProyecto, setTipoProyecto] = useState('')
   const [obraActividad, setObraActividad] = useState('')
   const [fechaHecho, setFechaHecho] = useState('')
@@ -104,14 +101,12 @@ export default function DenunciaPage() {
   const [nombrePropietarioPredio, setNombrePropietarioPredio] = useState('')
   const [observacionesDenuncia, setObservacionesDenuncia] = useState('')
 
-  // ─ Datos del infractor
   const [infNombre, setInfNombre] = useState('')
   const [infRut, setInfRut] = useState('')
   const [infDireccion, setInfDireccion] = useState('')
   const [infTelefono, setInfTelefono] = useState('')
   const [infCorreo, setInfCorreo] = useState('')
 
-  // ─ Fecha denuncia
   const [fechaDenuncia] = useState(hoy())
 
   useEffect(() => {
@@ -122,7 +117,6 @@ export default function DenunciaPage() {
   async function cargarReporte() {
     try {
       setLoading(true)
-
       const { data: r, error: err } = await supabase
         .from('reportes_nuevos')
         .select('*')
@@ -132,7 +126,6 @@ export default function DenunciaPage() {
       if (err || !r) throw new Error('No se encontró el reporte.')
       const reporte = r as Reporte
 
-      // Datos del hecho
       const tipoCMN = TIPO_RIESGO_A_CMN[reporte.tipo_riesgo_principal || ''] || ''
       setTipoProyecto(tipoCMN)
       setObraActividad(reporte.obra_actividad || '')
@@ -148,7 +141,6 @@ export default function DenunciaPage() {
       setNombrePropietarioPredio(reporte.nombre_propietario_predio || '')
       setObservacionesDenuncia(reporte.observaciones_denuncia || '')
 
-      // Infractor
       if (reporte.infractor_conocido) {
         setInfNombre(reporte.infractor_nombre || '')
         setInfTelefono(reporte.infractor_contacto || '')
@@ -156,13 +148,11 @@ export default function DenunciaPage() {
       setInfRut(reporte.infractor_rut || '')
       setInfDireccion(reporte.infractor_domicilio || '')
 
-      // Denunciante desde BD (si ya se guardó antes) o desde perfil de usuario
       setDenRut(reporte.rut_denunciante || '')
       setDenProfesion(reporte.profesion_denunciante || 'Arqueólogo/a')
       setDenDireccion(reporte.domicilio_denunciante || '')
       if (user?.email) setDenCorreo(reporte.correo_usuario_contacto || user.email)
 
-      // Fotos
       const { data: medios } = await supabase
         .from('reportes_medios')
         .select('url_publica, tipo_medio')
@@ -183,20 +173,18 @@ export default function DenunciaPage() {
     setGuardando(true)
     try {
       await supabase.from('reportes_nuevos').update({
-        nombre_proyecto:          nombreProyecto || null,
-        obra_actividad:           obraActividad || null,
-        amenazas:                 descripcionHechos || null,
+        nombre_proyecto:           nombreProyecto || null,
+        obra_actividad:            obraActividad || null,
+        amenazas:                  descripcionHechos || null,
         nombre_propietario_predio: nombrePropietarioPredio || null,
-        observaciones_denuncia:   observacionesDenuncia || null,
-        // denunciante
-        rut_denunciante:          denRut || null,
-        profesion_denunciante:    denProfesion || null,
-        domicilio_denunciante:    denDireccion || null,
-        // infractor
-        infractor_nombre:         infNombre || null,
-        infractor_rut:            infRut || null,
-        infractor_domicilio:      infDireccion || null,
-        infractor_contacto:       infTelefono || null,
+        observaciones_denuncia:    observacionesDenuncia || null,
+        rut_denunciante:           denRut || null,
+        profesion_denunciante:     denProfesion || null,
+        domicilio_denunciante:     denDireccion || null,
+        infractor_nombre:          infNombre || null,
+        infractor_rut:             infRut || null,
+        infractor_domicilio:       infDireccion || null,
+        infractor_contacto:        infTelefono || null,
       }).eq('id_reporte', id)
       setGuardado(true)
       setTimeout(() => setGuardado(false), 3000)
@@ -208,8 +196,7 @@ export default function DenunciaPage() {
   }
 
   function descargarWord() {
-    // TODO: conectar con /api/generar-denuncia en siguiente paso
-    alert('Próximamente: descarga en formato Word CMN')
+    window.location.href = `/api/generar-denuncia?id=${id}`
   }
 
   if (loading) {
@@ -238,7 +225,6 @@ export default function DenunciaPage() {
     <>
       <div className="min-h-screen py-6 px-4" style={{ background: '#f2f5f6' }}>
 
-        {/* Barra de acciones */}
         <div className="max-w-3xl mx-auto mb-4 flex items-center justify-between gap-3 no-print">
           <button onClick={() => router.back()} className="text-sm font-medium" style={{ color: '#10454B' }}>← Volver</button>
           <div className="flex gap-2">
@@ -260,46 +246,29 @@ export default function DenunciaPage() {
           </div>
         </div>
 
-        {/* Documento */}
         <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm p-8" style={{ fontFamily: 'Georgia, serif' }}>
 
-          {/* Encabezado */}
           <div className="text-center mb-8 pb-6 border-b-2" style={{ borderColor: '#10454B' }}>
             <p className="text-xs uppercase tracking-widest mb-1" style={{ color: '#6b7280', fontFamily: 'sans-serif' }}>Consejo de Monumentos Nacionales</p>
             <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>DENUNCIA POR DAÑO A PATRIMONIO ARQUEOLÓGICO</h1>
             <p className="text-sm" style={{ color: '#6b7280', fontFamily: 'sans-serif' }}>Ley N° 17.288 de Monumentos Nacionales</p>
           </div>
 
-          {/* Fecha denuncia */}
           <div className="flex justify-end mb-6">
             <p className="text-sm" style={{ color: '#374151', fontFamily: 'sans-serif' }}>
               Fecha: <strong>{fechaDenuncia}</strong>
             </p>
           </div>
 
-          {/* SECCIÓN 1 — Denunciante */}
           <Section titulo="I. DATOS DEL DENUNCIANTE">
-            <Row label="Nombre completo">
-              <Input value={denNombre} onChange={setDenNombre} placeholder="Nombre y apellidos" />
-            </Row>
-            <Row label="RUT">
-              <Input value={denRut} onChange={setDenRut} placeholder="12.345.678-9" />
-            </Row>
-            <Row label="Profesión / cargo">
-              <Input value={denProfesion} onChange={setDenProfesion} placeholder="Arqueólogo/a" />
-            </Row>
-            <Row label="Correo electrónico">
-              <Input value={denCorreo} onChange={setDenCorreo} placeholder="correo@dominio.cl" />
-            </Row>
-            <Row label="Teléfono">
-              <Input value={denTelefono} onChange={setDenTelefono} placeholder="+56 9..." />
-            </Row>
-            <Row label="Domicilio">
-              <Input value={denDireccion} onChange={setDenDireccion} placeholder="Calle, número, ciudad" />
-            </Row>
+            <Row label="Nombre completo"><Input value={denNombre} onChange={setDenNombre} placeholder="Nombre y apellidos" /></Row>
+            <Row label="RUT"><Input value={denRut} onChange={setDenRut} placeholder="12.345.678-9" /></Row>
+            <Row label="Profesión / cargo"><Input value={denProfesion} onChange={setDenProfesion} placeholder="Arqueólogo/a" /></Row>
+            <Row label="Correo electrónico"><Input value={denCorreo} onChange={setDenCorreo} placeholder="correo@dominio.cl" /></Row>
+            <Row label="Teléfono"><Input value={denTelefono} onChange={setDenTelefono} placeholder="+56 9..." /></Row>
+            <Row label="Domicilio"><Input value={denDireccion} onChange={setDenDireccion} placeholder="Calle, número, ciudad" /></Row>
           </Section>
 
-          {/* SECCIÓN 2 — El hecho */}
           <Section titulo="II. DESCRIPCIÓN DEL HECHO">
             <Row label="Tipo de proyecto">
               <select
@@ -312,18 +281,10 @@ export default function DenunciaPage() {
                 {TIPOS_PROYECTO_CMN.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </Row>
-            <Row label="Obra o actividad">
-              <Input value={obraActividad} onChange={setObraActividad} placeholder="Nombre o descripción de la obra" />
-            </Row>
-            <Row label="Nombre del proyecto">
-              <Input value={nombreProyecto} onChange={setNombreProyecto} placeholder="Nombre oficial si se conoce" />
-            </Row>
-            <Row label="Nombre propietario del predio">
-              <Input value={nombrePropietarioPredio} onChange={setNombrePropietarioPredio} placeholder="Persona o empresa propietaria del predio" />
-            </Row>
-            <Row label="Fecha del hecho">
-              <Input value={fechaHecho} onChange={setFechaHecho} placeholder="dd/mm/aaaa" />
-            </Row>
+            <Row label="Obra o actividad"><Input value={obraActividad} onChange={setObraActividad} placeholder="Nombre o descripción de la obra" /></Row>
+            <Row label="Nombre del proyecto"><Input value={nombreProyecto} onChange={setNombreProyecto} placeholder="Nombre oficial si se conoce" /></Row>
+            <Row label="Propietario del predio"><Input value={nombrePropietarioPredio} onChange={setNombrePropietarioPredio} placeholder="Persona o empresa" /></Row>
+            <Row label="Fecha del hecho"><Input value={fechaHecho} onChange={setFechaHecho} placeholder="dd/mm/aaaa" /></Row>
             <Row label="Descripción de los hechos">
               <Textarea value={descripcionHechos} onChange={setDescripcionHechos}
                 placeholder="Describa lo observado con el mayor detalle posible..." rows={5} />
@@ -334,39 +295,22 @@ export default function DenunciaPage() {
             </Row>
           </Section>
 
-          {/* SECCIÓN 3 — Ubicación */}
           <Section titulo="III. UBICACIÓN">
             <Row label="Región"><Input value={region} onChange={setRegion} placeholder="" /></Row>
             <Row label="Comuna"><Input value={comuna} onChange={setComuna} placeholder="" /></Row>
-            <Row label="Descripción del lugar">
-              <Input value={ubicacionDetalle} onChange={setUbicacionDetalle} placeholder="Sector, predio, referencia" />
-            </Row>
-            <Row label="Coordenadas (WGS84)">
-              <Input value={coordenadas} onChange={setCoordenadas} placeholder="lat, lon" />
-            </Row>
+            <Row label="Descripción del lugar"><Input value={ubicacionDetalle} onChange={setUbicacionDetalle} placeholder="Sector, predio, referencia" /></Row>
+            <Row label="Coordenadas (WGS84)"><Input value={coordenadas} onChange={setCoordenadas} placeholder="lat, lon" /></Row>
           </Section>
 
-          {/* SECCIÓN 4 — Infractor */}
           <Section titulo="IV. PRESUNTO INFRACTOR">
             <p className="text-xs mb-3" style={{ color: '#9ca3af', fontFamily: 'sans-serif' }}>Completar si se cuenta con la información. No es obligatorio.</p>
-            <Row label="Nombre o razón social">
-              <Input value={infNombre} onChange={setInfNombre} placeholder="" />
-            </Row>
-            <Row label="RUT / Cédula">
-              <Input value={infRut} onChange={setInfRut} placeholder="" />
-            </Row>
-            <Row label="Domicilio">
-              <Input value={infDireccion} onChange={setInfDireccion} placeholder="" />
-            </Row>
-            <Row label="Teléfono">
-              <Input value={infTelefono} onChange={setInfTelefono} placeholder="" />
-            </Row>
-            <Row label="Correo electrónico">
-              <Input value={infCorreo} onChange={setInfCorreo} placeholder="" />
-            </Row>
+            <Row label="Nombre o razón social"><Input value={infNombre} onChange={setInfNombre} placeholder="" /></Row>
+            <Row label="RUT / Cédula"><Input value={infRut} onChange={setInfRut} placeholder="" /></Row>
+            <Row label="Domicilio"><Input value={infDireccion} onChange={setInfDireccion} placeholder="" /></Row>
+            <Row label="Teléfono"><Input value={infTelefono} onChange={setInfTelefono} placeholder="" /></Row>
+            <Row label="Correo electrónico"><Input value={infCorreo} onChange={setInfCorreo} placeholder="" /></Row>
           </Section>
 
-          {/* SECCIÓN 5 — Evidencia fotográfica */}
           {fotos.length > 0 && (
             <Section titulo="V. REGISTRO FOTOGRÁFICO">
               <div className="grid grid-cols-2 gap-3 mt-2">
@@ -380,7 +324,6 @@ export default function DenunciaPage() {
             </Section>
           )}
 
-          {/* Firma */}
           <div className="mt-12 pt-6 border-t" style={{ borderColor: '#e5e7eb' }}>
             <div className="grid grid-cols-2 gap-12">
               <div className="text-center">
@@ -395,7 +338,6 @@ export default function DenunciaPage() {
             </div>
           </div>
 
-          {/* Pie de página */}
           <div className="mt-8 pt-4 border-t text-center" style={{ borderColor: '#e5e7eb' }}>
             <p className="text-xs" style={{ color: '#9ca3af', fontFamily: 'sans-serif' }}>Documento generado por RedPatrimonio · redpatrimonio.cl · Reporte ID: {id}</p>
           </div>
@@ -406,8 +348,6 @@ export default function DenunciaPage() {
   )
 }
 
-// ─ Componentes internos
-
 function Section({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <div className="mb-8">
@@ -415,9 +355,7 @@ function Section({ titulo, children }: { titulo: string; children: React.ReactNo
         style={{ color: '#10454B', borderColor: '#10454B', fontFamily: 'sans-serif' }}>
         {titulo}
       </h2>
-      <div className="flex flex-col gap-3">
-        {children}
-      </div>
+      <div className="flex flex-col gap-3">{children}</div>
     </div>
   )
 }
