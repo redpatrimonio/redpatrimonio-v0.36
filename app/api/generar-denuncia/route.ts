@@ -10,7 +10,7 @@ const TIPO_RIESGO_A_CMN: Record<string, string> = {
   inmobiliario: 'Inmobiliario',
   transporte: 'Transporte',
   agropecuario: 'Agropecuario',
-  mineria: 'Miner\u00eda',
+  mineria: 'Minería',
   extraccion_aridos: 'Otro',
   forestal: 'Forestal',
   portuario: 'Portuario',
@@ -82,10 +82,10 @@ export async function GET(req: NextRequest) {
     })
     doc.render(data)
 
-    const buffer = doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' })
+    const buffer: Buffer = doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' })
     const filename = `denuncia_CMN_${r.id_reporte.slice(0, 8)}.docx`
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
