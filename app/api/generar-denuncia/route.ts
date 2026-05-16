@@ -97,8 +97,23 @@ export async function GET(req: NextRequest) {
       doc.render(data)
       buffer = doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' })
     } catch (docErr: unknown) {
-      const msg = docErr instanceof Error ? docErr.message : String(docErr)
-      return NextResponse.json({ error: 'Error en docxtemplater', detail: msg }, { status: 500 })
+      // Extraer errores detallados del MultiError de docxtemplater
+      const errObj = docErr as Record<string, unknown>
+      const props = errObj?.properties as Record<string, unknown> | undefined
+      const subErrors = props?.errors as Array<Record<string, unknown>> | undefined
+      const detalle = subErrors?.map(e => ({
+        message: e?.message,
+        name: e?.name,
+        tag: (e?.properties as Record<string, unknown>)?.tag,
+        id: (e?.properties as Record<string, unknown>)?.id,
+        xtag: (e?.properties as Record<string, unknown>)?.xtag,
+      }))
+      return NextResponse.json({
+        error: 'Error en docxtemplater',
+        detail: errObj?.message,
+        claves_enviadas: Object.keys(data),
+        errores_template: detalle,
+      }, { status: 500 })
     }
 
     const filename = `denuncia_CMN_${r.id_reporte.slice(0, 8)}.docx`
@@ -112,8 +127,7 @@ export async function GET(req: NextRequest) {
     })
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
-    const stack = e instanceof Error ? e.stack : undefined
     console.error('generar-denuncia error:', e)
-    return NextResponse.json({ error: 'Error generando documento', detail: msg, stack }, { status: 500 })
+    return NextResponse.json({ error: 'Error inesperado', detail: msg }, { status: 500 })
   }
 }
