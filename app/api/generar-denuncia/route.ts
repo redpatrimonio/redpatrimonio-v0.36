@@ -6,6 +6,8 @@ import fs from 'fs'
 import path from 'path'
 import { latLonToUTM } from '@/lib/utm'
 
+export const dynamic = 'force-dynamic'
+
 const TIPO_RIESGO_A_CMN: Record<string, string> = {
   inmobiliario: 'Inmobiliario',
   transporte: 'Transporte',
