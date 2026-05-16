@@ -72,6 +72,7 @@ export async function GET(req: NextRequest) {
 
     const templatePath = path.join(
       process.cwd(),
+      'public',
       'template',
       'formulario_de_denuncia_monumento_arqueologico.docx'
     )
