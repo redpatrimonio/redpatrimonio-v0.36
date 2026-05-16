@@ -10,16 +10,15 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 /**
- * Word rompe {{variable}} en múltiples <w:r> con <w:t> separados.
- * Estrategia: operar sobre el XML crudo con regex.
- * 
- * Paso 1: extraer texto puro de cada <w:t> y concatenarlos dentro de cada párrafo.
- * Paso 2: si el texto concatenado contiene {{...}}, reemplazar el bloque de runs
- *         que forman el placeholder por un único run limpio.
- * 
- * Alternativa más robusta: reemplazar en el XML crudo cualquier secuencia
- * de <w:t>...</w:t> separados por tags XML (que no sean otro <w:t>) que juntos
- * formen un {{...}}, colapsándolos en un solo <w:t>.
+ * Word rompe {{variable}} en múltiples <w:t> dentro de distintos <w:r>.
+ * Estrategia SEGURA:
+ * 1. Leer el XML como string
+ * 2. Con un solo regex global, encontrar cualquier secuencia donde
+ *    los textos de <w:t> consecutivos (separados por cualquier XML intermedio)
+ *    forman un placeholder {{...}} partido.
+ * 3. Reemplazar SOLO el contenido de texto — el primer <w:t> recibe todo el texto,
+ *    los demás <w:t> involucrados quedan vacíos (<w:t/>), sin tocar su estructura.
+ * Esto preserva el XML válido al 100%.
  */
 function fixBrokenTags(zip: PizZip): PizZip {
   const xmlFiles = [
@@ -29,110 +28,137 @@ function fixBrokenTags(zip: PizZip): PizZip {
     'word/footer1.xml',
     'word/footer2.xml',
   ]
-
   for (const filename of xmlFiles) {
     if (!zip.files[filename]) continue
     let xml = zip.files[filename].asText()
-    xml = collapseTagsInXml(xml)
+    xml = repairPlaceholders(xml)
     zip.file(filename, xml)
   }
-
   return zip
 }
 
 /**
- * Estrategia directa sobre XML crudo:
- * Busca secuencias donde el texto visible (contenido de <w:t>) forma un placeholder
- * partido entre múltiples tags, y los colapsa en un solo <w:t>.
- * 
- * Funciona en dos pasadas:
- * 1. Dentro de cada párrafo <w:p>, extrae todos los <w:t> en orden
- * 2. Detecta si alguna subsecuencia de <w:t> forma un {{...}} al concatenarse
- * 3. Reemplaza esa subsecuencia por un único <w:t> con el texto completo
+ * Encuentra grupos de <w:t> cuyo texto concatenado contiene un {{...}} roto
+ * y los repara sin modificar la estructura XML circundante.
  */
-function collapseTagsInXml(xml: string): string {
-  // Procesar párrafo a párrafo para no mezclar texto de párrafos distintos
-  return xml.replace(/(<w:p[ >][\s\S]*?<\/w:p>)/g, (para) => {
-    return fixParaTags(para)
-  })
-}
+function repairPlaceholders(xml: string): string {
+  // Regex que captura un <w:t> con su contenido
+  // Agrupa: (apertura del tag)(texto)(cierre del tag)
+  const WT_REGEX = /(<w:t(?:[^>]*)>)([\ s\S]*?)(<\/w:t>)/g
 
-function fixParaTags(para: string): string {
-  // Extraer todas las posiciones de <w:t>...</w:t> con su índice en la string
-  const tRegex = /<w:t(?:[^>]*)>([\s\S]*?)<\/w:t>/g
-  interface TMatch { full: string; text: string; index: number }
-  const matches: TMatch[] = []
-  let m: RegExpExecArray | null
-
-  while ((m = tRegex.exec(para)) !== null) {
-    matches.push({ full: m[0], text: m[1], index: m.index })
+  // Primero, recopilar todas las ocurrencias con sus posiciones
+  interface WtOccurrence {
+    fullMatch: string
+    openTag: string
+    text: string
+    closeTag: string
+    index: number
   }
 
-  if (matches.length === 0) return para
+  const occurrences: WtOccurrence[] = []
+  let m: RegExpExecArray | null
+  WT_REGEX.lastIndex = 0
+  while ((m = WT_REGEX.exec(xml)) !== null) {
+    occurrences.push({
+      fullMatch: m[0],
+      openTag:   m[1],
+      text:      m[2],
+      closeTag:  m[3],
+      index:     m.index,
+    })
+  }
 
-  // Concatenar todos los textos para ver si hay un placeholder roto
-  const allText = matches.map(x => x.text).join('')
-  if (!allText.includes('{{') || !allText.includes('}}')) return para
+  if (occurrences.length === 0) return xml
 
-  // Encontrar subsecuencias que formen placeholders rotos ({{ sin cerrar en un solo <w:t>)
-  // Estrategia: ventana deslizante sobre matches
-  let result = para
-  let offset = 0 // ajuste de índices por reemplazos anteriores
+  // Buscar secuencias que forman un placeholder roto
+  // Un placeholder roto: algún w:t contiene {{ pero no }}, y los siguientes
+  // contienen el resto hasta }}
+  const replacements: Array<{ index: number; oldLen: number; newText: string }> = []
 
-  for (let i = 0; i < matches.length; i++) {
-    const t = matches[i]
-    // Si este <w:t> contiene {{ pero no }}, es el inicio de un placeholder roto
-    if (t.text.includes('{{') && !t.text.includes('}}')) {
-      // Acumular texto de los siguientes <w:t> hasta encontrar el }}
-      let accumulated = t.text
+  for (let i = 0; i < occurrences.length; i++) {
+    const occ = occurrences[i]
+
+    // Caso 1: este w:t contiene {{ pero no }}
+    if (occ.text.includes('{{') && !occ.text.includes('}}')) {
+      let accumulated = occ.text
       let j = i + 1
-      while (j < matches.length) {
-        accumulated += matches[j].text
-        if (accumulated.includes('}}')) break
+
+      // Acumular w:t siguientes hasta cerrar el }}
+      while (j < occurrences.length && !accumulated.includes('}}')) {
+        // Solo acumular si el siguiente w:t es "cercano" en el XML
+        // (no hay otro párrafo <w:p> entre medio)
+        const between = xml.slice(
+          occurrences[j - 1].index + occurrences[j - 1].fullMatch.length,
+          occurrences[j].index
+        )
+        // Si hay un cierre de párrafo entre medio, no fusionar
+        if (between.includes('</w:p>')) break
+        accumulated += occurrences[j].text
         j++
       }
 
-      if (!accumulated.includes('}}')) continue // no se cerró, no tocar
+      if (!accumulated.includes('}}')) continue
+      if (j - 1 === i) continue // estaba completo, no necesitaba fusionar
 
-      // Construir el bloque en el XML que va desde el inicio de matches[i] hasta el final de matches[j]
-      const startIdx = matches[i].index + offset
-      const endIdx   = matches[j].index + offset + matches[j].full.length
+      // Construir los reemplazos:
+      // - occurrences[i]: cambiar su texto por `accumulated`
+      // - occurrences[i+1..j-1]: vaciar su texto
+      // Hacemos los reemplazos de atrás para adelante para no desplazar índices
 
-      // Texto del bloque original en el resultado actual
-      const originalBlock = result.slice(startIdx, endIdx)
+      // Vaciar w:t intermedios (de j-1 hasta i+1, en orden inverso)
+      for (let k = j - 1; k > i; k--) {
+        const o = occurrences[k]
+        if (o.text.trim() !== '') {
+          replacements.push({
+            index:   o.index,
+            oldLen:  o.fullMatch.length,
+            newText: `${o.openTag}${o.closeTag}`,
+          })
+        }
+      }
 
-      // Reemplazar todos los <w:t>...</w:t> dentro de ese bloque por uno solo con el texto limpio
-      // Preservar el primer <w:t> con sus atributos y agregar xml:space="preserve"
-      const firstTOpen = originalBlock.match(/<w:t(?:[^>]*)>/)
-      const cleanT = `<w:t xml:space="preserve">${accumulated}</w:t>`
+      // Poner el texto completo en el primer w:t
+      const firstOcc = occurrences[i]
+      replacements.push({
+        index:   firstOcc.index,
+        oldLen:  firstOcc.fullMatch.length,
+        newText: `${firstOcc.openTag}${accumulated}${firstOcc.closeTag}`,
+      })
 
-      // Nuevo bloque: todo lo que hay antes del primer <w:t>, luego el cleanT,
-      // luego todo lo que hay después del último </w:t> en ese bloque
-      const firstTIdx  = originalBlock.indexOf(firstTOpen![0])
-      const lastTClose = originalBlock.lastIndexOf('</w:t>') + '</w:t>'.length
-      const newBlock   = originalBlock.slice(0, firstTIdx) + cleanT + originalBlock.slice(lastTClose)
-
-      result = result.slice(0, startIdx) + newBlock + result.slice(endIdx)
-      offset += newBlock.length - originalBlock.length
-
-      // Avanzar i hasta j para no reprocesar los matches ya fusionados
-      i = j
+      // Saltar los índices ya procesados
+      i = j - 1
     }
+
+    // Caso 2: este w:t NO contiene {{ pero sí contiene }}
+    // (el {{ estaba en un w:t anterior que ya fue procesado — no hacer nada)
+  }
+
+  if (replacements.length === 0) return xml
+
+  // Aplicar reemplazos de mayor a menor índice para no desplazar posiciones
+  replacements.sort((a, b) => b.index - a.index)
+
+  let result = xml
+  for (const rep of replacements) {
+    result =
+      result.slice(0, rep.index) +
+      rep.newText +
+      result.slice(rep.index + rep.oldLen)
   }
 
   return result
 }
 
 const TIPO_RIESGO_A_CMN: Record<string, string> = {
-  inmobiliario: 'Inmobiliario',
-  transporte: 'Transporte',
-  agropecuario: 'Agropecuario',
-  mineria: 'Minería',
-  extraccion_aridos: 'Otro',
-  forestal: 'Forestal',
-  portuario: 'Portuario',
-  sin_obra: 'Otro',
-  indeterminado: 'Otro',
+  inmobiliario:     'Inmobiliario',
+  transporte:       'Transporte',
+  agropecuario:     'Agropecuario',
+  mineria:          'Minería',
+  extraccion_aridos:'Otro',
+  forestal:         'Forestal',
+  portuario:        'Portuario',
+  sin_obra:         'Otro',
+  indeterminado:    'Otro',
 }
 
 export async function GET(req: NextRequest) {
@@ -147,7 +173,8 @@ export async function GET(req: NextRequest) {
       .eq('id_reporte', id)
       .single()
 
-    if (error || !r) return NextResponse.json({ error: 'Reporte no encontrado', detail: error?.message }, { status: 404 })
+    if (error || !r)
+      return NextResponse.json({ error: 'Reporte no encontrado', detail: error?.message }, { status: 404 })
 
     let coord_norte = '', coord_este = '', coord_datum = '', coord_huso = ''
     if (r.latitud && r.longitud) {
@@ -176,8 +203,8 @@ export async function GET(req: NextRequest) {
       coord_huso,
       nombre_propietario: r.nombre_propietario_predio || '',
       fecha_hecho:        r.fecha_observacion
-                            ? r.fecha_observacion.split('T')[0].split('-').reverse().join('/')
-                            : '',
+        ? r.fecha_observacion.split('T')[0].split('-').reverse().join('/')
+        : '',
       descripcion_hechos: r.amenazas                  || '',
       observaciones:      r.observaciones_denuncia    || '',
       den_nombre:         r.autor_reporte             || '',
@@ -221,9 +248,9 @@ export async function GET(req: NextRequest) {
         xtag: (e?.properties as Record<string, unknown>)?.xtag,
       }))
       return NextResponse.json({
-        error: 'Error en docxtemplater tras fix',
-        detail: errObj?.message,
-        errores_template: detalle,
+        error:             'Error en docxtemplater tras fix',
+        detail:            (errObj?.message as string) || String(docErr),
+        errores_template:  detalle,
       }, { status: 500 })
     }
 
@@ -232,7 +259,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Content-Type':        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
     })
