@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       .eq('id_reporte', id)
       .single()
 
-    if (error || !r) return NextResponse.json({ error: 'Reporte no encontrado' }, { status: 404 })
+    if (error || !r) return NextResponse.json({ error: 'Reporte no encontrado', detail: error?.message }, { status: 404 })
 
     let coord_norte = '', coord_este = '', coord_datum = '', coord_huso = ''
     if (r.latitud && r.longitud) {
@@ -79,14 +79,28 @@ export async function GET(req: NextRequest) {
       'template',
       'formulario_de_denuncia_monumento_arqueologico.docx'
     )
-    const content = fs.readFileSync(templatePath, 'binary')
-    const doc = new Docxtemplater(new PizZip(content), {
-      paragraphLoop: true,
-      linebreaks: true,
-    })
-    doc.render(data)
 
-    const buffer: Buffer = doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' })
+    let content: string
+    try {
+      content = fs.readFileSync(templatePath, 'binary')
+    } catch (fsErr: unknown) {
+      const msg = fsErr instanceof Error ? fsErr.message : String(fsErr)
+      return NextResponse.json({ error: 'No se pudo leer el template', detail: msg, path: templatePath }, { status: 500 })
+    }
+
+    let buffer: Buffer
+    try {
+      const doc = new Docxtemplater(new PizZip(content), {
+        paragraphLoop: true,
+        linebreaks: true,
+      })
+      doc.render(data)
+      buffer = doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' })
+    } catch (docErr: unknown) {
+      const msg = docErr instanceof Error ? docErr.message : String(docErr)
+      return NextResponse.json({ error: 'Error en docxtemplater', detail: msg }, { status: 500 })
+    }
+
     const filename = `denuncia_CMN_${r.id_reporte.slice(0, 8)}.docx`
 
     return new NextResponse(new Uint8Array(buffer), {
@@ -97,7 +111,9 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    const stack = e instanceof Error ? e.stack : undefined
     console.error('generar-denuncia error:', e)
-    return NextResponse.json({ error: 'Error generando documento' }, { status: 500 })
+    return NextResponse.json({ error: 'Error generando documento', detail: msg, stack }, { status: 500 })
   }
 }
