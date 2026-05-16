@@ -10,8 +10,16 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 /**
- * Word parte los placeholders {{variable}} en múltiples XML runs.
- * Esta función fusiona esos runs rotos antes de pasarlos a docxtemplater.
+ * Word rompe {{variable}} en múltiples <w:r> con <w:t> separados.
+ * Estrategia: operar sobre el XML crudo con regex.
+ * 
+ * Paso 1: extraer texto puro de cada <w:t> y concatenarlos dentro de cada párrafo.
+ * Paso 2: si el texto concatenado contiene {{...}}, reemplazar el bloque de runs
+ *         que forman el placeholder por un único run limpio.
+ * 
+ * Alternativa más robusta: reemplazar en el XML crudo cualquier secuencia
+ * de <w:t>...</w:t> separados por tags XML (que no sean otro <w:t>) que juntos
+ * formen un {{...}}, colapsándolos en un solo <w:t>.
  */
 function fixBrokenTags(zip: PizZip): PizZip {
   const xmlFiles = [
@@ -24,135 +32,95 @@ function fixBrokenTags(zip: PizZip): PizZip {
 
   for (const filename of xmlFiles) {
     if (!zip.files[filename]) continue
-
     let xml = zip.files[filename].asText()
-
-    // Paso 1: extraer todo el texto de cada <w:r> y fusionar runs contiguos
-    // que juntos forman un placeholder {{...}}
-    // Estrategia: colapsar el contenido de <w:t> eliminando los tags de run intermedios
-    // dentro de un mismo párrafo cuando forman parte de un placeholder abierto.
-
-    // Regex: une el contenido de <w:t> tags consecutivos que estén dentro de runs
-    // cuando el texto acumulado contiene {{ sin cerrar }}
-    xml = fuseRunsInParagraphs(xml)
-
+    xml = collapseTagsInXml(xml)
     zip.file(filename, xml)
   }
 
   return zip
 }
 
-function fuseRunsInParagraphs(xml: string): string {
-  // Procesar párrafo por párrafo
-  return xml.replace(/<w:p[ >][\s\S]*?<\/w:p>/g, (paragraph) => {
-    return fixParagraph(paragraph)
+/**
+ * Estrategia directa sobre XML crudo:
+ * Busca secuencias donde el texto visible (contenido de <w:t>) forma un placeholder
+ * partido entre múltiples tags, y los colapsa en un solo <w:t>.
+ * 
+ * Funciona en dos pasadas:
+ * 1. Dentro de cada párrafo <w:p>, extrae todos los <w:t> en orden
+ * 2. Detecta si alguna subsecuencia de <w:t> forma un {{...}} al concatenarse
+ * 3. Reemplaza esa subsecuencia por un único <w:t> con el texto completo
+ */
+function collapseTagsInXml(xml: string): string {
+  // Procesar párrafo a párrafo para no mezclar texto de párrafos distintos
+  return xml.replace(/(<w:p[ >][\s\S]*?<\/w:p>)/g, (para) => {
+    return fixParaTags(para)
   })
 }
 
-function fixParagraph(paragraph: string): string {
-  // Extraer todos los runs del párrafo
-  const runRegex = /(<w:r[ >][\s\S]*?<\/w:r>)/g
-  const runs: string[] = []
-  let match
-  while ((match = runRegex.exec(paragraph)) !== null) {
-    runs.push(match[1])
+function fixParaTags(para: string): string {
+  // Extraer todas las posiciones de <w:t>...</w:t> con su índice en la string
+  const tRegex = /<w:t(?:[^>]*)>([\s\S]*?)<\/w:t>/g
+  interface TMatch { full: string; text: string; index: number }
+  const matches: TMatch[] = []
+  let m: RegExpExecArray | null
+
+  while ((m = tRegex.exec(para)) !== null) {
+    matches.push({ full: m[0], text: m[1], index: m.index })
   }
 
-  if (runs.length === 0) return paragraph
+  if (matches.length === 0) return para
 
-  // Obtener el texto de cada run
-  const texts = runs.map(run => {
-    const m = run.match(/<w:t[^>]*>([\s\S]*?)<\/w:t>/)
-    return m ? m[1] : ''
-  })
+  // Concatenar todos los textos para ver si hay un placeholder roto
+  const allText = matches.map(x => x.text).join('')
+  if (!allText.includes('{{') || !allText.includes('}}')) return para
 
-  const combined = texts.join('')
+  // Encontrar subsecuencias que formen placeholders rotos ({{ sin cerrar en un solo <w:t>)
+  // Estrategia: ventana deslizante sobre matches
+  let result = para
+  let offset = 0 // ajuste de índices por reemplazos anteriores
 
-  // Si no hay placeholders en este párrafo, no tocar nada
-  if (!combined.includes('{{') && !combined.includes('}}')) return paragraph
-
-  // Fusionar: reconstruir runs colapsando los que forman un placeholder roto
-  const fusedRuns: string[] = []
-  let buffer = ''
-  let bufferRun = ''
-  let inTag = false
-
-  for (let i = 0; i < runs.length; i++) {
-    const text = texts[i]
-    const run = runs[i]
-
-    if (!inTag) {
-      if (text.includes('{{') && !text.includes('}}')) {
-        // Empieza un tag roto
-        inTag = true
-        buffer = text
-        bufferRun = run
-      } else {
-        fusedRuns.push(run)
+  for (let i = 0; i < matches.length; i++) {
+    const t = matches[i]
+    // Si este <w:t> contiene {{ pero no }}, es el inicio de un placeholder roto
+    if (t.text.includes('{{') && !t.text.includes('}}')) {
+      // Acumular texto de los siguientes <w:t> hasta encontrar el }}
+      let accumulated = t.text
+      let j = i + 1
+      while (j < matches.length) {
+        accumulated += matches[j].text
+        if (accumulated.includes('}}')) break
+        j++
       }
-    } else {
-      buffer += text
-      if (buffer.includes('}}')) {
-        // Tag completo: crear un run limpio con el texto fusionado
-        // Usar el primer run como base (mantiene el formato)
-        const cleanRun = bufferRun.replace(
-          /<w:t[^>]*>[\s\S]*?<\/w:t>/,
-          `<w:t xml:space="preserve">${buffer}</w:t>`
-        )
-        fusedRuns.push(cleanRun)
-        buffer = ''
-        bufferRun = ''
-        inTag = false
-      }
-      // Si aún no cierra, seguir acumulando
+
+      if (!accumulated.includes('}}')) continue // no se cerró, no tocar
+
+      // Construir el bloque en el XML que va desde el inicio de matches[i] hasta el final de matches[j]
+      const startIdx = matches[i].index + offset
+      const endIdx   = matches[j].index + offset + matches[j].full.length
+
+      // Texto del bloque original en el resultado actual
+      const originalBlock = result.slice(startIdx, endIdx)
+
+      // Reemplazar todos los <w:t>...</w:t> dentro de ese bloque por uno solo con el texto limpio
+      // Preservar el primer <w:t> con sus atributos y agregar xml:space="preserve"
+      const firstTOpen = originalBlock.match(/<w:t(?:[^>]*)>/)
+      const cleanT = `<w:t xml:space="preserve">${accumulated}</w:t>`
+
+      // Nuevo bloque: todo lo que hay antes del primer <w:t>, luego el cleanT,
+      // luego todo lo que hay después del último </w:t> en ese bloque
+      const firstTIdx  = originalBlock.indexOf(firstTOpen![0])
+      const lastTClose = originalBlock.lastIndexOf('</w:t>') + '</w:t>'.length
+      const newBlock   = originalBlock.slice(0, firstTIdx) + cleanT + originalBlock.slice(lastTClose)
+
+      result = result.slice(0, startIdx) + newBlock + result.slice(endIdx)
+      offset += newBlock.length - originalBlock.length
+
+      // Avanzar i hasta j para no reprocesar los matches ya fusionados
+      i = j
     }
   }
 
-  // Si quedó algo en buffer sin cerrar, agregar tal cual
-  if (buffer) {
-    fusedRuns.push(bufferRun)
-  }
-
-  // Reemplazar los runs en el párrafo original
-  let result = paragraph
-  let searchFrom = 0
-  const allRunMatches: Array<{index: number, length: number}> = []
-  const runRegex2 = /(<w:r[ >][\s\S]*?<\/w:r>)/g
-  let m2
-  while ((m2 = runRegex2.exec(paragraph)) !== null) {
-    allRunMatches.push({ index: m2.index, length: m2[0].length })
-  }
-
-  if (allRunMatches.length !== runs.length) return paragraph
-
-  // Reconstruir el párrafo reemplazando los runs originales por los fusionados
-  let output = ''
-  let lastIndex = 0
-  let fusedIdx = 0
-
-  for (let i = 0; i < allRunMatches.length; i++) {
-    const { index, length } = allRunMatches[i]
-    output += paragraph.slice(lastIndex, index)
-
-    if (fusedIdx < fusedRuns.length) {
-      // ¿Este run original corresponde al inicio de un run fusionado?
-      if (fusedRuns[fusedIdx] !== runs[i]) {
-        // Este run fue absorbido en el fusionado anterior, saltarlo
-        // (ya fue incluido cuando procesamos el run fusionado)
-      } else {
-        output += fusedRuns[fusedIdx]
-        fusedIdx++
-      }
-    }
-
-    lastIndex = index + length
-  }
-  output += paragraph.slice(lastIndex)
-
-  // Fallback: si la lógica falla, retornar el original
-  if (!output.includes('<w:r')) return paragraph
-
-  return output
+  return result
 }
 
 const TIPO_RIESGO_A_CMN: Record<string, string> = {
@@ -191,17 +159,17 @@ export async function GET(req: NextRequest) {
     }
 
     const data = {
-      inf_nombre:         r.infractor_nombre         || '',
-      inf_rut:            r.infractor_rut            || '',
-      inf_domicilio:      r.infractor_domicilio      || '',
-      inf_telefono:       r.infractor_contacto       || '',
+      inf_nombre:         r.infractor_nombre          || '',
+      inf_rut:            r.infractor_rut             || '',
+      inf_domicilio:      r.infractor_domicilio       || '',
+      inf_telefono:       r.infractor_contacto        || '',
       inf_correo:         '',
       tipo_proyecto:      TIPO_RIESGO_A_CMN[r.tipo_riesgo_principal || ''] || '',
-      nombre_proyecto:    r.nombre_proyecto          || '',
-      obra_actividad:     r.obra_actividad           || '',
-      region:             r.region                   || '',
-      comuna:             r.comuna                   || '',
-      ubicacion_detalle:  r.descripcion_ubicacion    || '',
+      nombre_proyecto:    r.nombre_proyecto           || '',
+      obra_actividad:     r.obra_actividad            || '',
+      region:             r.region                    || '',
+      comuna:             r.comuna                    || '',
+      ubicacion_detalle:  r.descripcion_ubicacion     || '',
       coord_norte,
       coord_este,
       coord_datum,
@@ -210,10 +178,10 @@ export async function GET(req: NextRequest) {
       fecha_hecho:        r.fecha_observacion
                             ? r.fecha_observacion.split('T')[0].split('-').reverse().join('/')
                             : '',
-      descripcion_hechos: r.amenazas                 || '',
-      observaciones:      r.observaciones_denuncia   || '',
-      den_nombre:         r.autor_reporte            || '',
-      den_correo:         r.correo_usuario_contacto  || '',
+      descripcion_hechos: r.amenazas                  || '',
+      observaciones:      r.observaciones_denuncia    || '',
+      den_nombre:         r.autor_reporte             || '',
+      den_correo:         r.correo_usuario_contacto   || '',
       den_telefono:       r.telefono_usuario_contacto || '',
       fecha_denuncia:     new Date().toLocaleDateString('es-CL'),
       reporte_id:         r.id_reporte,
@@ -249,7 +217,7 @@ export async function GET(req: NextRequest) {
       const subErrors = props?.errors as Array<Record<string, unknown>> | undefined
       const detalle = subErrors?.map(e => ({
         message: e?.message,
-        tag: (e?.properties as Record<string, unknown>)?.tag,
+        tag:  (e?.properties as Record<string, unknown>)?.tag,
         xtag: (e?.properties as Record<string, unknown>)?.xtag,
       }))
       return NextResponse.json({
