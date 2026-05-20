@@ -18,69 +18,92 @@ export function Navbar() {
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
   return (
-    <nav className="border-b border-gray-700 sticky top-0 z-50" style={{ backgroundColor: '#154A4E' }}>
+    <nav
+      className="sticky top-0 z-50 border-b"
+      style={{ backgroundColor: 'var(--nav)', borderColor: 'var(--border)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14">
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Red Patrimonio Chile" width={40} height={40} className="object-contain" />
-            <span className="font-bold text-white hidden sm:block">Red Patrimonio Chile</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src="/logo.png" alt="Red Patrimonio Chile" width={32} height={32} className="object-contain" />
+            <span
+              className="font-display font-light text-base tracking-wide hidden sm:block"
+              style={{ color: 'var(--text)' }}
+            >
+              RedPatrimonio
+            </span>
           </Link>
 
           {/* Links Desktop */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/mapa" className={`font-medium transition ${isActive('/mapa') ? 'text-yellow-300' : 'text-gray-200 hover:text-yellow-300'}`}>
-              Mapa
-            </Link>
+          <div className="hidden md:flex items-center gap-1">
+            {[
+              { href: '/mapa',     label: 'Mapa' },
+              { href: '/ficha',    label: 'Biblioteca' },
+              { href: '/dashboard',label: 'Dashboard' },
+            ].map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="px-3 py-1.5 rounded-md text-sm transition"
+                style={{
+                  color: isActive(href) ? 'var(--text)' : 'var(--muted)',
+                  backgroundColor: isActive(href) ? 'rgba(143,181,164,0.08)' : 'transparent',
+                }}
+              >
+                {label}
+              </Link>
+            ))}
 
-            {loading ? (
-              <div className="w-20 h-8 bg-gray-600 animate-pulse rounded"></div>
-            ) : user ? (
-              <>
-                <Link href="/reportar-inicio" className={`font-medium transition ${isActive('/reportar-inicio') || isActive('/reportar') ? 'text-yellow-300' : 'text-gray-200 hover:text-yellow-300'}`}>
-                  Reportar
-                </Link>
-                <Link href="/perfil" className={`font-medium transition ${isActive('/perfil') ? 'text-yellow-300' : 'text-gray-200 hover:text-yellow-300'}`}>
-                  Perfil
-                </Link>
-                <Link href="/mas" className={`font-medium transition ${isActive('/mas') ? 'text-yellow-300' : 'text-gray-200 hover:text-yellow-300'}`}>
-                  ...
-                </Link>
-              </>
-            ) : (
-              <Link href="/login" className="text-white px-4 py-2 rounded-lg font-medium transition"
-                style={{ backgroundColor: '#B6875D' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#9a6f4d'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#B6875D'}>
-                Iniciar Sesi\u00f3n
+            {!loading && user && (
+              <Link
+                href="/reportar-inicio"
+                className="px-3 py-1.5 rounded-md text-sm transition"
+                style={{
+                  color: isActive('/reportar') ? 'var(--text)' : 'var(--muted)',
+                  backgroundColor: isActive('/reportar') ? 'rgba(143,181,164,0.08)' : 'transparent',
+                }}
+              >
+                Reportar
               </Link>
             )}
           </div>
 
-          {/* Usuario info Desktop */}
-          {user && usuario && (
-            <div className="hidden md:flex items-center gap-2 ml-2">
-              <span className="text-sm text-gray-200 hidden lg:block">{usuario.nombre_completo || usuario.email}</span>
-              <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#B6875D', color: '#fff' }}>
-                {usuario.rol}
-              </span>
-              <button onClick={handleSignOut} className="text-sm text-gray-200 hover:text-red-400 font-medium transition ml-2">
-                Salir
-              </button>
-            </div>
-          )}
+          {/* Derecha */}
+          <div className="flex items-center gap-2">
+            {loading ? (
+              <div className="w-16 h-7 rounded animate-pulse" style={{ backgroundColor: 'var(--surface-2)' }} />
+            ) : user && usuario ? (
+              <>
+                <span className="text-xs hidden lg:block" style={{ color: 'var(--muted)' }}>
+                  {usuario.nombre_completo || usuario.email}
+                </span>
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full hidden sm:block"
+                  style={{ backgroundColor: 'rgba(143,181,164,0.12)', color: 'var(--accent)' }}
+                >
+                  {usuario.rol}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-xs px-3 py-1.5 rounded-md transition"
+                  style={{ color: 'var(--muted)', border: '1px solid var(--border-m)' }}
+                >
+                  Salir
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="text-sm font-medium px-4 py-1.5 rounded-md transition"
+                style={{ backgroundColor: 'var(--btn-light)', color: '#111110' }}
+              >
+                Ingresar
+              </Link>
+            )}
+          </div>
 
-          {/* Mobile: Solo rol y salir */}
-          {user && usuario && (
-            <div className="flex md:hidden items-center gap-2">
-              <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#B6875D', color: '#fff' }}>
-                {usuario.rol}
-              </span>
-              <button onClick={handleSignOut} className="text-sm text-gray-200 hover:text-red-400">
-                Salir
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </nav>

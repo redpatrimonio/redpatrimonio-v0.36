@@ -2,72 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Fuentes ─────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+
+/* ── Tokens cromáticos ───────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base grafito */
+  --bg:        #171614;
+  --surface:   #1D1B19;
+  --surface-2: #26231F;
+  --nav:       #1E1C1A;
+  --border:    rgba(210,220,215,0.09);
+  --border-m:  rgba(210,220,215,0.14);
+
+  /* Texto */
+  --text:      #DDE6E0;
+  --muted:     #7A8C82;
+  --faint:     #495249;
+
+  /* Acentos */
+  --accent:       #8FB5A4;  /* verde ceniza — identidad, UI activo */
+  --accent-pale:  #A8CFBF;  /* verde pálido — CTA bottom nav central */
+  --btn:          #2A2724;  /* antracita — botones sistema */
+  --btn-light:    #DDE6E0;  /* claro neutro — botones banner/intro */
+  --cobre:        #C27840;  /* acción / flujo reportar */
+  --tierra:       #9B6845;  /* categorías patrimoniales */
+  --ladrillo:     #A85040;  /* riesgo / alerta */
+  --musgo:        #4E8A60;  /* publicado / validado */
+  --antracita:    #526058;  /* bordes activos, UI neutro */
+
+  /* Compat legacy → Tailwind */
+  --background: var(--bg);
+  --foreground: var(--text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ── Reset base ──────────────────────────────────── */
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
 }
 
-/* Leaflet CSS */
+/* ── Leaflet ─────────────────────────────────────── */
 @import 'leaflet/dist/leaflet.css';
 
-/* Fix z-index para Leaflet map */
-.leaflet-container {
-  z-index: 1 !important;
-}
-
-.leaflet-pane {
-  z-index: 400 !important;
-}
-
+.leaflet-container { z-index: 1 !important; }
+.leaflet-pane      { z-index: 400 !important; }
 .leaflet-top,
-.leaflet-bottom {
-  z-index: 500 !important;
-}
+.leaflet-bottom    { z-index: 500 !important; }
 
-/* Asegurar que navbar y footer estén arriba */
-nav {
-  z-index: 1000 !important;
-}
+nav    { z-index: 1000 !important; }
+footer { z-index: 1000 !important; }
 
-footer {
-  z-index: 1000 !important;
-}
-
-/* SOLO mejora de legibilidad SIN romper nada */
+/* ── Forms ───────────────────────────────────────── */
 input::placeholder,
 textarea::placeholder,
-select option:first-child {
-  color: #6B7280 !important;
-}
+select option:first-child { color: #6B7280 !important; }
 
-/* Iconos personalizados Leaflet v0.4 */
-.marker-verde-oscuro {
-  filter: hue-rotate(0deg) saturate(150%);
-}
-
-.marker-cafe {
-  filter: hue-rotate(25deg) saturate(120%) brightness(80%);
-}
-
-.marker-gris {
-  filter: grayscale(100%) brightness(70%);
-}
+/* ── Marcadores Leaflet legacy ───────────────────── */
+.marker-verde-oscuro { filter: hue-rotate(0deg) saturate(150%); }
+.marker-cafe         { filter: hue-rotate(25deg) saturate(120%) brightness(80%); }
+.marker-gris         { filter: grayscale(100%) brightness(70%); }

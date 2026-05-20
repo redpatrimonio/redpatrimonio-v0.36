@@ -9,8 +9,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background:  "var(--bg)",
+        foreground:  "var(--text)",
+        surface:     "var(--surface)",
+        "surface-2": "var(--surface-2)",
+        nav:         "var(--nav)",
+        accent:      "var(--accent)",
+        "accent-pale": "var(--accent-pale)",
+        btn:         "var(--btn)",
+        "btn-light": "var(--btn-light)",
+        cobre:       "var(--cobre)",
+        tierra:      "var(--tierra)",
+        ladrillo:    "var(--ladrillo)",
+        musgo:       "var(--musgo)",
+        antracita:   "var(--antracita)",
+        muted:       "var(--muted)",
+        faint:       "var(--faint)",
+      },
+      fontFamily: {
+        sans:    ['DM Sans', 'system-ui', 'sans-serif'],
+        display: ['Cormorant Garamond', 'Georgia', 'serif'],
       },
     },
   },
