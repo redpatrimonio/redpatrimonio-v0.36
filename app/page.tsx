@@ -1,6 +1,20 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
+const pasos = [
+  { n: '01', title: 'Reporta un hallazgo',          desc: 'Ubica y fotografía el sitio. Tu reporte inicia la documentación formal.' },
+  { n: '02', title: 'El equipo lo evalúa',           desc: 'Arqueólogos de la red revisan y completan la ficha técnica.' },
+  { n: '03', title: 'Queda en la biblioteca y mapa', desc: 'El sitio validado se publica en el mapa y la biblioteca patrimonial.' },
+  { n: '04', title: 'Descubre tu territorio',        desc: 'Visita sitios protegidos, museos de sitio y lugares de interés patrimonial cercanos a ti.' },
+]
+
+const pasosDesktop = [
+  { n: '01', title: 'Reporta',      desc: 'Ubica y fotografía el sitio.' },
+  { n: '02', title: 'Se evalúa',    desc: 'Arqueólogos revisan la ficha.' },
+  { n: '03', title: 'Se publica',   desc: 'Entra al mapa y biblioteca.' },
+  { n: '04', title: 'Descubre',     desc: 'Visita sitios, museos y lugares patrimoniales cercanos.' },
+]
+
 export default function HomePage() {
   return (
     <div
@@ -54,6 +68,18 @@ export default function HomePage() {
               </svg>
             </Link>
           </div>
+
+          {/* Logo */}
+          <div className="flex justify-center" style={{ marginTop: 10, marginBottom: 10 }}>
+            <Image
+              src="/logo.png"
+              alt="Red Patrimonio Chile"
+              width={120}
+              height={120}
+              className="object-contain"
+              style={{ width: '41.666%', height: 'auto', opacity: 0.55 }}
+            />
+          </div>
         </div>
 
         {/* Cómo funciona */}
@@ -61,14 +87,10 @@ export default function HomePage() {
           className="rounded-xl overflow-hidden mb-0"
           style={{ border: '1px solid var(--border)' }}
         >
-          {[
-            { n: '01', title: 'Reporta un hallazgo', desc: 'Ubica y fotografía el sitio. Tu reporte inicia la documentación formal.' },
-            { n: '02', title: 'El equipo lo evalúa', desc: 'Arqueólogos de la red revisan y completan la ficha técnica.' },
-            { n: '03', title: 'Queda en la biblioteca', desc: 'El sitio validado se publica en el mapa y la biblioteca patrimonial.' },
-          ].map(({ n, title, desc }, i) => (
+          {pasos.map(({ n, title, desc }, i) => (
             <div
               key={n}
-              className="flex items-start gap-3.5 px-4 py-3.5"
+              className="flex items-start gap-3.5 px-4 py-3"
               style={{
                 backgroundColor: 'var(--surface)',
                 borderTop: i > 0 ? '1px solid var(--border)' : 'none',
@@ -76,13 +98,13 @@ export default function HomePage() {
             >
               <span
                 className="font-display font-light leading-none w-7 shrink-0"
-                style={{ fontSize: 22, color: 'var(--accent)', opacity: 0.45 }}
+                style={{ fontSize: 20, color: 'var(--accent)', opacity: 0.45 }}
               >
                 {n}
               </span>
               <div>
-                <p className="text-[13px] font-medium" style={{ color: 'var(--text)' }}>{title}</p>
-                <p className="text-[12px] leading-snug mt-0.5" style={{ color: 'var(--muted)' }}>{desc}</p>
+                <p className="text-[12px] font-medium" style={{ color: 'var(--text)' }}>{title}</p>
+                <p className="text-[11px] leading-snug mt-0.5" style={{ color: 'var(--muted)' }}>{desc}</p>
               </div>
             </div>
           ))}
@@ -109,7 +131,7 @@ export default function HomePage() {
             Una plataforma colaborativa para documentar, preservar y difundir el patrimonio arqueológico de Chile.
           </p>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             <Link
               href="/reportar-inicio"
               className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-lg transition"
@@ -130,6 +152,15 @@ export default function HomePage() {
                 <path d="M2 5.5h7M6 2.5l3 3-3 3" />
               </svg>
             </Link>
+            {/* Logo desktop — junto a CTAs */}
+            <Image
+              src="/logo.png"
+              alt="Red Patrimonio Chile"
+              width={36}
+              height={36}
+              className="object-contain ml-2"
+              style={{ opacity: 0.45 }}
+            />
           </div>
 
           {/* Cómo — horizontal */}
@@ -137,11 +168,7 @@ export default function HomePage() {
             className="flex rounded-xl overflow-hidden"
             style={{ border: '1px solid var(--border)' }}
           >
-            {[
-              { n: '01', title: 'Reporta', desc: 'Ubica y fotografía el sitio.' },
-              { n: '02', title: 'Se evalúa', desc: 'Arqueólogos revisan la ficha.' },
-              { n: '03', title: 'Se publica', desc: 'Entra al mapa y biblioteca.' },
-            ].map(({ n, title, desc }, i) => (
+            {pasosDesktop.map(({ n, title, desc }, i) => (
               <div
                 key={n}
                 className="flex-1 p-4"
@@ -150,9 +177,9 @@ export default function HomePage() {
                   borderLeft: i > 0 ? '1px solid var(--border)' : 'none',
                 }}
               >
-                <div className="font-display font-light mb-2" style={{ fontSize: 26, color: 'var(--accent)', opacity: 0.4 }}>{n}</div>
-                <div className="text-[13px] font-medium mb-1" style={{ color: 'var(--text)' }}>{title}</div>
-                <div className="text-[12px] leading-snug" style={{ color: 'var(--muted)' }}>{desc}</div>
+                <div className="font-display font-light mb-2" style={{ fontSize: 24, color: 'var(--accent)', opacity: 0.4 }}>{n}</div>
+                <div className="text-[12px] font-medium mb-1" style={{ color: 'var(--text)' }}>{title}</div>
+                <div className="text-[11px] leading-snug" style={{ color: 'var(--muted)' }}>{desc}</div>
               </div>
             ))}
           </div>
@@ -176,7 +203,6 @@ export default function HomePage() {
           <div className="absolute inset-0" style={{
             background: 'radial-gradient(ellipse at 45% 38%,rgba(143,181,164,0.07) 0%,transparent 65%)',
           }} />
-          {/* Pins */}
           {[
             { l: '43%', t: '19%', lg: true },
             { l: '57%', t: '32%' },
