@@ -156,6 +156,8 @@ export function MapView() {
 
   const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
 
+  const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
+
   return (
     <>
       <style>{`
@@ -185,8 +187,11 @@ export function MapView() {
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap</a>'
+            url={`https://api.maptiler.com/maps/outdoor-v2/{z}/{x}/{y}.png?key=${maptilerKey}`}
+            tileSize={512}
+            zoomOffset={-1}
+            minZoom={1}
           />
           <ZoomWatcher onZoomChange={setZoomActual} />
           <ControlesMapa />
