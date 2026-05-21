@@ -27,7 +27,7 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="Red Patrimonio Chile" width={32} height={32} className="object-contain" />
+            <Image src="/logo.png" alt="Red Patrimonio Chile" width={40} height={40} className="object-contain" />
             <span
               className="font-display font-light text-base tracking-wide hidden sm:block"
               style={{ color: 'var(--text)' }}
@@ -39,9 +39,9 @@ export function Navbar() {
           {/* Links Desktop */}
           <div className="hidden md:flex items-center gap-1">
             {[
-              { href: '/mapa',     label: 'Mapa' },
-              { href: '/ficha',    label: 'Biblioteca' },
-              { href: '/dashboard',label: 'Dashboard' },
+              { href: '/mapa',      label: 'Mapa' },
+              { href: '/ficha',     label: 'Biblioteca' },
+              { href: '/dashboard', label: 'Dashboard' },
             ].map(({ href, label }) => (
               <Link
                 key={href}
