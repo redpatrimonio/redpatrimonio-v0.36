@@ -70,7 +70,7 @@ export default function HomePage() {
           </div>
 
           {/* Logo */}
-          <div className="flex justify-center" style={{ marginTop: 10, marginBottom: 22 }}>
+          <div className="flex justify-center" style={{ marginTop: 20, marginBottom: 32 }}>
             <Image
               src="/logo.png"
               alt="Red Patrimonio Chile"
