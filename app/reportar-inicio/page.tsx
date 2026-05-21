@@ -7,42 +7,67 @@ const tiposReporte = [
   {
     id: 'hallazgo',
     titulo: 'Hallazgo Arqueológico',
-    descripcion: 'Registra un sitio o hallazgo. Requiere cuenta y revisión experta.',
-    icono: '🏛',
+    descripcion: 'Registra un sitio o hallazgo. Inicia la documentación formal.',
     href: '/reportar',
     requiereLogin: true,
     activo: true,
     badge: null,
+    iconoBg: 'rgba(143,181,164,0.1)',
+    iconoColor: 'var(--accent)',
+    icono: (
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
   },
   {
     id: 'riesgo',
     titulo: 'Arqueología en Riesgo',
-    descripcion: 'Reporta una amenaza o daño a un sitio. No necesitas cuenta.',
-    icono: '⚠️',
+    descripcion: 'Reporta daños a un sitio o un hallazgo en peligro. Puede ser anónimo.',
     href: '/reportar/riesgo',
     requiereLogin: false,
     activo: true,
     badge: null,
+    iconoBg: 'rgba(155,104,69,0.12)',
+    iconoColor: 'var(--tierra)',
+    icono: (
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
   },
   {
     id: 'lugar',
     titulo: 'Lugar de Interés',
-    descripcion: 'Museos, sitios turísticos u otros lugares de interés patrimonial.',
-    icono: '📍',
+    descripcion: 'Museos, sitios turísticos y lugares de interés patrimonial.',
     href: null,
     requiereLogin: true,
     activo: false,
     badge: 'Próximamente',
+    iconoBg: 'rgba(82,96,88,0.12)',
+    iconoColor: 'var(--faint)',
+    icono: (
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
+      </svg>
+    ),
   },
   {
     id: 'memoria',
     titulo: 'Memoria e Historia Local',
-    descripcion: 'Documenta lugares de historia local, tradición oral o memoria colectiva.',
-    icono: '📖',
+    descripcion: 'Historia local, tradición oral y memoria colectiva.',
     href: null,
     requiereLogin: true,
     activo: false,
     badge: 'Próximamente',
+    iconoBg: 'rgba(82,96,88,0.12)',
+    iconoColor: 'var(--faint)',
+    icono: (
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+      </svg>
+    ),
   },
 ]
 
@@ -50,86 +75,91 @@ export default function ReportarInicioPage() {
   const { user } = useAuth()
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-lg mx-auto">
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '28px 20px 80px' }}>
+      <div style={{ maxWidth: 480, margin: '0 auto' }}>
 
-        {/* Header */}
-        <div className="mb-6">
-          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#10454B' }}>Paso 1 de 4</p>
-          <h1 className="text-2xl font-extrabold mb-1.5" style={{ color: '#111827' }}>¿Qué quieres reportar?</h1>
-          <p className="text-sm" style={{ color: '#6b7280' }}>
-            Selecciona el tipo de registro que mejor describe tu hallazgo.
-          </p>
+        {/* Eyebrow */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+          <span style={{ display: 'block', width: 20, height: 1, background: 'var(--accent)', opacity: 0.6 }} />
+          <span style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--accent)', opacity: 0.8 }}>
+            Paso 1 de 4
+          </span>
         </div>
 
-        {/* Banner compacto */}
-        <div className="rounded-lg border px-3 py-2.5 mb-5 flex items-center justify-between gap-3"
-          style={{ borderColor: '#fcd34d', background: '#fffbeb' }}>
-          <div className="flex items-start gap-2">
-            <span className="text-sm flex-shrink-0">ℹ️</span>
-            <p className="text-xs" style={{ color: '#92400e' }}>
-              Todo reporte ingresa <strong>pendiente</strong> y es revisado antes de publicarse.
-            </p>
-          </div>
-          <Link href="/resguardos"
-            className="text-xs font-semibold flex-shrink-0 underline"
-            style={{ color: '#10454B' }}>
+        {/* Título */}
+        <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 'clamp(28px,7vw,36px)', color: 'var(--text)', lineHeight: 1.15, marginBottom: 8 }}>
+          Selecciona el tipo<br />de registro
+        </h1>
+        <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 20, maxWidth: '44ch' }}>
+          Elige el tipo de registro que describe mejor lo que quieres documentar.
+        </p>
+
+        {/* Notice */}
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+          padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(155,104,69,0.22)',
+          background: 'rgba(155,104,69,0.07)', marginBottom: 20,
+        }}>
+          <p style={{ fontSize: 11, color: 'var(--tierra)', lineHeight: 1.6 }}>
+            Todo reporte ingresado es <strong style={{ fontWeight: 500 }}>privado</strong> y será revisado por nuestro equipo, antes de incorporarse al mapa.
+          </p>
+          <Link href="/resguardos" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'underline', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 1 }}>
             Ver resguardos →
           </Link>
         </div>
 
         {/* Cards */}
-        <div className="flex flex-col gap-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {tiposReporte.map((tipo) => {
             const needsLogin = tipo.requiereLogin && !user
 
-            const contenido = (
-              <div
-                className={`rounded-xl border-2 p-4 flex gap-3.5 items-start transition-all ${
-                  !tipo.activo
-                    ? 'border-gray-200 bg-white opacity-50 cursor-not-allowed'
-                    : needsLogin
-                    ? 'border-gray-200 bg-white cursor-default'
-                    : 'border-gray-200 bg-white hover:border-[#10454B] hover:shadow-sm cursor-pointer'
-                }`}
-              >
-                <span className="text-2xl mt-0.5 flex-shrink-0">{tipo.icono}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                    <h2 className="font-bold text-sm" style={{ color: '#111827' }}>{tipo.titulo}</h2>
+            const inner = (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '15px 16px',
+                borderRadius: 13, border: '1px solid var(--border)', background: 'var(--surface)',
+                opacity: !tipo.activo ? 0.4 : 1,
+                cursor: !tipo.activo ? 'default' : needsLogin ? 'default' : 'pointer',
+              }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 10, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  background: tipo.iconoBg, color: tipo.iconoColor,
+                }}>
+                  {tipo.icono}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                    {tipo.titulo}
                     {tipo.badge && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 font-medium" style={{ color: '#6b7280' }}>
+                      <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 500, letterSpacing: '0.04em', background: 'rgba(82,96,88,0.18)', color: 'var(--faint)', border: '1px solid rgba(82,96,88,0.25)' }}>
                         {tipo.badge}
                       </span>
                     )}
                     {tipo.requiereLogin && tipo.activo && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ backgroundColor: '#e8f4f5', color: '#10454B' }}>
+                      <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 500, letterSpacing: '0.04em', background: 'rgba(143,181,164,0.08)', color: 'var(--accent)', border: '1px solid rgba(143,181,164,0.18)' }}>
                         Requiere cuenta
                       </span>
                     )}
                   </div>
-                  <p className="text-xs" style={{ color: '#6b7280' }}>{tipo.descripcion}</p>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3, lineHeight: 1.5 }}>
+                    {tipo.descripcion}
+                  </div>
                   {needsLogin && tipo.activo && (
-                    <p className="text-xs mt-1.5" style={{ color: '#b45309' }}>
+                    <p style={{ fontSize: 11, color: 'var(--tierra)', marginTop: 5 }}>
                       Necesitas{' '}
-                      <Link href="/auth/login" className="underline font-medium">iniciar sesión</Link>
+                      <Link href="/auth/login" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>iniciar sesión</Link>
                       {' '}para continuar.
                     </p>
                   )}
                 </div>
                 {tipo.activo && !needsLogin && (
-                  <span className="text-xl self-center flex-shrink-0" style={{ color: '#d1d5db' }}>›</span>
+                  <span style={{ color: 'var(--faint)', fontSize: 18, flexShrink: 0 }}>›</span>
                 )}
               </div>
             )
 
-            if (!tipo.activo || needsLogin) return <div key={tipo.id}>{contenido}</div>
-            return (
-              <Link key={tipo.id} href={tipo.href!}>
-                {contenido}
-              </Link>
-            )
+            if (!tipo.activo || needsLogin) return <div key={tipo.id}>{inner}</div>
+            return <Link key={tipo.id} href={tipo.href!} style={{ textDecoration: 'none' }}>{inner}</Link>
           })}
         </div>
 
