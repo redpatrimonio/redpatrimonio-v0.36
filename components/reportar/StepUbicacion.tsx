@@ -179,6 +179,13 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
   const cargando = cargandoGPS || cargandoGeocode
   const canAdvance = !!(latitud && longitud && region && comuna && !cargandoGeocode)
 
+  const GpsIcon = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    </svg>
+  )
+
   return (
     <StepWrapper
       step={1}
@@ -189,20 +196,41 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* Botón GPS */}
-        <StepButton
+        {/* Botón GPS — ícono izquierda, texto centrado */}
+        <button
           onClick={handleUseCurrentLocation}
-          loading={cargandoGPS}
-          loadingText="Obteniendo ubicación..."
-          variant="action"
-          fullWidth
+          disabled={cargandoGPS}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            width: '100%',
+            padding: '13px 18px',
+            borderRadius: 10,
+            border: '1.5px solid var(--accent)',
+            background: 'transparent',
+            color: 'var(--accent)',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: cargandoGPS ? 'not-allowed' : 'pointer',
+            opacity: cargandoGPS ? 0.6 : 1,
+            transition: 'background 0.15s',
+          }}
+          type="button"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-          </svg>
-          Usar mi ubicación actual
-        </StepButton>
+          {cargandoGPS ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+              style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }}>
+              <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+          ) : (
+            <GpsIcon />
+          )}
+          <span style={{ flex: 1, textAlign: 'center' }}>
+            {cargandoGPS ? 'Obteniendo ubicación...' : 'Usar mi ubicación actual'}
+          </span>
+        </button>
 
         {/* Mapa */}
         <div style={{ height: 240, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border-m)' }}>
@@ -215,10 +243,7 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
 
         {/* Coordenadas manuales */}
         <div>
-          <p style={S.fieldLabel}>
-            O ingresa coordenadas manualmente
-            <span style={{ ...S.fieldHint, display: 'inline', marginLeft: 6 }}>(ej. desde GPS Garmin)</span>
-          </p>
+          <p style={S.fieldLabel}>O ingresa coordenadas manualmente</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
               <label style={S.fieldLabel}>
@@ -230,10 +255,7 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
                 value={latStr}
                 onChange={(e) => setLatStr(e.target.value)}
                 placeholder="-33.456789"
-                style={{
-                  ...S.input,
-                  ...(focusField === 'lat' ? S.inputFocus : S.inputBlur),
-                }}
+                style={{ ...S.input, ...(focusField === 'lat' ? S.inputFocus : S.inputBlur) }}
                 onFocus={() => setFocusField('lat')}
                 onBlur={() => setFocusField(null)}
               />
@@ -248,20 +270,13 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
                 value={lngStr}
                 onChange={(e) => setLngStr(e.target.value)}
                 placeholder="-70.678901"
-                style={{
-                  ...S.input,
-                  ...(focusField === 'lng' ? S.inputFocus : S.inputBlur),
-                }}
+                style={{ ...S.input, ...(focusField === 'lng' ? S.inputFocus : S.inputBlur) }}
                 onFocus={() => setFocusField('lng')}
                 onBlur={() => setFocusField(null)}
               />
             </div>
             <div style={{ flexShrink: 0 }}>
-              <StepButton
-                onClick={handleManualApply}
-                disabled={cargando || !latStr || !lngStr}
-                variant="action"
-              >
+              <StepButton onClick={handleManualApply} disabled={cargando || !latStr || !lngStr} variant="action">
                 Aplicar
               </StepButton>
             </div>
@@ -290,21 +305,11 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
 
         {/* Región */}
         <div>
-          <label style={S.fieldLabel}>
-            Región <span style={S.required}>*</span>
-          </label>
-          <select
-            value={region}
-            onChange={(e) => handleRegionChange(e.target.value)}
+          <label style={S.fieldLabel}>Región <span style={S.required}>*</span></label>
+          <select value={region} onChange={(e) => handleRegionChange(e.target.value)}
             disabled={cargandoGeocode}
-            style={{
-              ...S.select,
-              ...(focusField === 'region' ? S.inputFocus : S.inputBlur),
-              opacity: cargandoGeocode ? 0.5 : 1,
-            }}
-            onFocus={() => setFocusField('region')}
-            onBlur={() => setFocusField(null)}
-          >
+            style={{ ...S.select, ...(focusField === 'region' ? S.inputFocus : S.inputBlur), opacity: cargandoGeocode ? 0.5 : 1 }}
+            onFocus={() => setFocusField('region')} onBlur={() => setFocusField(null)}>
             <option value="">{cargandoGeocode ? 'Cargando...' : 'Selecciona una región'}</option>
             {REGIONES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -312,21 +317,11 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
 
         {/* Comuna */}
         <div>
-          <label style={S.fieldLabel}>
-            Comuna <span style={S.required}>*</span>
-          </label>
-          <select
-            value={comuna}
-            onChange={(e) => setComuna(e.target.value)}
+          <label style={S.fieldLabel}>Comuna <span style={S.required}>*</span></label>
+          <select value={comuna} onChange={(e) => setComuna(e.target.value)}
             disabled={cargandoGeocode || !region || comunasDisponibles.length === 0}
-            style={{
-              ...S.select,
-              ...(focusField === 'comuna' ? S.inputFocus : S.inputBlur),
-              opacity: (cargandoGeocode || !region) ? 0.5 : 1,
-            }}
-            onFocus={() => setFocusField('comuna')}
-            onBlur={() => setFocusField(null)}
-          >
+            style={{ ...S.select, ...(focusField === 'comuna' ? S.inputFocus : S.inputBlur), opacity: (cargandoGeocode || !region) ? 0.5 : 1 }}
+            onFocus={() => setFocusField('comuna')} onBlur={() => setFocusField(null)}>
             <option value="">
               {cargandoGeocode ? 'Cargando...' : !region ? 'Primero selecciona una región' : 'Selecciona una comuna'}
             </option>
@@ -337,14 +332,7 @@ export function StepUbicacion({ onNext }: StepUbicacionProps) {
         {/* Error general */}
         {error && <div style={S.errorBox}>{error}</div>}
 
-        {/* Botón siguiente */}
-        <StepButton
-          onClick={handleNext}
-          disabled={!canAdvance}
-          fullWidth
-        >
-          Siguiente
-        </StepButton>
+        <StepButton onClick={handleNext} disabled={!canAdvance} fullWidth>Siguiente</StepButton>
 
       </div>
     </StepWrapper>
