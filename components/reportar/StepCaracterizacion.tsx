@@ -8,6 +8,9 @@ import {
   CULTURAS,
   PERIODOS
 } from '@/lib/constants/tipologias'
+import { StepWrapper } from '@/components/ui/StepWrapper'
+import { StepButton } from '@/components/ui/StepButton'
+import * as S from '@/lib/ui/stepStyles'
 
 interface StepCaracterizacionProps {
   onNext: (data: {
@@ -32,22 +35,20 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
   const [periodo, setPeriodo] = useState('')
   const [declaradoCMN, setDeclaradoCMN] = useState('')
   const [error, setError] = useState('')
+  const [focusField, setFocusField] = useState<string | null>(null)
 
   useEffect(() => {
     if (categoria) {
-      const tipologias = TIPOLOGIAS[categoria as keyof typeof TIPOLOGIAS]
-      setTipologiasDisponibles(tipologias)
+      setTipologiasDisponibles(TIPOLOGIAS[categoria as keyof typeof TIPOLOGIAS])
     } else {
       setTipologiasDisponibles([])
     }
   }, [categoria])
 
   function handleTipologiaToggle(tip: string) {
-    if (tipologiasSeleccionadas.includes(tip)) {
-      setTipologiasSeleccionadas(tipologiasSeleccionadas.filter(t => t !== tip))
-    } else {
-      setTipologiasSeleccionadas([...tipologiasSeleccionadas, tip])
-    }
+    setTipologiasSeleccionadas(prev =>
+      prev.includes(tip) ? prev.filter(t => t !== tip) : [...prev, tip]
+    )
   }
 
   function handleNext() {
@@ -55,11 +56,9 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
       setError('Completa los campos obligatorios')
       return
     }
-
     const tipologiaFinal = tipologiasSeleccionadas.length > 0
       ? tipologiasSeleccionadas
       : ['No determinado']
-
     onNext({
       nombre,
       clasificacionCMN,
@@ -71,180 +70,170 @@ export function StepCaracterizacion({ onNext, onBack }: StepCaracterizacionProps
     })
   }
 
+  const canAdvance = !!(nombre && clasificacionCMN && categoria)
+
+  const focusStyle = (field: string) => focusField === field ? S.inputFocus : S.inputBlur
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">Paso 2: Identificación</h2>
-      <p className="text-gray-600 text-sm">Describe el tipo de sitio</p>
+    <StepWrapper
+      step={2}
+      totalSteps={5}
+      stepLabel="Identificación"
+      title="¿Qué tipo de sitio es?"
+      subtitle="Caracteriza el hallazgo según la clasificación del CMN."
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Nombre */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Título <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          placeholder="Ej: Pucará de Quitor"
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        />
-      </div>
-
-      {/* Clasificación CMN */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Clasificación <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={clasificacionCMN}
-          onChange={(e) => setClasificacionCMN(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Selecciona una clasificación</option>
-          {CLASIFICACION_CMN.map((c) => (
-            <option key={c} value={c} className="text-gray-900">{c}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Categoría temática */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Categoría <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={categoria}
-          onChange={(e) => {
-            setCategoria(e.target.value)
-            setTipologiasSeleccionadas([])
-          }}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Selecciona una categoría</option>
-          {CATEGORIAS.map((cat) => (
-            <option key={cat} value={cat} className="text-gray-900">{cat}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Tipologías (múltiples, opcional) */}
-      {categoria && (
+        {/* Nombre */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tipología (opcional, puedes elegir varias)
+          <label style={S.fieldLabel}>
+            Título <span style={S.required}>*</span>
           </label>
-          <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto bg-white">
-            {tipologiasDisponibles.map((tip) => (
-              <label key={tip} className="flex items-center gap-2 py-1 cursor-pointer hover:bg-gray-50 px-2 rounded">
-                <input
-                  type="checkbox"
-                  checked={tipologiasSeleccionadas.includes(tip)}
-                  onChange={() => handleTipologiaToggle(tip)}
-                  className="w-4 h-4 rounded"
-                  style={{ accentColor: '#10454B' }}
-                />
-                <span className="text-sm text-gray-900">{tip}</span>
-              </label>
-            ))}
+          <input
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej: Pucará de Quitor"
+            style={{ ...S.input, ...focusStyle('nombre') }}
+            onFocus={() => setFocusField('nombre')}
+            onBlur={() => setFocusField(null)}
+          />
+        </div>
+
+        {/* Clasificación CMN */}
+        <div>
+          <label style={S.fieldLabel}>
+            Clasificación CMN <span style={S.required}>*</span>
+          </label>
+          <select
+            value={clasificacionCMN}
+            onChange={(e) => setClasificacionCMN(e.target.value)}
+            style={{ ...S.select, ...focusStyle('clasif') }}
+            onFocus={() => setFocusField('clasif')}
+            onBlur={() => setFocusField(null)}
+          >
+            <option value="">Selecciona una clasificación</option>
+            {CLASIFICACION_CMN.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        {/* Categoría */}
+        <div>
+          <label style={S.fieldLabel}>
+            Categoría <span style={S.required}>*</span>
+          </label>
+          <select
+            value={categoria}
+            onChange={(e) => { setCategoria(e.target.value); setTipologiasSeleccionadas([]) }}
+            style={{ ...S.select, ...focusStyle('cat') }}
+            onFocus={() => setFocusField('cat')}
+            onBlur={() => setFocusField(null)}
+          >
+            <option value="">Selecciona una categoría</option>
+            {CATEGORIAS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+        </div>
+
+        {/* Tipologías (múltiples, opcional) */}
+        {categoria && (
+          <div>
+            <label style={S.fieldLabel}>Tipología <span style={{ ...S.fieldHint, textTransform: 'none', letterSpacing: 0 }}>(opcional, puedes elegir varias)</span></label>
+            <div style={S.checkboxContainer}>
+              {tipologiasDisponibles.map((tip) => (
+                <label key={tip} style={S.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={tipologiasSeleccionadas.includes(tip)}
+                    onChange={() => handleTipologiaToggle(tip)}
+                    style={{ width: 15, height: 15, accentColor: 'var(--accent)', cursor: 'pointer' }}
+                  />
+                  <span style={S.checkboxLabel}>{tip}</span>
+                </label>
+              ))}
+            </div>
+            <p style={S.fieldHint}>
+              {tipologiasSeleccionadas.length > 0
+                ? `${tipologiasSeleccionadas.length} seleccionada(s)`
+                : 'Si no seleccionas, se marcará como “No determinado”'}
+            </p>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            {tipologiasSeleccionadas.length > 0
-              ? `${tipologiasSeleccionadas.length} seleccionada(s)`
-              : 'Si no seleccionas, se marcará como "No determinado"'}
-          </p>
+        )}
+
+        {/* Cultura (opcional) */}
+        <div>
+          <label style={S.fieldLabel}>Cultura asociada <span style={{ ...S.fieldHint, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
+          <select
+            value={cultura}
+            onChange={(e) => setCultura(e.target.value)}
+            style={{ ...S.select, ...focusStyle('cultura') }}
+            onFocus={() => setFocusField('cultura')}
+            onBlur={() => setFocusField(null)}
+          >
+            <option value="">Sin especificar</option>
+            {CULTURAS.map((cul) => <option key={cul} value={cul}>{cul}</option>)}
+          </select>
         </div>
-      )}
 
-      {/* Cultura (opcional) */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Cultura asociada (opcional)</label>
-        <select
-          value={cultura}
-          onChange={(e) => setCultura(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Sin especificar</option>
-          {CULTURAS.map((cul) => (
-            <option key={cul} value={cul} className="text-gray-900">{cul}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Periodo (opcional) */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Periodo Cultural (opcional)</label>
-        <select
-          value={periodo}
-          onChange={(e) => setPeriodo(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Sin especificar</option>
-          {PERIODOS.map((per) => (
-            <option key={per} value={per} className="text-gray-900">{per}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Declarado por CMN (opcional) */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Declarado por CMN (opcional)</label>
-        <select
-          value={declaradoCMN}
-          onChange={(e) => setDeclaradoCMN(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Sin información</option>
-          <option value="Sí" className="text-gray-900">Sí</option>
-          <option value="No" className="text-gray-900">No</option>
-          <option value="En proceso" className="text-gray-900">En proceso</option>
-          <option value="Sin información" className="text-gray-900">Sin información</option>
-        </select>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-700">{error}</p>
+        {/* Periodo (opcional) */}
+        <div>
+          <label style={S.fieldLabel}>Periodo cultural <span style={{ ...S.fieldHint, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
+          <select
+            value={periodo}
+            onChange={(e) => setPeriodo(e.target.value)}
+            style={{ ...S.select, ...focusStyle('periodo') }}
+            onFocus={() => setFocusField('periodo')}
+            onBlur={() => setFocusField(null)}
+          >
+            <option value="">Sin especificar</option>
+            {PERIODOS.map((per) => <option key={per} value={per}>{per}</option>)}
+          </select>
         </div>
-      )}
 
-      {/* Resumen */}
-      {nombre && clasificacionCMN && categoria && (
-        <div className="border rounded-lg p-4" style={{ backgroundColor: '#f0f7f8', borderColor: '#10454B' }}>
-          <p className="text-sm font-medium mb-1" style={{ color: '#10454B' }}>Resumen</p>
-          <p className="text-xs text-gray-700">
-            <strong>Título:</strong> {nombre}<br />
-            <strong>Clasificación:</strong> {clasificacionCMN}<br />
-            <strong>Categoría:</strong> {categoria}<br />
-            <strong>Tipologías:</strong> {tipologiasSeleccionadas.length > 0 ? tipologiasSeleccionadas.join(', ') : 'No determinado'}
-            {cultura && <><br /><strong>Cultura asociada:</strong> {cultura}</>}
-            {periodo && <><br /><strong>Periodo Cultural:</strong> {periodo}</>}
-            {declaradoCMN && <><br /><strong>Declarado por CMN:</strong> {declaradoCMN}</>}
-          </p>
+        {/* Declarado CMN (opcional) */}
+        <div>
+          <label style={S.fieldLabel}>Declarado por CMN <span style={{ ...S.fieldHint, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
+          <select
+            value={declaradoCMN}
+            onChange={(e) => setDeclaradoCMN(e.target.value)}
+            style={{ ...S.select, ...focusStyle('cmn') }}
+            onFocus={() => setFocusField('cmn')}
+            onBlur={() => setFocusField(null)}
+          >
+            <option value="">Sin información</option>
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Sin información">Sin información</option>
+          </select>
         </div>
-      )}
 
-      {/* Botones */}
-      <div className="flex gap-2">
-        <button
-          onClick={onBack}
-          className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 font-medium"
-        >
-          Atrás
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={!nombre || !clasificacionCMN || !categoria}
-          className="flex-1 py-3 rounded-lg font-medium transition disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-          style={{
-            backgroundColor: (nombre && clasificacionCMN && categoria) ? '#10454B' : undefined,
-            color: (nombre && clasificacionCMN && categoria) ? 'white' : undefined
-          }}
-        >
-          Siguiente
-        </button>
+        {/* Error */}
+        {error && <div style={S.errorBox}>{error}</div>}
+
+        {/* Resumen */}
+        {canAdvance && (
+          <div style={S.summaryBox}>
+            <p style={S.summaryTitle}>Resumen</p>
+            <p>
+              <strong>Título:</strong> {nombre}<br />
+              <strong>Clasificación:</strong> {clasificacionCMN}<br />
+              <strong>Categoría:</strong> {categoria}<br />
+              <strong>Tipologías:</strong> {tipologiasSeleccionadas.length > 0 ? tipologiasSeleccionadas.join(', ') : 'No determinado'}
+              {cultura && <><br /><strong>Cultura:</strong> {cultura}</>}
+              {periodo && <><br /><strong>Periodo:</strong> {periodo}</>}
+              {declaradoCMN && <><br /><strong>Declarado CMN:</strong> {declaradoCMN}</>}
+            </p>
+          </div>
+        )}
+
+        {/* Botones */}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <StepButton onClick={onBack} variant="secondary">Atrás</StepButton>
+          <StepButton onClick={handleNext} disabled={!canAdvance}>Siguiente</StepButton>
+        </div>
+
       </div>
-    </div>
+    </StepWrapper>
   )
 }
 
