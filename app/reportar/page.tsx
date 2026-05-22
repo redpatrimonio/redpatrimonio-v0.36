@@ -43,8 +43,8 @@ export default function ReportarPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Cargando...</p>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Cargando...</p>
       </div>
     )
   }
@@ -78,40 +78,13 @@ export default function ReportarPage() {
     setStep(5)
   }
 
-  const stepLabels: Record<number, string> = {
-    1: 'Ubicación',
-    2: 'Identificación',
-    3: 'Condición',
-    4: 'Documentación',
-    5: 'Fotos y Videos',
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Progress — ahora 5 pasos */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <div
-                key={s}
-                className={`flex-1 h-2 rounded-full mx-1 transition ${
-                  s <= step ? 'bg-[#10454B]' : 'bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-          <p className="text-sm text-gray-600 text-center">
-            Paso {step} de 5: {stepLabels[step]}
-          </p>
-        </div>
-
-        {step === 1 && <StepUbicacion onNext={handleStepUbicacion} />}
-        {step === 2 && <StepCaracterizacion onNext={handleStepCaracterizacion} onBack={() => setStep(1)} />}
-        {step === 3 && <StepEstado onNext={handleStepEstado} onBack={() => setStep(2)} />}
-        {step === 4 && <StepMultimedia onNext={handleStepMultimedia} onBack={() => setStep(3)} />}
-        {step === 5 && <StepFotos reporteData={reporteData} multimediaData={multimediaData} onBack={() => setStep(4)} />}
-      </div>
-    </div>
+    <>
+      {step === 1 && <StepUbicacion onNext={handleStepUbicacion} />}
+      {step === 2 && <StepCaracterizacion onNext={handleStepCaracterizacion} onBack={() => setStep(1)} />}
+      {step === 3 && <StepEstado onNext={handleStepEstado} onBack={() => setStep(2)} />}
+      {step === 4 && <StepMultimedia onNext={handleStepMultimedia} onBack={() => setStep(3)} />}
+      {step === 5 && <StepFotos reporteData={reporteData} multimediaData={multimediaData} onBack={() => setStep(4)} />}
+    </>
   )
 }
