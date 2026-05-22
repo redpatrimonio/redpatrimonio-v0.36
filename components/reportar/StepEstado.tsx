@@ -8,6 +8,9 @@ import {
   NIVEL_ACCESO,
   USOS_SUELO,
 } from '@/lib/constants/tipologias'
+import { StepWrapper } from '@/components/ui/StepWrapper'
+import { StepButton } from '@/components/ui/StepButton'
+import * as S from '@/lib/ui/stepStyles'
 
 interface StepEstadoProps {
   onNext: (data: {
@@ -40,13 +43,13 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
   const [contactoPropietarioInfo, setContactoPropietarioInfo] = useState('')
   const [telefonoUsuarioContacto, setTelefonoUsuarioContacto] = useState('')
   const [error, setError] = useState('')
+  const [focusField, setFocusField] = useState<string | null>(null)
 
   function handleNext() {
     if (!estadoconservacion || !condicionEmplazamiento || !descripcion || !tipoPropiedad) {
       setError('Completa los campos obligatorios')
       return
     }
-
     onNext({
       estadoconservacion,
       condicionEmplazamiento,
@@ -62,233 +65,153 @@ export function StepEstado({ onNext, onBack }: StepEstadoProps) {
     })
   }
 
+  const canAdvance = !!(estadoconservacion && condicionEmplazamiento && descripcion && tipoPropiedad)
+  const focusStyle = (field: string) => focusField === field ? S.inputFocus : S.inputBlur
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">Paso 3: Condición y Acceso</h2>
-      <p className="text-gray-600 text-sm">Describe el estado actual del sitio</p>
+    <StepWrapper
+      step={3}
+      totalSteps={5}
+      stepLabel="Condición y Acceso"
+      title="¿Cómo está el sitio?"
+      subtitle="Describe el estado actual, el acceso y el entorno del sitio."
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Estado Conservación */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Estado de conservación <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={estadoconservacion}
-          onChange={(e) => setEstadoConservacion(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Selecciona</option>
-          {ESTADO_CONSERVACION.map((est) => (
-            <option key={est} value={est} className="text-gray-900">{est}</option>
-          ))}
-        </select>
-      </div>
+        {/* Estado conservación */}
+        <div>
+          <label style={S.fieldLabel}>Estado de conservación <span style={S.required}>*</span></label>
+          <select value={estadoconservacion} onChange={(e) => setEstadoConservacion(e.target.value)}
+            style={{ ...S.select, ...focusStyle('estado') }}
+            onFocus={() => setFocusField('estado')} onBlur={() => setFocusField(null)}>
+            <option value="">Selecciona</option>
+            {ESTADO_CONSERVACION.map((est) => <option key={est} value={est}>{est}</option>)}
+          </select>
+        </div>
 
-      {/* Condición Emplazamiento */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Condición emplazamiento <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={condicionEmplazamiento}
-          onChange={(e) => setCondicionEmplazamiento(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Selecciona</option>
-          {CONDICION_EMPLAZAMIENTO.map((cond) => (
-            <option key={cond} value={cond} className="text-gray-900">{cond}</option>
-          ))}
-        </select>
-      </div>
+        {/* Condición emplazamiento */}
+        <div>
+          <label style={S.fieldLabel}>Condición de emplazamiento <span style={S.required}>*</span></label>
+          <select value={condicionEmplazamiento} onChange={(e) => setCondicionEmplazamiento(e.target.value)}
+            style={{ ...S.select, ...focusStyle('cond') }}
+            onFocus={() => setFocusField('cond')} onBlur={() => setFocusField(null)}>
+            <option value="">Selecciona</option>
+            {CONDICION_EMPLAZAMIENTO.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
 
-      {/* Descripción */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Descripción <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          rows={3}
-          placeholder="Describe el sitio, cómo llegar, características, etc."
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        />
-      </div>
+        {/* Descripción */}
+        <div>
+          <label style={S.fieldLabel}>Descripción <span style={S.required}>*</span></label>
+          <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)}
+            rows={3} placeholder="Describe el sitio, cómo llegar, características, etc."
+            style={{ ...S.textarea, ...focusStyle('desc') }}
+            onFocus={() => setFocusField('desc')} onBlur={() => setFocusField(null)} />
+        </div>
 
-      {/* Tipo Propiedad */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tipo de propiedad <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={tipoPropiedad}
-          onChange={(e) => setTipoPropiedad(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Selecciona</option>
-          {TIPO_PROPIEDAD.map((prop) => (
-            <option key={prop} value={prop} className="text-gray-900">{prop}</option>
-          ))}
-        </select>
-      </div>
+        {/* Tipo propiedad */}
+        <div>
+          <label style={S.fieldLabel}>Tipo de propiedad <span style={S.required}>*</span></label>
+          <select value={tipoPropiedad} onChange={(e) => setTipoPropiedad(e.target.value)}
+            style={{ ...S.select, ...focusStyle('prop') }}
+            onFocus={() => setFocusField('prop')} onBlur={() => setFocusField(null)}>
+            <option value="">Selecciona</option>
+            {TIPO_PROPIEDAD.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
 
-      {/* Nivel Acceso CON DESCRIPCIÓN */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Nivel de acceso <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={nivelacceso}
-          onChange={(e) => {
-            setNivelAcceso(e.target.value)
-            const seleccionado = NIVEL_ACCESO.find(n => n.valor === e.target.value)
-            setDescripcionNivelAcceso(seleccionado?.descripcion || '')
-          }}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          {NIVEL_ACCESO.map((nivel) => (
-            <option key={nivel.valor} value={nivel.valor} className="text-gray-900">
-              {nivel.valor}
-            </option>
-          ))}
-        </select>
-        {descripcionNivelAcceso && (
-          <p className="text-xs text-gray-600 mt-2 italic">
-            ℹ️ {descripcionNivelAcceso}
-          </p>
+        {/* Nivel acceso */}
+        <div>
+          <label style={S.fieldLabel}>Nivel de acceso <span style={S.required}>*</span></label>
+          <select value={nivelacceso}
+            onChange={(e) => {
+              setNivelAcceso(e.target.value)
+              const sel = NIVEL_ACCESO.find(n => n.valor === e.target.value)
+              setDescripcionNivelAcceso(sel?.descripcion || '')
+            }}
+            style={{ ...S.select, ...focusStyle('acceso') }}
+            onFocus={() => setFocusField('acceso')} onBlur={() => setFocusField(null)}>
+            {NIVEL_ACCESO.map((n) => <option key={n.valor} value={n.valor}>{n.valor}</option>)}
+          </select>
+          {descripcionNivelAcceso && (
+            <p style={{ ...S.fieldHint, fontStyle: 'italic', marginTop: 6 }}>{descripcionNivelAcceso}</p>
+          )}
+        </div>
+
+        {/* Uso de suelo */}
+        <div>
+          <label style={S.fieldLabel}>Uso de suelo actual <span style={{ ...S.fieldHint, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
+          <select value={usoSuelo} onChange={(e) => setUsoSuelo(e.target.value)}
+            style={{ ...S.select, ...focusStyle('uso') }}
+            onFocus={() => setFocusField('uso')} onBlur={() => setFocusField(null)}>
+            <option value="">Selecciona</option>
+            {USOS_SUELO.map((u) => <option key={u} value={u}>{u}</option>)}
+          </select>
+        </div>
+
+        {usoSuelo === 'Otro' && (
+          <div>
+            <label style={S.fieldLabel}>Especifica el uso de suelo</label>
+            <input type="text" value={usoSueloOtro} onChange={(e) => setUsoSueloOtro(e.target.value)}
+              placeholder="Ej: Mixto agrícola-industrial"
+              style={{ ...S.input, ...focusStyle('usoOtro') }}
+              onFocus={() => setFocusField('usoOtro')} onBlur={() => setFocusField(null)} />
+          </div>
         )}
-      </div>
 
-      {/* Uso de Suelo (opcional) */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Uso de suelo actual (opcional)</label>
-        <select
-          value={usoSuelo}
-          onChange={(e) => setUsoSuelo(e.target.value)}
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        >
-          <option value="" className="text-gray-400">Selecciona</option>
-          {USOS_SUELO.map((uso) => (
-            <option key={uso} value={uso} className="text-gray-900">{uso}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Si eligió "Otro" */}
-      {usoSuelo === 'Otro' && (
+        {/* Amenazas */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Especifica el uso de suelo</label>
-          <input
-            type="text"
-            value={usoSueloOtro}
-            onChange={(e) => setUsoSueloOtro(e.target.value)}
-            placeholder="Ej: Mixto agrícola-industrial"
-            className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-          />
+          <label style={S.fieldLabel}>Amenazas o riesgos <span style={{ ...S.fieldHint, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
+          <textarea value={amenazas} onChange={(e) => setAmenazas(e.target.value)}
+            rows={2} placeholder="Ej: Erosión, construcción cercana, vandalismo..."
+            style={{ ...S.textarea, ...focusStyle('amenazas') }}
+            onFocus={() => setFocusField('amenazas')} onBlur={() => setFocusField(null)} />
         </div>
-      )}
 
-      {/* Amenazas (opcional) */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Amenazas o riesgos (opcional)</label>
-        <textarea
-          value={amenazas}
-          onChange={(e) => setAmenazas(e.target.value)}
-          rows={2}
-          placeholder="Ej: Erosión, construcción cercana, vandalismo..."
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        />
-      </div>
-
-      {/* Contacto Propietario */}
-      <div className="border-t pt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          ¿Es posible contactar al propietario del lugar?
-        </label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="contactoPropietario"
-              checked={contactoPropietarioPosible === true}
-              onChange={() => setContactoPropietarioPosible(true)}
-              className="w-4 h-4"
-              style={{ accentColor: '#10454B' }}
-            />
-            <span className="text-sm text-gray-900">Sí</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="contactoPropietario"
-              checked={contactoPropietarioPosible === false}
-              onChange={() => setContactoPropietarioPosible(false)}
-              className="w-4 h-4"
-              style={{ accentColor: '#10454B' }}
-            />
-            <span className="text-sm text-gray-900">No</span>
-          </label>
+        {/* Contacto propietario */}
+        <div style={{ ...S.divider, paddingTop: 16 }}>
+          <label style={S.fieldLabel}>¿Es posible contactar al propietario?</label>
+          <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+            {[{ label: 'Sí', val: true }, { label: 'No', val: false }].map(({ label, val }) => (
+              <label key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input type="radio" name="contactoPropietario"
+                  checked={contactoPropietarioPosible === val}
+                  onChange={() => setContactoPropietarioPosible(val)}
+                  style={{ width: 15, height: 15, accentColor: 'var(--accent)', cursor: 'pointer' }} />
+                <span style={S.checkboxLabel}>{label}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Si es posible contactar */}
-      {contactoPropietarioPosible === true && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Teléfono, email o dirección del propietario
-          </label>
-          <textarea
-            value={contactoPropietarioInfo}
-            onChange={(e) => setContactoPropietarioInfo(e.target.value)}
-            rows={2}
-            placeholder="Ej: +56 9 1234 5678, juan@email.com"
-            className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-          />
+        {contactoPropietarioPosible === true && (
+          <div>
+            <label style={S.fieldLabel}>Teléfono, email o dirección del propietario</label>
+            <textarea value={contactoPropietarioInfo} onChange={(e) => setContactoPropietarioInfo(e.target.value)}
+              rows={2} placeholder="Ej: +56 9 1234 5678, juan@email.com"
+              style={{ ...S.textarea, ...focusStyle('propInfo') }}
+              onFocus={() => setFocusField('propInfo')} onBlur={() => setFocusField(null)} />
+          </div>
+        )}
+
+        {/* Teléfono usuario */}
+        <div style={{ ...S.divider, paddingTop: 16 }}>
+          <label style={S.fieldLabel}>Tu teléfono de contacto <span style={{ ...S.fieldHint, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
+          <input type="tel" value={telefonoUsuarioContacto} onChange={(e) => setTelefonoUsuarioContacto(e.target.value)}
+            placeholder="+56 9 1234 5678"
+            style={{ ...S.input, ...focusStyle('tel') }}
+            onFocus={() => setFocusField('tel')} onBlur={() => setFocusField(null)} />
         </div>
-      )}
 
-      {/* Teléfono Usuario (siempre visible) */}
-      <div className="border-t pt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Si quieres que te contactemos, déjanos tu teléfono (opcional)
-        </label>
-        <input
-          type="tel"
-          value={telefonoUsuarioContacto}
-          onChange={(e) => setTelefonoUsuarioContacto(e.target.value)}
-          placeholder="+56 9 1234 5678"
-          className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10454B]"
-        />
-      </div>
+        {error && <div style={S.errorBox}>{error}</div>}
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-700">{error}</p>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <StepButton onClick={onBack} variant="secondary">Atrás</StepButton>
+          <StepButton onClick={handleNext} disabled={!canAdvance}>Siguiente</StepButton>
         </div>
-      )}
 
-      {/* Botones */}
-      <div className="flex gap-2">
-        <button
-          onClick={onBack}
-          className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 font-medium"
-        >
-          Atrás
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={!estadoconservacion || !condicionEmplazamiento || !descripcion || !tipoPropiedad}
-          className="flex-1 py-3 rounded-lg font-medium transition disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-          style={{
-            backgroundColor: (estadoconservacion && condicionEmplazamiento && descripcion && tipoPropiedad) ? '#10454B' : undefined,
-            color: (estadoconservacion && condicionEmplazamiento && descripcion && tipoPropiedad) ? 'white' : undefined
-          }}
-        >
-          Siguiente
-        </button>
       </div>
-    </div>
+    </StepWrapper>
   )
 }
 
