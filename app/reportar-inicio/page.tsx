@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
 
+const RAW = 'https://raw.githubusercontent.com/redpatrimonio/redpatrimonio-v0.36/main'
+
 const tiposReporte = [
   {
     id: 'hallazgo',
@@ -108,7 +110,7 @@ export default function ReportarInicioPage() {
           </Link>
         </div>
 
-        {/* Cards */}
+        {/* Cards principales */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {tiposReporte.map((tipo) => {
             const needsLogin = tipo.requiereLogin && !user
@@ -162,6 +164,73 @@ export default function ReportarInicioPage() {
             return <Link key={tipo.id} href={tipo.href!} style={{ textDecoration: 'none' }}>{inner}</Link>
           })}
         </div>
+
+        {/* Separador */}
+        <div style={{ margin: '20px 0 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          <span style={{ fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--faint)' }}>Canal especializado</span>
+          <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+        </div>
+
+        {/* Card Sitios en Publicaciones */}
+        {user ? (
+          <Link href="/ingesta-inicio" style={{ textDecoration: 'none' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '15px 16px',
+              borderRadius: 13, border: '1px solid rgba(194,120,64,0.25)',
+              background: 'rgba(194,120,64,0.05)', cursor: 'pointer',
+            }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 10, display: 'flex',
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                background: 'rgba(194,120,64,0.12)', color: 'var(--cobre)',
+              }}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18" />
+                </svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                  Sitios en Publicaciones
+                  <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 500, letterSpacing: '0.04em', background: 'rgba(194,120,64,0.12)', color: 'var(--cobre)', border: '1px solid rgba(194,120,64,0.2)' }}>
+                    Equipo
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3, lineHeight: 1.5 }}>
+                  Extrae sitios con IA de estudios publicados o fuentes referenciadas.
+                </div>
+              </div>
+              <span style={{ color: 'var(--faint)', fontSize: 18, flexShrink: 0 }}>›</span>
+            </div>
+          </Link>
+        ) : (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 14, padding: '15px 16px',
+            borderRadius: 13, border: '1px solid var(--border)',
+            background: 'var(--surface)', opacity: 0.45, cursor: 'default',
+          }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 10, display: 'flex',
+              alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              background: 'rgba(82,96,88,0.12)', color: 'var(--faint)',
+            }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18" />
+              </svg>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                Sitios en Publicaciones
+                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 500, letterSpacing: '0.04em', background: 'rgba(82,96,88,0.18)', color: 'var(--faint)', border: '1px solid rgba(82,96,88,0.25)' }}>
+                  Requiere cuenta
+                </span>
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3, lineHeight: 1.5 }}>
+                Extrae sitios con IA de estudios publicados o fuentes referenciadas.
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
