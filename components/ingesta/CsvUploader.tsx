@@ -22,13 +22,19 @@ export const COLUMNAS_OFICIALES = [
   'acceso_publico_privado',
 ]
 
-// Columnas que NO existen en la tabla destino según tipo
-const COLUMNAS_SIN_CAMPO: Record<string, string[]> = {
-  arqueologico: [],
-  memoria: ['codigo_accesibilidad', 'categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'subcategoria', 'acceso_publico_privado'],
-  geografico:   ['codigo_accesibilidad', 'categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'que_lo_cubre', 'acceso_publico_privado'],
-  turistico:    ['codigo_accesibilidad', 'categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'que_lo_cubre', 'acceso_publico_privado'],
-  comercial:    ['codigo_accesibilidad', 'categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'que_lo_cubre', 'acceso_publico_privado'],
+/**
+ * Tras la migración del 07/06/2026:
+ * - sitios_memoria tiene region, comuna, codigo_accesibilidad
+ * - lugares_capas  tiene acceso_publico_privado
+ * Todos los tipos aceptan todas las columnas.
+ * Solo se ocultan las que semánticamente no aplican.
+ */
+export const COLUMNAS_SIN_CAMPO: Record<string, string[]> = {
+  arqueologico: ['subcategoria', 'que_lo_cubre'],
+  memoria:      ['categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'subcategoria'],
+  geografico:   ['categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'que_lo_cubre'],
+  turistico:    ['categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'que_lo_cubre'],
+  comercial:    ['categoria_cmn', 'tipologias', 'cultura_asociada', 'periodo_cronologico', 'que_lo_cubre'],
 }
 
 export type FilaCSV = Record<string, string>
@@ -59,13 +65,13 @@ function parsearCSV(texto: string): { columnas: string[]; filas: FilaCSV[] } {
 function validarCabecera(columnasCsv: string[]): string[] {
   const errores: string[] = []
   const faltantes = COLUMNAS_OFICIALES.filter(c => !columnasCsv.includes(c))
-  const extras = columnasCsv.filter(c => !COLUMNAS_OFICIALES.includes(c))
+  const extras    = columnasCsv.filter(c => !COLUMNAS_OFICIALES.includes(c))
   if (faltantes.length > 0) errores.push(`Columnas faltantes: ${faltantes.join(', ')}`)
   if (extras.length > 0)    errores.push(`Columnas no reconocidas: ${extras.join(', ')}`)
   return errores
 }
 
-export { COLUMNAS_SIN_CAMPO }
+export { COLUMNAS_SIN_CAMPO as default_COLUMNAS_SIN_CAMPO }
 
 export default function CsvUploader() {
   const inputRef = useRef<HTMLInputElement>(null)
