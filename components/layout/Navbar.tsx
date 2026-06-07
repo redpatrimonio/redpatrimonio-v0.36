@@ -16,6 +16,7 @@ export function Navbar() {
   }
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
+  const esEquipo = !loading && usuario && ['founder', 'partner', 'experto'].includes(usuario.rol)
 
   return (
     <nav
@@ -66,6 +67,22 @@ export function Navbar() {
                 }}
               >
                 Reportar
+              </Link>
+            )}
+
+            {esEquipo && (
+              <Link
+                href="/ingesta"
+                className="px-3 py-1.5 rounded-md text-sm transition"
+                style={{
+                  color: isActive('/ingesta') ? 'var(--accent)' : 'var(--muted)',
+                  backgroundColor: isActive('/ingesta') ? 'rgba(143,181,164,0.08)' : 'transparent',
+                  borderLeft: '1px solid var(--border)',
+                  marginLeft: '4px',
+                  paddingLeft: '12px',
+                }}
+              >
+                Ingesta
               </Link>
             )}
           </div>
