@@ -16,7 +16,7 @@ const KIT_ARCHIVOS = [
   },
   {
     nombre: 'Instrucciones agente extractor',
-    detalle: 'Prompt e instrucciones para Canal A · Markdown',
+    detalle: 'Instrucciones completas para Canal A · Markdown',
     icono: '🤖',
     url: `${RAW}/_kit_ingesta/instrucciones_agente_extractor.md`,
     filename: 'instrucciones_agente_extractor.md',
@@ -30,10 +30,51 @@ const KIT_ARCHIVOS = [
   },
 ]
 
+const PROMPT_IA = `Eres un asistente especializado en patrimonio arqueológico y cultural de Chile, colaborando con RedPatrimonio, una plataforma de documentación y registro de sitios patrimoniales.
+
+Tu tarea es extraer sitios arqueológicos o patrimoniales desde una fuente que el usuario te proporcionará (puede ser un PDF, una página web, un listado, un texto, u otra fuente referenciada).
+
+Antes de comenzar, lee y sigue estas instrucciones completas:
+${RAW}/_kit_ingesta/instrucciones_agente_extractor.md
+
+Usa esta plantilla como referencia exacta de columnas y formato requerido:
+${RAW}/_kit_ingesta/plantilla_ingesta_base.csv
+
+Si necesitas releer el proceso completo, consulta el manual:
+${RAW}/_kit_ingesta/Manual%20de%20usuario%20-%20Kit%20Red%20Patrimonio.pdf
+
+Cómo proceder:
+1. Pide al usuario que te proporcione la fuente (PDF, URL, texto, listado, etc.)
+2. Extrae todos los sitios que puedas identificar en esa fuente
+3. Completa automáticamente los campos que puedas inferir con certeza
+4. Para los campos que no puedas determinar, presíntale al usuario una tabla con los datos extraídos y pregúntale lo que falta
+5. Una vez completado, entrega el resultado final en formato CSV, listo para copiar y guardar como archivo .csv
+
+Comienza pidiendo la fuente al usuario.`
+
 export default function IngestaInicioPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+
+  async function copiarPrompt() {
+    try {
+      await navigator.clipboard.writeText(PROMPT_IA)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      // fallback para navegadores que no soportan clipboard API
+      const el = document.createElement('textarea')
+      el.value = PROMPT_IA
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    }
+  }
 
   if (!user) {
     return (
@@ -74,7 +115,7 @@ export default function IngestaInicioPage() {
         {/* Cards de acción */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* Kit */}
+          {/* Kit para Agente recopilador */}
           <button
             onClick={() => setModalAbierto(true)}
             style={{
@@ -90,13 +131,60 @@ export default function IngestaInicioPage() {
               background: 'rgba(194,120,64,0.12)', fontSize: 18,
             }}>📦</div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', marginBottom: 2 }}>Kit de recopilación</p>
+              <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', marginBottom: 2 }}>Kit para Agente recopilador</p>
               <p style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.5 }}>
                 Manual, instrucciones del agente y plantilla CSV.
               </p>
             </div>
             <span style={{ fontSize: 18, color: 'var(--cobre)', flexShrink: 0 }}>↓</span>
           </button>
+
+          {/* Prompt directo para IA */}
+          <button
+            onClick={copiarPrompt}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+              borderRadius: 13,
+              border: copiado ? '1px solid rgba(78,138,96,0.4)' : '1px solid rgba(194,120,64,0.2)',
+              background: copiado ? 'rgba(78,138,96,0.06)' : 'rgba(194,120,64,0.03)',
+              cursor: 'pointer', textAlign: 'left', width: '100%',
+              transition: 'border-color 0.2s, background 0.2s',
+            }}
+          >
+            <div style={{
+              width: 40, height: 40, borderRadius: 10, display: 'flex',
+              alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              background: copiado ? 'rgba(78,138,96,0.12)' : 'rgba(194,120,64,0.08)',
+            }}>
+              {copiado ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--musgo)" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--cobre)" strokeWidth="1.7">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </svg>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: copiado ? 'var(--musgo)' : 'var(--text)', marginBottom: 2, transition: 'color 0.2s' }}>
+                {copiado ? '¡Copiado!' : 'Prompt directo para IA'}
+              </p>
+              <p style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.5 }}>
+                {copiado
+                  ? 'Pégalo en cualquier chat de IA para comenzar.'
+                  : 'Copia y pega en ChatGPT, Claude, Gemini u otro chat de IA.'}
+              </p>
+            </div>
+          </button>
+
+          {/* Separador */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0' }}>
+            <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            <span style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faint)' }}>Una vez extraídos los datos</span>
+            <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          </div>
 
           {/* Subir CSV */}
           <button
@@ -111,8 +199,14 @@ export default function IngestaInicioPage() {
             <div style={{
               width: 40, height: 40, borderRadius: 10, display: 'flex',
               alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              background: 'rgba(143,181,164,0.12)', fontSize: 18,
-            }}>📂</div>
+              background: 'rgba(143,181,164,0.12)',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.7">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', marginBottom: 2 }}>Subir lote CSV</p>
               <p style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.5 }}>
@@ -155,7 +249,7 @@ export default function IngestaInicioPage() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>Kit de recopilación</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>Kit para Agente recopilador</p>
               <button
                 onClick={() => setModalAbierto(false)}
                 style={{ background: 'none', border: 'none', color: 'var(--faint)', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}
@@ -177,7 +271,6 @@ export default function IngestaInicioPage() {
                     padding: '12px 14px', borderRadius: 10,
                     border: '1px solid var(--border)', background: 'var(--surface-2)',
                     cursor: 'pointer',
-                    transition: 'border-color 0.15s',
                   }}>
                     <span style={{ fontSize: 20, flexShrink: 0 }}>{archivo.icono}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
