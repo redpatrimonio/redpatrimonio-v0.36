@@ -19,7 +19,7 @@ export function Footer() {
   return (
     <footer
       className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
-      style={{ backgroundColor: 'var(--nav)', borderTop: '1px solid var(--border)' }}
+      style={{ backgroundColor: 'var(--nav)', borderTop: '1px solid var(--border)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="flex justify-around items-center h-[60px] px-1">
 
