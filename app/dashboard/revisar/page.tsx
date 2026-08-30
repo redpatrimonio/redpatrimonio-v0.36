@@ -20,8 +20,20 @@ interface Reporte {
   timestamp_creado: string
   estado_validacion: string
   categoria_general: string | null
+  tipo_riesgo_principal: string | null
   autor_reporte: string | null
   tipologia_especifica?: string[] | null
+}
+
+const LABELS_OBRA: Record<string, string> = {
+  inmobiliario: 'Construcción / Inmobiliaria',
+  transporte: 'Carretera / Camino',
+  energia: 'Energía / Línea eléctrica',
+  mineria: 'Minería / Cantera',
+  agricola: 'Agrícola / Forestal',
+  saqueo: 'Excavación no autorizada',
+  turismo: 'Turismo / Tránsito',
+  otro: 'Otra actividad',
 }
 
 export default function RevisarReportesPage() {
@@ -50,7 +62,7 @@ export default function RevisarReportesPage() {
       setLoading(true)
       const { data, error: reportesError } = await supabase
         .from('reportes_nuevos')
-        .select('id_reporte, nombre_reporte, region, comuna, timestamp_creado, estado_validacion, categoria_general, autor_reporte, tipologia_especifica')
+        .select('id_reporte, nombre_reporte, region, comuna, timestamp_creado, estado_validacion, categoria_general, tipo_riesgo_principal, autor_reporte, tipologia_especifica')
         .eq('estado_validacion', 'rojo')
         .order('timestamp_creado', { ascending: false })
 
@@ -130,7 +142,7 @@ export default function RevisarReportesPage() {
           </div>
 
           <Link
-            href="/dashboard"
+            href="/perfil"
             className="inline-flex items-center gap-2 text-xs font-medium px-3.5 py-2 rounded-lg transition self-start sm:self-auto"
             style={{
               backgroundColor: 'var(--surface-2)',
@@ -141,7 +153,7 @@ export default function RevisarReportesPage() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            Volver al panel
+            Volver a Mi Panel
           </Link>
         </div>
 
@@ -215,9 +227,15 @@ export default function RevisarReportesPage() {
           <div className="space-y-3.5">
             {reportesFiltrados.map((reporte) => {
               const riesgo = esRiesgo(reporte.categoria_general)
-              const tipologia = Array.isArray(reporte.tipologia_especifica) && reporte.tipologia_especifica.length > 0
-                ? reporte.tipologia_especifica[0]
-                : reporte.categoria_general || 'Arqueológico'
+              
+              // Tipología o subtipo descriptivo
+              const tipologia = riesgo
+                ? (reporte.tipo_riesgo_principal && LABELS_OBRA[reporte.tipo_riesgo_principal]) 
+                    ? `Afectación: ${LABELS_OBRA[reporte.tipo_riesgo_principal]}` 
+                    : 'Aviso prioritario'
+                : (Array.isArray(reporte.tipologia_especifica) && reporte.tipologia_especifica.length > 0)
+                    ? reporte.tipologia_especifica[0]
+                    : 'Sitio Arqueológico'
 
               return (
                 <div
@@ -231,10 +249,11 @@ export default function RevisarReportesPage() {
                   onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--border-m)')}
                   onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
                 >
-                  <div className="flex flex-col sm:flex-row gap-4 items-start">
-                    {/* Miniatura Foto */}
+                  <div className="flex flex-row gap-4 sm:gap-5 items-start">
+                    
+                    {/* Foto cuadrada a la izquierda fija en móviles y desktop */}
                     <div
-                      className="w-full sm:w-24 h-24 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
+                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden"
                       style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)' }}
                     >
                       {fotos[reporte.id_reporte] ? (
@@ -244,7 +263,7 @@ export default function RevisarReportesPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
                       ) : (
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--faint)' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--faint)' }}>
                           <rect x="3" y="3" width="18" height="18" rx="2" />
                           <circle cx="8.5" cy="8.5" r="1.5" />
                           <path d="M21 15l-5-5L5 21" />
@@ -252,60 +271,62 @@ export default function RevisarReportesPage() {
                       )}
                     </div>
 
-                    {/* Contenido */}
-                    <div className="flex-1 min-w-0">
-                      {/* Header de la card */}
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span
-                          className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded"
-                          style={{
-                            backgroundColor: riesgo ? 'rgba(168,80,64,0.14)' : 'rgba(143,181,164,0.12)',
-                            color: riesgo ? 'var(--ladrillo)' : 'var(--accent)',
-                          }}
+                    {/* Información a la derecha */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch">
+                      <div>
+                        {/* Header de la card */}
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span
+                            className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded"
+                            style={{
+                              backgroundColor: riesgo ? 'rgba(168,80,64,0.14)' : 'rgba(143,181,164,0.12)',
+                              color: riesgo ? 'var(--ladrillo)' : 'var(--accent)',
+                            }}
+                          >
+                            {riesgo ? 'Arqueología en Riesgo' : 'Reporte de Hallazgo'}
+                          </span>
+                          <span className="text-[11px]" style={{ color: 'var(--faint)' }}>
+                            {new Date(reporte.timestamp_creado).toLocaleDateString('es-CL', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+
+                        {/* Título */}
+                        <h2
+                          className="font-display font-light text-lg sm:text-xl leading-snug truncate mb-1.5 group-hover:text-accent transition"
+                          style={{ color: 'var(--text)' }}
                         >
-                          {riesgo ? 'Arqueología en Riesgo' : 'Reporte de Hallazgo'}
-                        </span>
-                        <span className="text-[11px]" style={{ color: 'var(--faint)' }}>
-                          {new Date(reporte.timestamp_creado).toLocaleDateString('es-CL', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </span>
+                          {reporte.nombre_reporte}
+                        </h2>
+
+                        {/* Metas: Ubicación y Tipología */}
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs mb-2" style={{ color: 'var(--muted)' }}>
+                          <span className="flex items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-6-5.33-6-10a6 6 0 1112 0c0 4.67-6 10-6 10z" />
+                              <circle cx="12" cy="11" r="2" />
+                            </svg>
+                            {reporte.region || 'Sin región'}{reporte.comuna ? `, ${reporte.comuna}` : ''}
+                          </span>
+                          <span style={{ color: 'var(--faint)' }}>•</span>
+                          <span className="truncate">{tipologia}</span>
+                        </div>
                       </div>
 
-                      {/* Título */}
-                      <h2
-                        className="font-display font-light text-xl leading-snug truncate mb-2 group-hover:text-accent transition"
-                        style={{ color: 'var(--text)' }}
-                      >
-                        {reporte.nombre_reporte}
-                      </h2>
-
-                      {/* Metas: Ubicación y Tipología */}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mb-3" style={{ color: 'var(--muted)' }}>
-                        <span className="flex items-center gap-1">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-6-5.33-6-10a6 6 0 1112 0c0 4.67-6 10-6 10z" />
-                            <circle cx="12" cy="11" r="2" />
-                          </svg>
-                          {reporte.region || 'Sin región'}{reporte.comuna ? `, ${reporte.comuna}` : ''}
-                        </span>
-                        <span style={{ color: 'var(--faint)' }}>•</span>
-                        <span>{tipologia}</span>
-                      </div>
-
-                      {/* Footer: Reportante y estado */}
-                      <div className="flex items-center justify-between pt-2.5 border-t text-xs" style={{ borderColor: 'var(--border)' }}>
-                        <span className="truncate" style={{ color: 'var(--faint)' }}>
-                          Reportado por:{' '}
+                      {/* Footer: Reportante y botón */}
+                      <div className="flex items-center justify-between pt-2 border-t text-xs mt-1" style={{ borderColor: 'var(--border)' }}>
+                        <span className="truncate max-w-[65%]" style={{ color: 'var(--faint)' }}>
+                          Por:{' '}
                           <span style={{ color: 'var(--muted)' }}>
                             {reporte.autor_reporte?.replace('[privado] ', '') || 'Anónimo'}
                           </span>
                         </span>
 
-                        <div className="flex items-center gap-1 text-xs font-medium" style={{ color: 'var(--accent)' }}>
-                          <span>Revisar ficha</span>
+                        <div className="flex items-center gap-1 text-xs font-medium flex-shrink-0" style={{ color: 'var(--accent)' }}>
+                          <span>Revisar</span>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
                           </svg>
