@@ -278,7 +278,7 @@ export default function RevisarReportePage() {
   const esRiesgo = reporte.categoria_general === 'arqueologia_en_riesgo'
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 pb-28" style={{ backgroundColor: 'var(--bg)' }}>
+    <div className="min-h-screen py-10 px-4 sm:px-6 pb-40 md:pb-28" style={{ backgroundColor: 'var(--bg)' }}>
       <div className="max-w-4xl mx-auto space-y-6">
 
         {/* ── Banner ARQUEOLOGÍA EN RIESGO ── */}
@@ -829,11 +829,11 @@ export default function RevisarReportePage() {
           </div>
         </div>
 
-        {/* ── BARRA INFERIOR DE ACCIÓN (Sticky Bottom) ── */}
+        {/* ── BARRA INFERIOR DE ACCIÓN (Sticky Bottom responsivo) ── */}
         <div
-          className="fixed bottom-0 left-0 right-0 p-4 border-t z-30 shadow-2xl backdrop-blur-md"
+          className="fixed bottom-[60px] md:bottom-0 left-0 right-0 p-4 border-t z-50 shadow-2xl backdrop-blur-md"
           style={{
-            backgroundColor: 'rgba(29,27,25,0.92)',
+            backgroundColor: 'rgba(29,27,25,0.95)',
             borderColor: 'var(--border-m)',
           }}
         >
