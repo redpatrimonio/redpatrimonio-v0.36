@@ -12,6 +12,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CapasNoArqueologicas } from '@/components/map/CapasNoArqueologicas'
 import { SitiosMaster } from '@/components/map/SitiosMaster'
+import { SitiosCompendio } from '@/components/map/SitiosCompendio'
+import { SelectorCompendios } from '@/components/map/SelectorCompendios'
 import { ToggleCapas } from '@/components/map/ToggleCapas'
 import { iconoArqueologico, areaB, areaC } from '@/components/map/IconosCapas'
 import type { EstadoCapas } from '@/types/index'
@@ -91,8 +93,6 @@ function ControlesMapa() {
   )
 }
 
-// Icono de cluster arqueológico: círculo oscuro #10454B
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function crearIconoClusterArqueologico(cluster: any) {
   const count = cluster.getChildCount()
   const size = count < 10 ? 36 : count < 50 ? 42 : 48
@@ -116,7 +116,7 @@ export function MapView() {
   const { usuario } = useAuth()
   const [reportes, setReportes] = useState<ReporteComunidad[]>([])
   const [sitioSeleccionado, setSitioSeleccionado] = useState<string | null>(null)
-  const [origenSeleccionado, setOrigenSeleccionado] = useState<'master' | 'reporte'>('master')
+  const [origenSeleccionado, setOrigenSeleccionado] = useState<'master' | 'reporte' | 'compendio'>('master')
   const [zoomActual, setZoomActual] = useState(5)
   const [capasActivas, setCapasActivas] = useState<EstadoCapas>({
     geografico: true,
@@ -125,6 +125,8 @@ export function MapView() {
     memoria: true,
     museo: true,
   })
+  const [compendiosActivos, setCompendiosActivos] = useState<string[]>([])
+
   const supabase = createClient()
   const coordsDesplazadasRef = useRef<Record<string, [number, number]>>({})
 
@@ -155,7 +157,6 @@ export function MapView() {
   }, [usuario])
 
   const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
-
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
 
   return (
@@ -196,8 +197,9 @@ export function MapView() {
           <ZoomWatcher onZoomChange={setZoomActual} />
           <ControlesMapa />
           <ToggleCapas capasActivas={capasActivas} onChange={handleToggleCapa} />
+          <SelectorCompendios compendiosActivos={compendiosActivos} onChange={setCompendiosActivos} />
 
-          {/* ── CLUSTER ARQUEOLÓGICO ── sitios_master + reportes verde */}
+          {/* ── CLUSTER ARQUEOLÓGICO ── sitios_master + reportes verde + compendios activos */}
           <MarkerClusterGroup
             iconCreateFunction={crearIconoClusterArqueologico}
             maxClusterRadius={60}
@@ -209,6 +211,12 @@ export function MapView() {
             <SitiosMaster
               zoomActual={zoomActual}
               onSeleccionar={(id) => { setSitioSeleccionado(id); setOrigenSeleccionado('master') }}
+            />
+
+            <SitiosCompendio
+              zoomActual={zoomActual}
+              compendiosActivos={compendiosActivos}
+              onSeleccionar={(id) => { setSitioSeleccionado(id); setOrigenSeleccionado('compendio') }}
             />
 
             {reportes.map(reporte => {
