@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
-import { puedeVerCoordenadasExactas, esExpertoOMas } from '@/lib/utils/accesibilidad'
+import { puedeVerCoordenadasExactas } from '@/lib/utils/accesibilidad'
+import { esExpertoOMas } from '@/lib/utils/role'
 import { InfoContactoDisplay } from '@/components/sitio/InfoContactoDisplay'
 import { SolicitarContactoModal } from '@/components/modals/SolicitarContactoModal'
 
