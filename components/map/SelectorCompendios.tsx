@@ -23,16 +23,10 @@ export function SelectorCompendios({ compendiosActivos, onChange }: Props) {
 
   return (
     <>
+      {/* Botón flotante centrado: por encima del footer móvil (74px) y con z-index seguro */}
       <div
-        className="leaflet-bottom"
-        style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          marginBottom: '22px',
-          zIndex: 999,
-          pointerEvents: 'auto',
-        }}
+        className="fixed md:absolute left-1/2 -translate-x-1/2 bottom-[76px] md:bottom-6 z-[900] pointer-events-auto"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <button
           onClick={() => setAbierto(true)}
@@ -48,9 +42,10 @@ export function SelectorCompendios({ compendiosActivos, onChange }: Props) {
             fontSize: '13px',
             fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.22)',
             letterSpacing: '0.02em',
             transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap',
           }}
           onMouseOver={e => {
             if (cantidadActivos === 0) e.currentTarget.style.backgroundColor = '#f8f7f5'
