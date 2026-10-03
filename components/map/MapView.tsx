@@ -13,7 +13,6 @@ import 'leaflet/dist/leaflet.css'
 import { CapasNoArqueologicas } from '@/components/map/CapasNoArqueologicas'
 import { SitiosMaster } from '@/components/map/SitiosMaster'
 import { SitiosCompendio } from '@/components/map/SitiosCompendio'
-import { SelectorCompendios } from '@/components/map/SelectorCompendios'
 import { ToggleCapas } from '@/components/map/ToggleCapas'
 import { iconoArqueologico, areaB, areaC } from '@/components/map/IconosCapas'
 import type { EstadoCapas } from '@/types/index'
@@ -98,14 +97,7 @@ function crearIconoClusterArqueologico(cluster: any) {
   const size = count < 10 ? 36 : count < 50 ? 42 : 48
   return L.divIcon({
     html: `<div style="
-      width:${size}px; height:${size}px;
-      background:#10454B;
-      border:2.5px solid #B6875D;
-      border-radius:50%;
-      display:flex; align-items:center; justify-content:center;
-      color:white; font-size:${size < 42 ? 12 : 13}px; font-weight:700;
-      font-family:inherit; box-shadow:0 2px 8px rgba(0,0,0,0.3);
-    ">${count}</div>`,
+      width:${size}px; height:${size}px;\n      background:#10454B;\n      border:2.5px solid #B6875D;\n      border-radius:50%;\n      display:flex; align-items:center; justify-content:center;\n      color:white; font-size:${size < 42 ? 12 : 13}px; font-weight:700;\n      font-family:inherit; box-shadow:0 2px 8px rgba(0,0,0,0.3);\n    ">${count}</div>`,
     className: '',
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -125,13 +117,20 @@ export function MapView() {
     memoria: true,
     museo: true,
   })
-  const [compendiosActivos, setCompendiosActivos] = useState<string[]>([])
+  // Stehberg 1975 encendido por defecto para visibilidad inmediata
+  const [compendiosActivos, setCompendiosActivos] = useState<string[]>(['stehberg_1975'])
 
   const supabase = createClient()
   const coordsDesplazadasRef = useRef<Record<string, [number, number]>>({})
 
   function handleToggleCapa(capa: keyof EstadoCapas) {
     setCapasActivas(prev => ({ ...prev, [capa]: !prev[capa] }))
+  }
+
+  function handleToggleCompendio(slug: string) {
+    setCompendiosActivos(prev =>
+      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+    )
   }
 
   function getCoordsDesplazadas(id: string, lat: number, lng: number): [number, number] {
@@ -196,8 +195,12 @@ export function MapView() {
           />
           <ZoomWatcher onZoomChange={setZoomActual} />
           <ControlesMapa />
-          <ToggleCapas capasActivas={capasActivas} onChange={handleToggleCapa} />
-          <SelectorCompendios compendiosActivos={compendiosActivos} onChange={setCompendiosActivos} />
+          <ToggleCapas
+            capasActivas={capasActivas}
+            onChange={handleToggleCapa}
+            compendiosActivos={compendiosActivos}
+            onToggleCompendio={handleToggleCompendio}
+          />
 
           {/* ── CLUSTER ARQUEOLÓGICO ── sitios_master + reportes verde + compendios activos */}
           <MarkerClusterGroup
