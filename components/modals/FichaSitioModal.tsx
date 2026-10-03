@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { puedeVerCoordenadasExactas, esExpertoOMas } from '@/lib/utils/accesibilidad'
-import { InfoContactoDisplay } from '@/components/modals/InfoContactoDisplay'
+import { InfoContactoDisplay } from '@/components/sitio/InfoContactoDisplay'
 import { SolicitarContactoModal } from '@/components/modals/SolicitarContactoModal'
 
 interface Foto {
