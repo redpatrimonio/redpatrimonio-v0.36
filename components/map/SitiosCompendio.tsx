@@ -138,17 +138,19 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
             position={[s.latitud, s.longitud]}
             icon={icono}
           >
-            <Popup maxWidth={320} minWidth={270}>
+            <Popup maxWidth={380} minWidth={320}>
               <div
                 style={{
-                  padding: '14px 16px',
+                  width: '330px',
+                  maxWidth: '85vw',
+                  padding: '16px 18px',
                   fontFamily: 'inherit',
                   maxHeight: '440px',
                   overflowY: 'auto',
                 }}
               >
-                {/* ── TOP: Portada / Icono + Título + Ubicación ── */}
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '8px' }}>
+                {/* ── TOP: Miniatura sello + Título + Ubicación ── */}
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '10px' }}>
                   <div
                     style={{
                       width: '42px',
@@ -161,11 +163,11 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
                     }}
                   >
                     <span style={{ fontSize: '18px' }}>🏺</span>
-                    <span style={{ fontSize: '8px', fontWeight: 800, color: '#92400e', marginTop: '2px' }}>1975</span>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#78716c', marginTop: '2px' }}>1975</span>
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <h3
@@ -179,16 +181,17 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                     >
                       {s.nombre_sitio}
                     </h3>
-                    <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>
-                      {[s.comuna, s.region].filter(Boolean).join(' · ')}
+                    <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ color: '#dc2626', fontSize: '13px' }}>📍</span>
+                      <span>{[s.comuna, s.region].filter(Boolean).join(' · ')}</span>
                     </p>
                   </div>
                 </div>
 
                 {/* ── BODY ── */}
                 {s.localidad_sector && (
-                  <p style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: 600, margin: '0 0 6px 0' }}>
-                    📍 Sector: {s.localidad_sector}
+                  <p style={{ fontSize: '11px', color: '#6b7280', fontWeight: 600, margin: '0 0 6px 0' }}>
+                    Sector: {s.localidad_sector}
                   </p>
                 )}
 
@@ -196,7 +199,7 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                   <p
                     style={{
                       fontSize: '12px',
-                      color: '#1f2937',
+                      color: '#374151',
                       fontWeight: 600,
                       fontStyle: 'italic',
                       margin: '0 0 6px 0',
@@ -226,9 +229,16 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                   </div>
                 )}
 
+                {/* Fuente Principal */}
+                {s.fuente_principal && (
+                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 8px 0', lineHeight: 1.3 }}>
+                    <strong style={{ color: '#374151' }}>Fuente:</strong> {s.fuente_principal}
+                  </p>
+                )}
+
                 {/* Tipologías */}
                 {s.tipologia_especifica && s.tipologia_especifica.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
                     {s.tipologia_especifica.map((t, idx) => (
                       <span
                         key={idx}
@@ -236,9 +246,9 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                           fontSize: '10px',
                           padding: '2px 6px',
                           borderRadius: '4px',
-                          backgroundColor: '#fef3c7',
-                          color: '#92400e',
-                          fontWeight: 600,
+                          backgroundColor: '#f3f4f6',
+                          color: '#4b5563',
+                          fontWeight: 500,
                         }}
                       >
                         {t}
@@ -247,35 +257,50 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                   </div>
                 )}
 
-                {/* Caja de créditos documentales y autoría */}
+                {/* Caja de créditos regularizada */}
                 <div
                   style={{
                     padding: '8px 10px',
-                    backgroundColor: '#faf7f2',
-                    border: '1px solid #e8dfd3',
+                    backgroundColor: '#f9f8f5',
+                    border: '1px solid #e5e3df',
                     borderRadius: '8px',
-                    fontSize: '10px',
-                    color: '#57534e',
-                    lineHeight: 1.35,
-                    marginBottom: '10px',
+                    fontSize: '11px',
+                    color: '#4b5563',
+                    lineHeight: 1.4,
+                    marginBottom: '12px',
                   }}
                 >
-                  <p style={{ margin: '0 0 2px 0', fontWeight: 700, color: '#10454B' }}>
-                    📖 {s.titulo_obra || 'Diccionario de sitios arqueológicos de Chile Central'} ({s.anio_publicacion || 1975})
-                  </p>
                   <p style={{ margin: '0 0 2px 0' }}>
-                    <strong>Autor original:</strong> {s.autor_original || 'Rubén Stehberg'}
+                    <strong>Autor:</strong> {s.autor_original || 'Rubén Stehberg'}
                   </p>
-                  <p style={{ margin: '0 0 4px 0', color: '#78716c' }}>
-                    {s.institucion_editora || 'MNHN — Publicación Ocasional N° 17'}
+                  <p style={{ margin: 0 }}>
+                    <strong>Compilación:</strong> {s.compilador_digital || 'Carlos Verdugo Rotella'}
                   </p>
-                  <div style={{ borderTop: '1px dashed #d6cbbe', paddingTop: '4px', color: '#92400e', fontWeight: 600 }}>
-                    💻 Compilador digital: {s.compilador_digital || 'Carlos Verdugo Rotella'}
-                  </div>
                 </div>
 
                 {/* ── BOTTOM: Botones de Acción ── */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button
+                    onClick={() => handleAbrirFicha(s.id)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 0',
+                      backgroundColor: '#10454B',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      letterSpacing: '0.02em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    Ver Ficha
+                  </button>
+
                   <a
                     href={googleMapsUrl}
                     target="_blank"
@@ -285,36 +310,18 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
-                      padding: '7px 0',
-                      backgroundColor: '#f3f4f6',
-                      color: '#1f2937',
+                      padding: '8px 0',
+                      backgroundColor: 'white',
+                      color: '#10454B',
                       borderRadius: '8px',
                       fontSize: '11px',
                       fontWeight: 600,
                       textDecoration: 'none',
-                      border: '1px solid #d1d5db',
+                      border: '1.5px solid #10454B',
                     }}
                   >
-                    🌍 Ver en Google Earth / Maps
+                    Abrir en Google Maps
                   </a>
-
-                  <button
-                    onClick={() => handleAbrirFicha(s.id)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 0',
-                      backgroundColor: '#10454B',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    Ver ficha documental completa
-                  </button>
                 </div>
               </div>
             </Popup>
