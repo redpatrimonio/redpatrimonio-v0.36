@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { EstadoCapas, CONFIG_CAPAS } from '@/types/index'
 
 interface Props {
@@ -11,28 +11,65 @@ interface Props {
 }
 
 const ORDEN: { clave: keyof EstadoCapas; label: string; color: string }[] = [
+  { clave: 'lugar_interes', label: CONFIG_CAPAS.lugar_interes.label, color: CONFIG_CAPAS.lugar_interes.color },
+  { clave: 'museo', label: 'Museo', color: '#688998' },
   { clave: 'geografico', label: CONFIG_CAPAS.geografico.label, color: CONFIG_CAPAS.geografico.color },
-  { clave: 'museo',      label: CONFIG_CAPAS.museo.label,      color: CONFIG_CAPAS.museo.color },
-  { clave: 'turistico',  label: CONFIG_CAPAS.turistico.label,  color: CONFIG_CAPAS.turistico.color },
-  { clave: 'memoria',    label: CONFIG_CAPAS.memoria.label,    color: CONFIG_CAPAS.memoria.color },
-  { clave: 'comercial',  label: CONFIG_CAPAS.comercial.label,  color: CONFIG_CAPAS.comercial.color },
+  { clave: 'memoria', label: CONFIG_CAPAS.memoria.label, color: CONFIG_CAPAS.memoria.color },
+  { clave: 'turistico', label: CONFIG_CAPAS.turistico.label, color: CONFIG_CAPAS.turistico.color },
+  { clave: 'comercial', label: CONFIG_CAPAS.comercial.label, color: CONFIG_CAPAS.comercial.color },
 ]
 
 export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggleCompendio }: Props) {
   const [abierto, setAbierto] = useState(false)
+  const contenedorRef = useRef<HTMLDivElement>(null)
   const stehbergActivo = compendiosActivos.includes('stehberg_1975')
+
+  // Cierra el panel si el usuario hace clic fuera de él
+  useEffect(() => {
+    function handleClickAfuera(e: MouseEvent | TouchEvent) {
+      if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
+        setAbierto(false)
+      }
+    }
+    if (abierto) {
+      document.addEventListener('mousedown', handleClickAfuera)
+      document.addEventListener('touchstart', handleClickAfuera)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickAfuera)
+      document.removeEventListener('touchstart', handleClickAfuera)
+    }
+  }, [abierto])
 
   return (
     <div
+      ref={contenedorRef}
       className="leaflet-top leaflet-right"
-      style={{ marginTop: '10px', marginRight: '10px' }}
+      style={{ zIndex: 1100, pointerEvents: 'auto' }}
+      onClick={e => e.stopPropagation()}
+      onDoubleClick={e => e.stopPropagation()}
+      onMouseDown={e => e.stopPropagation()}
+      onTouchStart={e => e.stopPropagation()}
     >
-      <div className="leaflet-control" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-
-        {/* Botón trigger con paleta institucional */}
+      <div
+        className="leaflet-control"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          gap: '6px',
+          margin: '10px 10px 0 0',
+        }}
+      >
+        {/* Botón trigger con paleta institucional (#f9f8f5, #10454B, #B6875D) */}
         <button
-          onClick={() => setAbierto(v => !v)}
+          type="button"
+          onClick={e => {
+            e.stopPropagation()
+            setAbierto(prev => !prev)
+          }}
           title="Capas del mapa"
+          aria-label="Capas del mapa"
           style={{
             width: '38px',
             height: '38px',
@@ -43,8 +80,9 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.14)',
             transition: 'all 0.15s ease',
+            flexShrink: 0,
           }}
           onMouseOver={e => {
             if (!abierto) e.currentTarget.style.backgroundColor = '#f3f0ec'
@@ -76,12 +114,13 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
               backgroundColor: '#f9f8f5',
               borderRadius: '14px',
               border: '1px solid #d4d1ca',
-              boxShadow: '0 8px 26px rgba(40,37,29,0.16)',
+              boxShadow: '0 8px 26px rgba(40,37,29,0.18)',
               padding: '12px 14px',
               display: 'flex',
               flexDirection: 'column',
               gap: '6px',
               minWidth: '220px',
+              maxWidth: '260px',
               fontFamily: 'inherit',
             }}
           >
@@ -91,8 +130,23 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
                 Capas del mapa
               </p>
               <button
-                onClick={() => setAbierto(false)}
-                style={{ background: 'none', border: 'none', color: '#7a7974', fontSize: '16px', cursor: 'pointer', lineHeight: 1, padding: '0 2px' }}
+                type="button"
+                onClick={e => {
+                  e.stopPropagation()
+                  setAbierto(false)
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#7a7974',
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  padding: '2px 4px',
+                }}
+                title="Cerrar panel"
+                aria-label="Cerrar"
               >
                 ×
               </button>
