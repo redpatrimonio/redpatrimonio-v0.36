@@ -31,7 +31,9 @@ interface SitioCompendioRow {
 
 interface Props {
   compendiosActivos: string[]
-  onSelectSitio: (id: string, origen: 'compendio') => void
+  onSeleccionar?: (id: string) => void
+  onSelectSitio?: (id: string, origen: 'compendio') => void
+  zoomActual?: number
 }
 
 function crearIconoCompendio(): L.DivIcon {
@@ -60,10 +62,18 @@ function crearIconoCompendio(): L.DivIcon {
   })
 }
 
-export function SitiosCompendio({ compendiosActivos, onSelectSitio }: Props) {
+export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSitio, zoomActual }: Props) {
   const [sitios, setSitios] = useState<SitioCompendioRow[]>([])
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
+
+  const handleAbrirFicha = (id: string) => {
+    if (onSeleccionar) {
+      onSeleccionar(id)
+    } else if (onSelectSitio) {
+      onSelectSitio(id, 'compendio')
+    }
+  }
 
   useEffect(() => {
     if (compendiosActivos.length === 0) {
@@ -289,7 +299,7 @@ export function SitiosCompendio({ compendiosActivos, onSelectSitio }: Props) {
                   </a>
 
                   <button
-                    onClick={() => onSelectSitio(s.id, 'compendio')}
+                    onClick={() => handleAbrirFicha(s.id)}
                     style={{
                       width: '100%',
                       padding: '8px 0',
