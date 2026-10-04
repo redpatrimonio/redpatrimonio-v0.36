@@ -1,183 +1,315 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Marker, Popup } from 'react-leaflet'
+import L from 'leaflet'
 import { createClient } from '@/lib/supabase/client'
-import { useAuth } from '@/components/auth/AuthProvider'
-import { puedeVerSitio, puedeVerCoordenadasExactas } from '@/lib/utils/accesibilidad'
-import { iconoArqueologico, areaB, areaC } from '@/components/map/IconosCapas'
 
-export interface SitioCompendioItem {
+interface SitioCompendioRow {
   id: string
   nombre_sitio: string
   latitud: number
   longitud: number
   region: string | null
   comuna: string | null
+  localidad_sector: string | null
+  descripcion_breve: string | null
+  descripcion_detallada: string | null
   categoria_general: string | null
-  categoria_sitio: string | null
   tipologia_especifica: string[] | null
-  codigo_accesibilidad: 'A' | 'B' | 'C'
-  compendio_slug: string
+  cultura_asociada: string | null
+  periodo_cronologico: string | null
   fuente_principal: string | null
-}
-
-function desplazarCoordenada(lat: number, lng: number, radioMetros: number): [number, number] {
-  const radioGrados = radioMetros / 111320
-  const angulo = Math.random() * 2 * Math.PI
-  const distancia = Math.random() * radioGrados
-  return [
-    lat + distancia * Math.cos(angulo),
-    lng + distancia * Math.sin(angulo) / Math.cos((lat * Math.PI) / 180),
-  ]
+  autor_original: string | null
+  titulo_obra: string | null
+  anio_publicacion: number | null
+  institucion_editora: string | null
+  compilador_digital: string | null
+  url_portada: string | null
+  compendio_slug: string
 }
 
 interface Props {
-  zoomActual: number
   compendiosActivos: string[]
-  onSeleccionar: (id: string) => void
+  onSelectSitio: (id: string, origen: 'compendio') => void
 }
 
-export function SitiosCompendio({ zoomActual, compendiosActivos, onSeleccionar }: Props) {
-  const { usuario } = useAuth()
-  const [sitios, setSitios] = useState<SitioCompendioItem[]>([])
-  const coordsDesplazadasRef = useRef<Record<string, [number, number]>>({})
+function crearIconoCompendio(): L.DivIcon {
+  const html = `
+    <div style="
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #78350f;
+      border: 2px solid #fef3c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      cursor: pointer;
+    ">
+      <span style="font-size: 15px; line-height: 1;">🏺</span>
+    </div>
+  `
+  return L.divIcon({
+    html,
+    className: '',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
+  })
+}
+
+export function SitiosCompendio({ compendiosActivos, onSelectSitio }: Props) {
+  const [sitios, setSitios] = useState<SitioCompendioRow[]>([])
+  const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
-  function getCoordsDesplazadas(sitio: SitioCompendioItem): [number, number] {
-    if (!coordsDesplazadasRef.current[sitio.id]) {
-      coordsDesplazadasRef.current[sitio.id] = desplazarCoordenada(sitio.latitud, sitio.longitud, 300)
-    }
-    return coordsDesplazadasRef.current[sitio.id]
-  }
-
   useEffect(() => {
-    if (!compendiosActivos || compendiosActivos.length === 0) {
+    if (compendiosActivos.length === 0) {
       setSitios([])
       return
     }
 
-    async function fetchSitiosCompendio() {
-      const { data, error } = await supabase
-        .from('sitios_compendio')
-        .select('id, nombre_sitio, latitud, longitud, region, comuna, categoria_general, categoria_sitio, tipologia_especifica, codigo_accesibilidad, compendio_slug, fuente_principal')
-        .in('compendio_slug', compendiosActivos)
-        .eq('estado_validacion', 'verde')
-        .order('nombre_sitio')
+    async function cargarSitiosCompendio() {
+      setLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('sitios_compendio')
+          .select(`
+            id,
+            nombre_sitio,
+            latitud,
+            longitud,
+            region,
+            comuna,
+            localidad_sector,
+            descripcion_breve,
+            descripcion_detallada,
+            categoria_general,
+            tipologia_especifica,
+            cultura_asociada,
+            periodo_cronologico,
+            fuente_principal,
+            autor_original,
+            titulo_obra,
+            anio_publicacion,
+            institucion_editora,
+            compilador_digital,
+            url_portada,
+            compendio_slug
+          `)
+          .in('compendio_slug', compendiosActivos)
 
-      if (error) {
-        console.error('SitiosCompendio fetch error:', error)
-        return
+        if (error) throw error
+        setSitios(data ?? [])
+      } catch (err) {
+        console.error('Error cargando sitios de compendio:', err)
+      } finally {
+        setLoading(false)
       }
-
-      const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
-      const filtrados = (data || []).filter(s =>
-        puedeVerSitio((s.codigo_accesibilidad as 'A' | 'B' | 'C') || 'B', rolUsuario)
-      )
-      setSitios(filtrados as SitioCompendioItem[])
     }
 
-    fetchSitiosCompendio()
-  }, [compendiosActivos, usuario])
+    cargarSitiosCompendio()
+  }, [compendiosActivos])
 
-  if (!compendiosActivos || compendiosActivos.length === 0) return null
+  if (sitios.length === 0) return null
 
-  const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
+  const icono = crearIconoCompendio()
 
   return (
     <>
-      {sitios.map(sitio => {
-        const codigo = (sitio.codigo_accesibilidad as 'A' | 'B' | 'C') || 'B'
-        const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
-        const coords: [number, number] = verExacto
-          ? [sitio.latitud, sitio.longitud]
-          : getCoordsDesplazadas(sitio)
+      {sitios.map(s => {
+        const googleMapsUrl = `https://www.google.com/maps?q=${s.latitud},${s.longitud}&t=k`
 
-        const tipologias: string[] = sitio.tipologia_especifica ?? []
-
-        const necesitaSolicitar =
-          (codigo === 'B' && rolUsuario === 'publico') ||
-          (codigo === 'C' && ['experto', 'partner', 'founder'].includes(rolUsuario || ''))
-
-        const googleMapsUrl = `https://www.google.com/maps?q=${sitio.latitud},${sitio.longitud}`
-
-        const popup = (
-          <div style={{ width: '272px', fontFamily: 'inherit' }}>
-            <div style={{ display: 'flex', gap: '10px', padding: '14px 14px 10px 14px', alignItems: 'flex-start' }}>
-              <div style={{ width: '70px', height: '70px', borderRadius: '8px', backgroundColor: '#e5e7eb', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>🏺</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '4px' }}>
-                  {sitio.nombre_sitio}
-                </p>
-                <p style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                  <span>📍</span>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sitio.comuna || sitio.region || 'Chile Central'}</span>
-                </p>
-                {!verExacto && (
-                  <p style={{ fontSize: '10px', color: '#d97706', marginTop: '3px' }}>Ubicación aproximada</p>
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', padding: '0 14px 10px 14px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#fef3c7', color: '#92400e', letterSpacing: '0.02em' }}>
-                Compendio Stehberg 1975
-              </span>
-              {sitio.categoria_general && (
-                <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e6f0ef', color: '#10454B', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-                  {sitio.categoria_general}
-                </span>
-              )}
-              {tipologias.slice(0, 2).map((tip, i) => (
-                <span key={i} style={{ fontSize: '10px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px', backgroundColor: '#e0f2fe', color: '#0369a1' }}>
-                  {tip}
-                </span>
-              ))}
-            </div>
-
-            <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '0 0 10px 0' }} />
-
-            <div style={{ padding: '0 14px 14px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                onClick={() => onSeleccionar(sitio.id)}
-                style={{ width: '100%', padding: '8px 0', backgroundColor: '#10454B', color: '#B6875D', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'background-color 0.15s', letterSpacing: '0.02em' }}
-                onMouseOver={e => (e.currentTarget.style.backgroundColor = '#0b3237')}
-                onMouseOut={e => (e.currentTarget.style.backgroundColor = '#10454B')}
+        return (
+          <Marker
+            key={s.id}
+            position={[s.latitud, s.longitud]}
+            icon={icono}
+          >
+            <Popup maxWidth={320} minWidth={270}>
+              <div
+                style={{
+                  padding: '14px 16px',
+                  fontFamily: 'inherit',
+                  maxHeight: '440px',
+                  overflowY: 'auto',
+                }}
               >
-                {necesitaSolicitar ? <><span>📨</span> Solicitar info de contacto</> : <><span>📄</span> Ver ficha</>}
-              </button>
+                {/* ── TOP: Portada / Icono + Título + Ubicación ── */}
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '52px',
+                      backgroundColor: '#f3ece3',
+                      border: '1px solid #d4c5b3',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    <span style={{ fontSize: '18px' }}>🏺</span>
+                    <span style={{ fontSize: '8px', fontWeight: 800, color: '#92400e', marginTop: '2px' }}>1975</span>
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: '15px',
+                        fontWeight: 700,
+                        color: '#10454B',
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      {s.nombre_sitio}
+                    </h3>
+                    <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>
+                      {[s.comuna, s.region].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                </div>
 
-              {verExacto && (
-                <a
-                  href={googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ width: '100%', padding: '7px 0', backgroundColor: 'white', color: '#10454B', border: '1.5px solid #10454B', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', letterSpacing: '0.02em', textDecoration: 'none' }}
+                {/* ── BODY ── */}
+                {s.localidad_sector && (
+                  <p style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: 600, margin: '0 0 6px 0' }}>
+                    📍 Sector: {s.localidad_sector}
+                  </p>
+                )}
+
+                {s.descripcion_breve && (
+                  <p
+                    style={{
+                      fontSize: '12px',
+                      color: '#1f2937',
+                      fontWeight: 600,
+                      fontStyle: 'italic',
+                      margin: '0 0 6px 0',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {s.descripcion_breve}
+                  </p>
+                )}
+
+                {s.descripcion_detallada && s.descripcion_detallada !== s.descripcion_breve && (
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: '#4b5563',
+                      margin: '0 0 8px 0',
+                      lineHeight: 1.45,
+                      maxHeight: '90px',
+                      overflowY: 'auto',
+                      padding: '6px 8px',
+                      backgroundColor: '#f9f8f5',
+                      borderRadius: '6px',
+                      border: '1px solid #ede9e3',
+                    }}
+                  >
+                    {s.descripcion_detallada}
+                  </div>
+                )}
+
+                {/* Tipologías */}
+                {s.tipologia_especifica && s.tipologia_especifica.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                    {s.tipologia_especifica.map((t, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          backgroundColor: '#fef3c7',
+                          color: '#92400e',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Caja de créditos documentales y autoría */}
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    backgroundColor: '#faf7f2',
+                    border: '1px solid #e8dfd3',
+                    borderRadius: '8px',
+                    fontSize: '10px',
+                    color: '#57534e',
+                    lineHeight: 1.35,
+                    marginBottom: '10px',
+                  }}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  Abrir en Google Maps
-                </a>
-              )}
-            </div>
-          </div>
+                  <p style={{ margin: '0 0 2px 0', fontWeight: 700, color: '#10454B' }}>
+                    📖 {s.titulo_obra || 'Diccionario de sitios arqueológicos de Chile Central'} ({s.anio_publicacion || 1975})
+                  </p>
+                  <p style={{ margin: '0 0 2px 0' }}>
+                    <strong>Autor original:</strong> {s.autor_original || 'Rubén Stehberg'}
+                  </p>
+                  <p style={{ margin: '0 0 4px 0', color: '#78716c' }}>
+                    {s.institucion_editora || 'MNHN — Publicación Ocasional N° 17'}
+                  </p>
+                  <div style={{ borderTop: '1px dashed #d6cbbe', paddingTop: '4px', color: '#92400e', fontWeight: 600 }}>
+                    💻 Compilador digital: {s.compilador_digital || 'Carlos Verdugo Rotella'}
+                  </div>
+                </div>
+
+                {/* ── BOTTOM: Botones de Acción ── */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '7px 0',
+                      backgroundColor: '#f3f4f6',
+                      color: '#1f2937',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      border: '1px solid #d1d5db',
+                    }}
+                  >
+                    🌍 Ver en Google Earth / Maps
+                  </a>
+
+                  <button
+                    onClick={() => onSelectSitio(s.id, 'compendio')}
+                    style={{
+                      width: '100%',
+                      padding: '8px 0',
+                      backgroundColor: '#10454B',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    Ver ficha documental completa
+                  </button>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
         )
-
-        if (codigo === 'A') {
-          return <Marker key={sitio.id} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
-        }
-
-        if (verExacto) {
-          return <Marker key={sitio.id} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
-        }
-
-        if (zoomActual >= 16) return null
-        if (zoomActual >= 10) {
-          return <Marker key={sitio.id} position={coords} icon={codigo === 'B' ? areaB : areaC}><Popup>{popup}</Popup></Marker>
-        }
-        return <Marker key={sitio.id} position={coords} icon={iconoArqueologico}><Popup>{popup}</Popup></Marker>
       })}
     </>
   )
