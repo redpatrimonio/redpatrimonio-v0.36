@@ -31,6 +31,15 @@ interface Publicacion {
   url_pdf: string
 }
 
+interface CreditosCompendio {
+  autor_original: string | null
+  titulo_obra: string | null
+  anio_publicacion: number | null
+  institucion_editora: string | null
+  compilador_digital: string | null
+  url_pdf: string | null
+}
+
 interface SitioNormalizado {
   id: string
   nombre: string
@@ -47,6 +56,7 @@ interface SitioNormalizado {
   codigo_accesibilidad: string
   fuente_principal?: string | null
   origen: 'master' | 'reporte' | 'compendio'
+  creditos_compendio?: CreditosCompendio | null
 }
 
 interface FichaSitioModalProps {
@@ -123,9 +133,32 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
           origen: 'reporte',
         })
       } else {
+        // Compendio: query limpio sin estado_conservacion y con metadatos de autoría
         const { data, error } = await supabase
           .from('sitios_compendio')
-          .select('id, nombre_sitio, descripcion_breve, descripcion_detallada, latitud, longitud, region, comuna, localidad_sector, categoria_general, tipologia_especifica, cultura_asociada, periodo_cronologico, estado_conservacion, codigo_accesibilidad, fuente_principal')
+          .select(`
+            id,
+            nombre_sitio,
+            descripcion_breve,
+            descripcion_detallada,
+            latitud,
+            longitud,
+            region,
+            comuna,
+            localidad_sector,
+            categoria_general,
+            tipologia_especifica,
+            cultura_asociada,
+            periodo_cronologico,
+            codigo_accesibilidad,
+            fuente_principal,
+            autor_original,
+            titulo_obra,
+            anio_publicacion,
+            institucion_editora,
+            compilador_digital,
+            url_pdf
+          `)
           .eq('id', idSitio)
           .single()
         if (error) throw error
@@ -141,11 +174,32 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
           tipologias: data.tipologia_especifica,
           cultura_asociada: data.cultura_asociada,
           periodo_cronologico: data.periodo_cronologico,
-          estado_conservacion: data.estado_conservacion,
+          estado_conservacion: null,
           codigo_accesibilidad: data.codigo_accesibilidad ?? 'B',
-          fuente_principal: data.fuente_principal,
+          fuente_principal: data.fuente_principal || 'R. Stehberg (1975)',
           origen: 'compendio',
+          creditos_compendio: {
+            autor_original: data.autor_original || 'Rubén Stehberg',
+            titulo_obra: data.titulo_obra || 'Diccionario de sitios arqueológicos de Chile Central',
+            anio_publicacion: data.anio_publicacion || 1975,
+            institucion_editora: data.institucion_editora || 'Museo Nacional de Historia Natural — Publicación Ocasional N° 17',
+            compilador_digital: data.compilador_digital || 'Carlos Verdugo Rotella',
+            url_pdf: data.url_pdf || 'https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf',
+          },
         })
+
+        // Si el compendio tiene url_pdf, se incorpora automáticamente a publicaciones de la ficha
+        if (data.url_pdf) {
+          setPublicaciones([
+            {
+              id_publicacion: data.id,
+              titulo: data.titulo_obra || 'Diccionario de sitios arqueológicos de Chile Central',
+              autor: data.autor_original || 'Rubén Stehberg',
+              año: data.anio_publicacion || 1975,
+              url_pdf: data.url_pdf,
+            },
+          ])
+        }
       }
 
       let mediosData: any[] = []
@@ -190,8 +244,6 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
             pubData.map((r: any) => r.publicaciones).filter(Boolean).flat() as Publicacion[]
           )
         }
-      } else {
-        setPublicaciones([])
       }
 
     } catch (err) {
@@ -229,7 +281,7 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
   const puedeVerCoordenadas = puedeVerCoordenadasExactas(codigo, rolUsuario)
   const puedeVerInfoContacto = codigo === 'A' || (codigo === 'B' && puedeVerCoordenadas) || esExpertoOMas(rolUsuario)
 
-  const googleMapsUrl = `https://www.google.com/maps?q=${sitio.latitud},${sitio.longitud}`
+  const googleMapsUrl = `https://www.google.com/maps?q=${sitio.latitud},${sitio.longitud}&t=k`
 
   const datosTecnicos = [
     { label: 'Categoría', value: sitio.categoria_general },
@@ -238,7 +290,7 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
     { label: 'Período', value: sitio.periodo_cronologico },
     { label: 'Conservación', value: sitio.estado_conservacion },
     { label: 'Código accesibilidad', value: `Código ${codigo}` },
-    { label: 'Fuente', value: sitio.fuente_principal || (origen === 'compendio' ? 'R. Stehberg (1975)' : null) },
+    { label: 'Fuente', value: sitio.fuente_principal },
   ].filter(d => d.value)
 
   const hayMultimedia = linksVideo.length > 0 || links3d.length > 0
@@ -246,7 +298,7 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
   const badgeOrigen = origen === 'reporte'
     ? { label: 'Reporte comunitario', color: '#92400e', bg: '#fef3c7' }
     : origen === 'compendio'
-    ? { label: 'Compendio Stehberg 1975', color: '#92400e', bg: '#fef3c7' }
+    ? { label: 'Compendio Documental Stehberg 1975', color: '#92400e', bg: '#fef3c7' }
     : { label: 'Sitio validado', color: '#065f46', bg: '#d1fae5' }
 
   return (
@@ -317,6 +369,18 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
                 </>
               </div>
             </div>
+          ) : origen === 'compendio' ? (
+            <div style={{ width: '100%', padding: '20px 24px', backgroundColor: '#f5efe6', borderBottom: '1px solid #e7ded2', display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+              <div style={{ width: '50px', height: '62px', backgroundColor: '#e8dcce', borderRadius: '8px', border: '1.5px solid #d4c5b3', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+                <span style={{ fontSize: '24px' }}>🏺</span>
+                <span style={{ fontSize: '9px', fontWeight: 800, color: '#92400e', marginTop: '2px' }}>1975</span>
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Compendio Científico Documental</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '13px', fontWeight: 600, color: '#10454B' }}>{sitio.creditos_compendio?.titulo_obra || 'Diccionario de sitios arqueológicos de Chile Central'}</p>
+                <p style={{ margin: '1px 0 0 0', fontSize: '11px', color: '#78716c' }}>{sitio.creditos_compendio?.autor_original} ({sitio.creditos_compendio?.anio_publicacion})</p>
+              </div>
+            </div>
           ) : (
             <div style={{ width: '100%', height: 100, backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, flexShrink: 0 }}>
               🏺
@@ -369,14 +433,17 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
               </div>
             )}
 
+            {/* SECCIÓN PUBLICACIONES / DOCUMENTOS */}
             {publicaciones.length > 0 && (
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #f3f4f6' }}>
-                <p style={{ fontSize: '10px', fontWeight: 700, color: '#10454B', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Publicaciones</p>
+                <p style={{ fontSize: '10px', fontWeight: 700, color: '#10454B', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>
+                  Documento Científico / Publicación
+                </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {publicaciones.map(pub => (
-                    <div key={pub.id_publicacion} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', backgroundColor: '#f8f7f5', borderRadius: 10, border: '1px solid #ede9e3' }}>
-                      <div style={{ flexShrink: 0, width: 36, height: 36, backgroundColor: '#10454B', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6875D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <div key={pub.id_publicacion} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', backgroundColor: '#f8f7f5', borderRadius: 10, border: '1px solid #ede9e3' }}>
+                      <div style={{ flexShrink: 0, width: 38, height: 38, backgroundColor: '#10454B', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B6875D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
                           <line x1="16" y1="13" x2="8" y2="13" />
@@ -384,21 +451,58 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
                         </svg>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: '13px', fontWeight: 600, color: '#1f2937', lineHeight: 1.3, marginBottom: 2 }} className="truncate">{pub.titulo}</p>
+                        <p style={{ fontSize: '13px', fontWeight: 700, color: '#1f2937', lineHeight: 1.3, marginBottom: 2 }} className="truncate">{pub.titulo}</p>
                         {(pub.autor || pub.año) && (
-                          <p style={{ fontSize: '11px', color: '#9ca3af' }}>{[pub.autor, pub.año].filter(Boolean).join(', ')}</p>
+                          <p style={{ fontSize: '11px', color: '#6b7280' }}>{[pub.autor, pub.año].filter(Boolean).join(', ')}</p>
                         )}
                       </div>
-                      <a href={pub.url_pdf} target="_blank" rel="noopener noreferrer"
-                        style={{ flexShrink: 0, padding: 6, borderRadius: 6, border: '1px solid #d1d5db', display: 'flex', alignItems: 'center', color: '#6b7280', textDecoration: 'none' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
+                      {/* Enlace para abrir/leer PDF online en nueva pestaña */}
+                      <a
+                        href={pub.url_pdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Abrir y leer documento online"
+                        style={{
+                          flexShrink: 0,
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          border: '1.5px solid #10454B',
+                          backgroundColor: 'white',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          color: '#10454B',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                          <polyline points="15 3 21 3 21 9" />
+                          <line x1="10" y1="14" x2="21" y2="3" />
                         </svg>
+                        Abrir PDF
                       </a>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* SECCIÓN AUTORÍA Y COMPILACIÓN (Compendios) */}
+            {origen === 'compendio' && sitio.creditos_compendio && (
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #f3f4f6', backgroundColor: '#faf7f2' }}>
+                <p style={{ fontSize: '10px', fontWeight: 700, color: '#B6875D', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Créditos y Documentación Digital
+                </p>
+                <div style={{ fontSize: '12px', color: '#44403c', lineHeight: 1.5, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <p style={{ margin: 0 }}><strong>Obra original:</strong> {sitio.creditos_compendio.titulo_obra} ({sitio.creditos_compendio.anio_publicacion})</p>
+                  <p style={{ margin: 0 }}><strong>Autor original:</strong> {sitio.creditos_compendio.autor_original}</p>
+                  <p style={{ margin: 0, color: '#78716c' }}><strong>Edición:</strong> {sitio.creditos_compendio.institucion_editora}</p>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#92400e' }}>
+                    💻 Digitalización y estructuración de compendio: {sitio.creditos_compendio.compilador_digital}
+                  </p>
                 </div>
               </div>
             )}
@@ -459,7 +563,7 @@ export function FichaSitioModal({ idSitio, origen, onClose }: FichaSitioModalPro
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                     <circle cx="12" cy="10" r="3" />
                   </svg>
-                  Abrir en Google Maps
+                  Abrir en Google Maps / Satélite
                 </a>
               )}
 
