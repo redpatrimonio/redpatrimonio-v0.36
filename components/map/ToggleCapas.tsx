@@ -43,24 +43,20 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
   return (
     <div
       ref={contenedorRef}
-      className="leaflet-top leaflet-right"
-      style={{ zIndex: 1100, pointerEvents: 'auto' }}
+      style={{
+        position: 'absolute',
+        top: '68px',
+        right: '12px',
+        zIndex: 1000,
+        pointerEvents: 'auto',
+      }}
       onClick={e => e.stopPropagation()}
       onDoubleClick={e => e.stopPropagation()}
       onMouseDown={e => e.stopPropagation()}
       onTouchStart={e => e.stopPropagation()}
     >
-      <div
-        className="leaflet-control"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
-          gap: '6px',
-          margin: '10px 10px 0 0',
-        }}
-      >
-        {/* Botón trigger con paleta institucional (#f9f8f5, #10454B, #B6875D) */}
+      <div style={{ position: 'relative' }}>
+        {/* Botón trigger fijo arriba a la derecha */}
         <button
           type="button"
           onClick={e => {
@@ -79,9 +75,8 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.14)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
             transition: 'all 0.15s ease',
-            flexShrink: 0,
           }}
           onMouseOver={e => {
             if (!abierto) e.currentTarget.style.backgroundColor = '#f3f0ec'
@@ -106,14 +101,17 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
           </svg>
         </button>
 
-        {/* Panel desplegable con paleta institucional (#f9f8f5, #28251d, #10454B, #B6875D) */}
+        {/* Panel desplegable posicionado absolutamente debajo del botón */}
         {abierto && (
           <div
             style={{
+              position: 'absolute',
+              top: '44px',
+              right: 0,
               backgroundColor: '#f9f8f5',
               borderRadius: '14px',
               border: '1px solid #d4d1ca',
-              boxShadow: '0 8px 26px rgba(40,37,29,0.18)',
+              boxShadow: '0 8px 26px rgba(40,37,29,0.22)',
               padding: '12px 14px',
               display: 'flex',
               flexDirection: 'column',
@@ -121,6 +119,7 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
               minWidth: '220px',
               maxWidth: '260px',
               fontFamily: 'inherit',
+              zIndex: 1001,
             }}
           >
             {/* Header del panel */}
@@ -242,7 +241,6 @@ export function ToggleCapas({ capasActivas, onChange, compendiosActivos, onToggl
 
           </div>
         )}
-
       </div>
     </div>
   )
