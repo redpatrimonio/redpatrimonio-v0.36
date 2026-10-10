@@ -6,7 +6,7 @@
 **Archivo:** `_checkpoints/CP_011_2026-10-10_Stehberg_1975_Lote01_Protocolo_Lotes.md`  
 **Actualiza a:** CP_010 (Sistema de Compendios Documentales). Donde este documento contradiga a CP_010, rige CP_011.  
 **Autor:** Fundador (curaduría y criterio arqueológico) & Partner Ingeniero IA (estructura, extracción y SQL)  
-**Estado:** ✅ Lote 01 aplicado · ✅ Lote 02 cargado (18 en `pendiente`) · 🔜 Lote 03
+**Estado:** ✅ Lote 01 aplicado · ✅ Lotes 02–03 cargados (43 en `pendiente`) · 🔜 Lote 04
 
 ---
 
@@ -22,7 +22,8 @@
 | `comuna` | Vacía a propósito (ver §5.6) |
 | Notas del compilador `[Nota RP: …]` | 9 sitios |
 | Lote 02 (pendientes A–CH + D–E) | ✅ 18 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
-| Resto del diccionario (FANTINI → YAQUIL) | Por extraer, Lotes 03 a 11 |
+| Lote 03 (FANTINI → HUENCHULLAMI) | ✅ 25 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
+| Resto del diccionario (HUENTELAUQUEN → YAQUIL) | Por extraer, Lotes 04 a 11 |
 
 ### Rotulación de lotes (definitiva)
 - **Lote 01** = homologación y correcciones de los 107 sitios ya cargados (A–CH). No existe "Lote 00".
@@ -90,6 +91,12 @@
 | Cerámica, ceramio, aríbalo, vaso | Hallazgos aislados | Material cerámico |
 | Mastodonte, fauna, restos óseos | Hallazgos aislados | Material óseo |
 | "Restos indígenas precolombinos" (sin más) | Otro | No determinado |
+
+**Ajustes al script (`homologar_v1.py`, Lote 03)**
+- `caserío` y `asentamiento` → `Aldea`.
+- "influencia(s) diaguita(s)" no asigna cultura Diaguita (singular y plural).
+- "a la llegada de los españoles" no asigna `Colonial` (se quitó `español` del patrón; quedan `hispano` y `colonial`).
+- Coordenadas que quedan a ~3 km del lugar nombrado dentro de una ciudad (ej.: GOLF, HUELEN) se mantienen como en el original: están dentro de la aproximación de Stehberg y moverlas las dejaría en pleno centro urbano.
 
 **Reglas complementarias**
 1. Si el subtítulo tiene un tipo de sitio y además material (ej.: "Conchal con cerámica"), el material no se agrega como tipología.
@@ -219,8 +226,9 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 |---|---|---|---|---|---|
 | 01 | 10/10/2026 | 107 (UPDATE) | `verde` | `Lote_01_homologacion_A-CH.csv/.sql` | Homologación + 9 notas RP |
 | 02 | 10/10/2026 | 18 (INSERT) | `pendiente` | `Lote_02_pendientesA-CH_D-E.csv/.sql`, `_herramientas/lote02_data.py` | Coordenadas corregidas: CIGUEÑA, DOCAS, ESCUELA DE COMUNICACIONES I. Sin coordenadas en el original: CAMINO DEL INCA (tramo Chacabuco–Colina), COPEQUEN (Copequén, Coinco; tentativa), CUDAHUITA (afueras de Malloco, según historia local de Peñaflor–Malloco–Padre Hurtado; tentativa). |
+| 03 | 10/10/2026 | 25 (INSERT) | `pendiente` | `Lote_03_F-HUENCHULLAMI.csv/.sql`, `_herramientas/lote03_data.py`, `gen03.py` | Coordenadas corregidas: GUACHO, HIERRO VIEJO, HORCON III, HUAPI, HUENCHULLAMI. Sin coordenadas: FANTINI (afueras de Quillota). Remisiones: GUAIQUIVILO y HUAYQUIVILLO (Ver Valle de Calabozos). |
 
-**Total en `sitios_compendio` (stehberg_1975):** 125 = 107 `verde` + 18 `pendiente`.
+**Total en `sitios_compendio` (stehberg_1975):** 150 = 107 `verde` + 43 `pendiente`.
 
 **Aviso para lotes futuros:** PIEDRAS TAZAS y TALLER LITICO (grupo Borries 1971, cuesta de Chacabuco) traen el mismo 71°54' erróneo que CASAS y ALAMO; corregir con igual criterio.
 
