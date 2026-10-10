@@ -53,7 +53,9 @@ export const TIPOLOGIAS: Record<string, string[]> = {
     'Colcas (depósitos)',
     'Salinas',
     'Minas',
-    'Canteras'
+    'Canteras',
+    'Piedras tacitas',
+    'Taller lítico'
   ],
   'Sistemas viales': [
     'Qhapaq Ñan (Camino Inca)',
@@ -99,6 +101,7 @@ export const TIPOLOGIAS: Record<string, string[]> = {
 // Culturas prehispánicas e históricas
 export const CULTURAS = [
   'Inca',
+  'Aconcagua',
   'Diaguita',
   'Molle',
   'Atacameña',
@@ -122,6 +125,7 @@ export const CULTURAS = [
 
 // Periodos cronológicos
 export const PERIODOS = [
+  'Paleoindio',
   'Arcaico',
   'Formativo',
   'Intermedio Tardío',
