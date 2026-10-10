@@ -6,7 +6,7 @@
 **Archivo:** `_checkpoints/CP_011_2026-10-10_Stehberg_1975_Lote01_Protocolo_Lotes.md`  
 **Actualiza a:** CP_010 (Sistema de Compendios Documentales). Donde este documento contradiga a CP_010, rige CP_011.  
 **Autor:** Fundador (curaduría y criterio arqueológico) & Partner Ingeniero IA (estructura, extracción y SQL)  
-**Estado:** ✅ Lote 01 aplicado en Supabase · 🔜 Lote 02 preparado, en revisión
+**Estado:** ✅ Lote 01 aplicado · ✅ Lote 02 cargado (18 en `pendiente`) · 🔜 Lote 03
 
 ---
 
@@ -21,7 +21,8 @@
 | Campos `categoria_general`, `categoria_sitio`, `cultura_asociada`, `periodo_cronologico`, `cronologia_general` | ✅ Completos en los 107 (antes vacíos) |
 | `comuna` | Vacía a propósito (ver §5.6) |
 | Notas del compilador `[Nota RP: …]` | 9 sitios |
-| Resto del diccionario (D → YAQUIL) | Por extraer, Lotes 02 a 11 |
+| Lote 02 (pendientes A–CH + D–E) | ✅ 18 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
+| Resto del diccionario (FANTINI → YAQUIL) | Por extraer, Lotes 03 a 11 |
 
 ### Rotulación de lotes (definitiva)
 - **Lote 01** = homologación y correcciones de los 107 sitios ya cargados (A–CH). No existe "Lote 00".
@@ -212,6 +213,16 @@ Criterio: **una parte del PDF por lote, entre 20 y 30 sitios**, para revisarlo e
 **Pendientes A–CH que entran en el Lote 02:** BATALLA (Piedra de la), CASA DEL BRUJO, CERRITO (Taller del), CIGUEÑA (Estero de la) —remisiones "Ver X"—; CAMINO 2 (omitido en la carga inicial); CAMINO DEL INCA, COPEQUEN y CUDAHUITA (sin coordenadas en el original).
 
 Los conteos son aproximados (detección automática de encabezados); el número exacto se fija al extraer cada lote.
+
+### 6.1 Registro de lotes aplicados
+| Lote | Fecha | Sitios | Estado | Archivos (`1975 DSA/lotes/`) | Notas |
+|---|---|---|---|---|---|
+| 01 | 10/10/2026 | 107 (UPDATE) | `verde` | `Lote_01_homologacion_A-CH.csv/.sql` | Homologación + 9 notas RP |
+| 02 | 10/10/2026 | 18 (INSERT) | `pendiente` | `Lote_02_pendientesA-CH_D-E.csv/.sql`, `_herramientas/lote02_data.py` | Coordenadas corregidas: CIGUEÑA, DOCAS, ESCUELA DE COMUNICACIONES I. Sin coordenadas en el original: CAMINO DEL INCA (tramo Chacabuco–Colina), COPEQUEN (Copequén, Coinco; tentativa), CUDAHUITA (afueras de Malloco, según historia local de Peñaflor–Malloco–Padre Hurtado; tentativa). |
+
+**Total en `sitios_compendio` (stehberg_1975):** 125 = 107 `verde` + 18 `pendiente`.
+
+**Aviso para lotes futuros:** PIEDRAS TAZAS y TALLER LITICO (grupo Borries 1971, cuesta de Chacabuco) traen el mismo 71°54' erróneo que CASAS y ALAMO; corregir con igual criterio.
 
 ---
 
