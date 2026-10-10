@@ -23,6 +23,7 @@
 | Notas del compilador `[Nota RP: …]` | 9 sitios |
 | Lote 02 (pendientes A–CH + D–E) | ✅ 18 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
 | Lote 03 (FANTINI → HUENCHULLAMI) | ✅ 25 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
+| Lote 04 (HUENTELAUQUEN → LIGUA, La) | ✅ 20 sitios en `pendiente`, código B, texto completo |
 | Resto del diccionario (HUENTELAUQUEN → YAQUIL) | Por extraer, Lotes 04 a 11 |
 
 ### Rotulación de lotes (definitiva)
@@ -227,8 +228,9 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 | 01 | 10/10/2026 | 107 (UPDATE) | `verde` | `Lote_01_homologacion_A-CH.csv/.sql` | Homologación + 9 notas RP |
 | 02 | 10/10/2026 | 18 (INSERT) | `pendiente` | `Lote_02_pendientesA-CH_D-E.csv/.sql`, `_herramientas/lote02_data.py` | Coordenadas corregidas: CIGUEÑA, DOCAS, ESCUELA DE COMUNICACIONES I. Sin coordenadas en el original: CAMINO DEL INCA (tramo Chacabuco–Colina), COPEQUEN (Copequén, Coinco; tentativa), CUDAHUITA (afueras de Malloco, según historia local de Peñaflor–Malloco–Padre Hurtado; tentativa). |
 | 03 | 10/10/2026 | 25 (INSERT) | `pendiente` | `Lote_03_F-HUENCHULLAMI.csv/.sql`, `_herramientas/lote03_data.py`, `gen03.py` | Coordenadas corregidas: GUACHO, HIERRO VIEJO, HORCON III, HUAPI, HUENCHULLAMI. Sin coordenadas: FANTINI (afueras de Quillota). Remisiones: GUAIQUIVILO y HUAYQUIVILLO (Ver Valle de Calabozos). |
+| 04 | 10/10/2026 | 20 (INSERT) | `pendiente` | `Lote_04_HUENTELAUQUEN-LIGUA.csv/.sql`, `_herramientas/lote04_data.py`, `gen04.py` | Coordenadas corregidas: HUENTELAUQUEN (margen N del Choapa), ILOCA, INFIERNILLO, JAHUEL ALTO. Sin coordenadas: LA CRUZ (zona acequia madre del Maipo, tentativa), ITATA (Ver Río Claro; zona Quinel, Cabrero, entre Itata y río Claro; tentativa — la entrada RIO CLARO, Cerro del ? de la letra R debe usar la misma ubicación). Nueva cultura en lista controlada: `Huentelauquén` (agregada a `CULTURAS` en `tipologias.ts`). |
 
-**Total en `sitios_compendio` (stehberg_1975):** 150 = 107 `verde` + 43 `pendiente`.
+**Total en `sitios_compendio` (stehberg_1975):** 170 = 107 `verde` + 63 `pendiente`.
 
 **Aviso para lotes futuros:** PIEDRAS TAZAS y TALLER LITICO (grupo Borries 1971, cuesta de Chacabuco) traen el mismo 71°54' erróneo que CASAS y ALAMO; corregir con igual criterio.
 

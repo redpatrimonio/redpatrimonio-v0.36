@@ -111,6 +111,7 @@ export const CULTURAS = [
   'Pehuenche',
   'Picunche',
   'Chango',
+  'Huentelauquén',
   'Selk\'nam',
   'Yagán',
   'Kawésqar',
