@@ -6,7 +6,7 @@
 **Archivo:** `_checkpoints/CP_011_2026-10-10_Stehberg_1975_Lote01_Protocolo_Lotes.md`  
 **Actualiza a:** CP_010 (Sistema de Compendios Documentales). Donde este documento contradiga a CP_010, rige CP_011.  
 **Autor:** Fundador (curaduría y criterio arqueológico) & Partner Ingeniero IA (estructura, extracción y SQL)  
-**Estado:** ✅ Lote 01 aplicado · ✅ Lotes 02–03 cargados (43 en `pendiente`) · 🔜 Lote 04
+**Estado:** Lote 01 aplicado · Lotes 02–05 cargados (97 en `pendiente`) · Lote 05: 34 cargados y 2 en revisión · Siguiente: Lote 06
 
 ---
 
@@ -14,17 +14,18 @@
 
 | Ítem | Estado |
 |---|---|
-| Sitios en `sitios_compendio` | **107** (ACONCAGUA → CURIMON, letras A–CH) |
-| `estado_validacion` | 107 en `verde` (visibles). Se mantienen así. |
-| `codigo_accesibilidad` | 107 en `B` |
+| Sitios en `sitios_compendio` | **204** (107 del Lote 01 + 97 nuevos de los Lotes 02–05) |
+| `estado_validacion` | 107 en `verde` (visibles), 97 en `pendiente` (sin lectura pública por RLS). |
+| `codigo_accesibilidad` | 204 en `B` |
 | Homologación de tipologías (Lote 01) | ✅ Aplicada el 10/10/2026 |
 | Campos `categoria_general`, `categoria_sitio`, `cultura_asociada`, `periodo_cronologico`, `cronologia_general` | ✅ Completos en los 107 (antes vacíos) |
 | `comuna` | Vacía a propósito (ver §5.6) |
-| Notas del compilador `[Nota RP: …]` | 9 sitios |
+| Notas del compilador `[Nota RP: …]` (Lote 01) | 9 sitios |
 | Lote 02 (pendientes A–CH + D–E) | ✅ 18 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
 | Lote 03 (FANTINI → HUENCHULLAMI) | ✅ 25 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
 | Lote 04 (HUENTELAUQUEN → LIGUA, La) | ✅ 20 sitios en `pendiente`, código B, texto completo |
-| Resto del diccionario (HUENTELAUQUEN → YAQUIL) | Por extraer, Lotes 04 a 11 |
+| Lote 05 (LIGUAY → MATA GORDA) | 34 sitios en `pendiente`, código B, texto completo; LO VALLE y LLAPEN en revisión y fuera de la tabla |
+| Resto del diccionario (MAUCO → YAQUIL) | Por revisar y cargar, Lotes 06 a 11; aparte quedan las 2 entradas no localizadas del Lote 05 |
 
 ### Rotulación de lotes (definitiva)
 - **Lote 01** = homologación y correcciones de los 107 sitios ya cargados (A–CH). No existe "Lote 00".
@@ -42,7 +43,7 @@
 | `1975 DSA/lotes/` | Salida de cada lote: CSV de revisión + SQL aplicado. | `Lote_01_homologacion_A-CH.csv` y `.sql` |
 | `1975 DSA/lotes/_herramientas/homologar_v1.py` | Reglas de homologación reutilizables. | Se aplica igual en todos los lotes. |
 
-**Pendiente:** `url_pdf` apunta al Apéndice 1975-1977 (Boletín MNHN 35), no a la Publicación Ocasional N° 17. Buscar el enlace correcto o decidir otro tratamiento.
+**Enlace resuelto, corrección anterior pendiente:** el Lote 05 usa el [PDF original de la Publicación Ocasional N° 17 de 1975](https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf), identificado en la [ficha del MNHN](https://publicaciones.mnhn.gob.cl/668/w3-article-71072.html). Los 170 registros anteriores siguen apuntando al [Apéndice 1975-1977](https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf); no se actualizaron al cargar el Lote 05 y su corrección se hará por separado.
 
 ---
 
@@ -51,6 +52,7 @@
 ### 3.1 Adiciones aprobadas y subidas en este checkpoint
 - `TIPOLOGIAS['Infraestructura productiva']`: **`Piedras tacitas`**, **`Taller lítico`**
 - `CULTURAS`: **`Aconcagua`**
+- `CULTURAS`: **`Huentelauquén`** (aprobada y añadida durante el Lote 04).
 - `PERIODOS`: **`Paleoindio`**
 
 ### 3.2 Valores por campo (corrige la descripción de columnas de CP_010)
@@ -210,7 +212,7 @@ Criterio: **una parte del PDF por lote, entre 20 y 30 sitios**, para revisarlo e
 | 02 | 5 (+ pendientes A–CH) | 26–29 | Pendientes A–CH + DEHESA → ESPERANZA | 8 + ~12 |
 | 03 | 6 | 30–34 | FANTINI → HUENCHULLAMI | ~25 |
 | 04 | a7 | 35–38 | HUENTELAUQUEN → LIGUA, La | ~19 |
-| 05 | a8 + a9 | 39–45 | LIGUAY → MATA GORDA (incluye MAITENCILLO 1-6) | ~31 |
+| 05 | a8 + a9 | 39–45 | LIGUAY → MATA GORDA (incluye MAITENCILLO 1-6) | 36: 34 cargadas, 2 en revisión |
 | 06 | 10 + 11 | 46–52 | MAUCO → PASTIZAL | ~29 |
 | 07 | 12 | 53–58 | PATAGUILLA → PLACILLA | ~27 |
 | 08 | 13 | 59–62 | PLAZA → PURUTUN | ~15 |
@@ -229,8 +231,9 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 | 02 | 10/10/2026 | 18 (INSERT) | `pendiente` | `Lote_02_pendientesA-CH_D-E.csv/.sql`, `_herramientas/lote02_data.py` | Coordenadas corregidas: CIGUEÑA, DOCAS, ESCUELA DE COMUNICACIONES I. Sin coordenadas en el original: CAMINO DEL INCA (tramo Chacabuco–Colina), COPEQUEN (Copequén, Coinco; tentativa), CUDAHUITA (afueras de Malloco, según historia local de Peñaflor–Malloco–Padre Hurtado; tentativa). |
 | 03 | 10/10/2026 | 25 (INSERT) | `pendiente` | `Lote_03_F-HUENCHULLAMI.csv/.sql`, `_herramientas/lote03_data.py`, `gen03.py` | Coordenadas corregidas: GUACHO, HIERRO VIEJO, HORCON III, HUAPI, HUENCHULLAMI. Sin coordenadas: FANTINI (afueras de Quillota). Remisiones: GUAIQUIVILO y HUAYQUIVILLO (Ver Valle de Calabozos). |
 | 04 | 10/10/2026 | 20 (INSERT) | `pendiente` | `Lote_04_HUENTELAUQUEN-LIGUA.csv/.sql`, `_herramientas/lote04_data.py`, `gen04.py` | Coordenadas corregidas: HUENTELAUQUEN (margen N del Choapa), ILOCA, INFIERNILLO, JAHUEL ALTO. Sin coordenadas: LA CRUZ (zona acequia madre del Maipo, tentativa), ITATA (Ver Río Claro; zona Quinel, Cabrero, entre Itata y río Claro; tentativa — la entrada RIO CLARO, Cerro del ? de la letra R debe usar la misma ubicación). Nueva cultura en lista controlada: `Huentelauquén` (agregada a `CULTURAS` en `tipologias.ts`). |
+| 05 | 10/10/2026 | 34 (INSERT); 2 excluidas | `pendiente` | `Lote_05_LIGUAY-MATA_GORDA.csv/.sql`, `_revision.md`, `_carga.json`, `_herramientas/lote05_data.py`, `gen05.py` | Aprobación explícita de las 34 entradas y exclusión de LO VALLE y LLAPEN por ubicación no resuelta. 15 ajustes geográficos aproximados con nota RP. Dos MAITENES, Los diferenciados como Conchal y Tiesto alfarero, con nombre original como alias. MAITEN, El incorpora RIO COLORADO p. 70, afluente del Aconcagua. Verificados: 34 IDs, coincidencia de campos con el CSV aprobado, comuna NULL, código B, estado pendiente y cero visibles al rol anon. |
 
-**Total en `sitios_compendio` (stehberg_1975):** 170 = 107 `verde` + 63 `pendiente`.
+**Total en `sitios_compendio` (stehberg_1975):** 204 = 107 `verde` + 97 `pendiente`.
 
 **Aviso para lotes futuros:** PIEDRAS TAZAS y TALLER LITICO (grupo Borries 1971, cuesta de Chacabuco) traen el mismo 71°54' erróneo que CASAS y ALAMO; corregir con igual criterio.
 
@@ -238,7 +241,9 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 
 ## 7. Pendientes y decisiones abiertas
 0. 📌 Completar `descripcion_detallada` de los 107 del Lote 01 con el texto íntegro y renombrar sus remisiones con el sufijo `(Ver X)` (ALGARROBAL, BUCALEMU, CHENA, CHINCOLCO u otras). Se trabaja después.
-1. `url_pdf` correcto para la Publicación Ocasional N° 17 (§2).
+1. Aplicar por separado el `url_pdf` original de la Publicación Ocasional N° 17 a los 170 registros anteriores al Lote 05 (§2). El enlace ya está identificado; los 34 del Lote 05 lo usan.
 2. ¿Se trata el Apéndice 1975-1977 como compendio aparte (`stehberg_1977_apendice`)?
 3. Entradas fuera de Chile (ej.: `NEUQUEN ?`): definir tratamiento al llegar al Lote 06.
 4. Comuna: resolver en una fase posterior (§5.6).
+5. LO VALLE y LLAPEN (Lote 05, p. 40): conservados en el CSV, no insertados. Falta ubicación respaldada; no equiparar automáticamente con Lo Ovalle o Illapel.
+6. MATA GORDA (Lote 05): «Complejo Papudo» conservado en la descripción y cultura `No determinado`. Definir si se agrega Papudo a CULTURAS; no se añadió automáticamente.
