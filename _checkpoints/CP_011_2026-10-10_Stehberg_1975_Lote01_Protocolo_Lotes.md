@@ -6,7 +6,7 @@
 **Archivo:** `_checkpoints/CP_011_2026-10-10_Stehberg_1975_Lote01_Protocolo_Lotes.md`  
 **Actualiza a:** CP_010 (Sistema de Compendios Documentales). Donde este documento contradiga a CP_010, rige CP_011.  
 **Autor:** Fundador (curaduría y criterio arqueológico) & Partner Ingeniero IA (estructura, extracción y SQL)  
-**Estado:** ✅ Lote 01 aplicado en Supabase · 🔜 Lote 02 en preparación
+**Estado:** ✅ Lote 01 aplicado en Supabase · 🔜 Lote 02 preparado, en revisión
 
 ---
 
@@ -154,10 +154,16 @@ comuna               = NULL
 | Nombre en mayúsculas, tal como se imprime (ej.: `MAITEN, El`) | `nombre_sitio` |
 | Coordenadas GG°MM' → decimal negativo, 5 decimales | `latitud`, `longitud` |
 | Subtítulo (línea 2) | `descripcion_breve` (literal) |
-| Cuerpo del texto | `descripcion_detallada` + notas RP al final |
+| Cuerpo del texto **completo**, con el OCR corregido (palabras cortadas por guion unidas, sin cambiar la redacción) | `descripcion_detallada` + notas RP al final |
 | Localidad mencionada en el texto | `localidad_sector` |
 | Referencias bibliográficas + ` — Diccionario Stehberg` | `fuente_principal` |
 | Región actual: `Coquimbo`, `Valparaíso`, `Metropolitana`, `O'Higgins`, `Maule`, `Ñuble` | `region` |
+
+### 5.3.1 Decisiones del 10/10/2026
+- **Descripción completa:** los sitios nuevos (Lote 02 en adelante) llevan el texto íntegro de Stehberg. Los 107 del Lote 01 conservan su resumen por ahora (📌 pendiente §7).
+- **Signo ±:** no se registra. Según el propio autor, prácticamente todas sus coordenadas son aproximadas; además, el código B ya muestra el punto desplazado.
+- **Remisiones con texto propio:** si una entrada dice "(Ver X)" pero tiene descripción propia (ej.: CAMINO 2), no lleva el sufijo en el nombre; el sufijo `(Ver X)` es solo para entradas cuyo cuerpo es únicamente la remisión.
+- **Tipologías corregidas a mano:** cuando el script asigna algo que el texto no afirma del sitio (ej.: "precerámico" citado como comparación), se corrige a mano y queda registrado en el CSV del lote.
 
 ### 5.4 Validación de coordenadas (regla del fundador)
 Cada coordenada se contrasta con **el lugar que describe el texto**, no solo con la cifra impresa. Se marca si:
@@ -210,6 +216,7 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 ---
 
 ## 7. Pendientes y decisiones abiertas
+0. 📌 Completar `descripcion_detallada` de los 107 del Lote 01 con el texto íntegro y renombrar sus remisiones con el sufijo `(Ver X)` (ALGARROBAL, BUCALEMU, CHENA, CHINCOLCO u otras). Se trabaja después.
 1. `url_pdf` correcto para la Publicación Ocasional N° 17 (§2).
 2. ¿Se trata el Apéndice 1975-1977 como compendio aparte (`stehberg_1977_apendice`)?
 3. Entradas fuera de Chile (ej.: `NEUQUEN ?`): definir tratamiento al llegar al Lote 06.
