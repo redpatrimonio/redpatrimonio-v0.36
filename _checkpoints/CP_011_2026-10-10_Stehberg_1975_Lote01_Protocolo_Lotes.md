@@ -6,7 +6,7 @@
 **Archivo:** `_checkpoints/CP_011_2026-10-10_Stehberg_1975_Lote01_Protocolo_Lotes.md`  
 **Actualiza a:** CP_010 (Sistema de Compendios Documentales). Donde este documento contradiga a CP_010, rige CP_011.  
 **Autor:** Fundador (curaduría y criterio arqueológico) & Partner Ingeniero IA (estructura, extracción y SQL)  
-**Estado:** Lote 01 aplicado · Lotes 02–05 cargados (97 en `pendiente`) · Lote 05: 34 cargados y 2 en revisión · Siguiente: Lote 06
+**Estado:** Lote 01 aplicado · Lotes 02–06 cargados (134 en `pendiente`; 241 sitios en total) · Lote 05: 34 cargados y 2 en revisión · Siguiente: Lote 07
 
 ---
 
@@ -25,7 +25,9 @@
 | Lote 03 (FANTINI → HUENCHULLAMI) | ✅ 25 sitios en `pendiente`, código B, texto completo, 6 con nota RP |
 | Lote 04 (HUENTELAUQUEN → LIGUA, La) | ✅ 20 sitios en `pendiente`, código B, texto completo |
 | Lote 05 (LIGUAY → MATA GORDA) | 34 sitios en `pendiente`, código B, texto completo; LO VALLE y LLAPEN en revisión y fuera de la tabla |
-| Resto del diccionario (MAUCO → YAQUIL) | Por revisar y cargar, Lotes 06 a 11; aparte quedan las 2 entradas no localizadas del Lote 05 |
+| Lote 06 (MAUCO → PASTIZAL, Taller del) | ✅ 37 sitios en `pendiente`, código B, texto completo, 10 con nota RP; 7 remisiones «(Ver X)» |
+| Corrección de metadatos del Lote 05 (aprobada 15/10/2026) | ✅ 34 registros alineados con §5.2: `capa_destino='arqueologico'`, `compilador_digital='Carlos Verdugo Rotella'`, `declarado_cmn` NULL, `fuente_principal` = referencias + « — Diccionario Stehberg»; la línea «Referencias citadas por Stehberg» salió de la descripción |
+| Resto del diccionario (PATAGUILLA → YAQUIL) | Por revisar y cargar, Lotes 07 a 11; aparte quedan las 2 entradas no localizadas del Lote 05 |
 
 ### Rotulación de lotes (definitiva)
 - **Lote 01** = homologación y correcciones de los 107 sitios ya cargados (A–CH). No existe "Lote 00".
@@ -43,7 +45,7 @@
 | `1975 DSA/lotes/` | Salida de cada lote: CSV de revisión + SQL aplicado. | `Lote_01_homologacion_A-CH.csv` y `.sql` |
 | `1975 DSA/lotes/_herramientas/homologar_v1.py` | Reglas de homologación reutilizables. | Se aplica igual en todos los lotes. |
 
-**Enlace resuelto, corrección anterior pendiente:** el Lote 05 usa el [PDF original de la Publicación Ocasional N° 17 de 1975](https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf), identificado en la [ficha del MNHN](https://publicaciones.mnhn.gob.cl/668/w3-article-71072.html). Los 170 registros anteriores siguen apuntando al [Apéndice 1975-1977](https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf); no se actualizaron al cargar el Lote 05 y su corrección se hará por separado.
+**Enlace resuelto, corrección anterior pendiente:** el Lote 05 usa el [PDF original de la Publicación Ocasional N° 17 de 1975](https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf), identificado en la [ficha del MNHN](https://publicaciones.mnhn.gob.cl/668/w3-article-71072.html). Los Lotes 05 y 06 (71 registros) usan el PDF original. Los 170 registros anteriores siguen apuntando al [Apéndice 1975-1977](https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf); no se actualizaron al cargar el Lote 05 y su corrección se hará por separado.
 
 ---
 
@@ -213,7 +215,7 @@ Criterio: **una parte del PDF por lote, entre 20 y 30 sitios**, para revisarlo e
 | 03 | 6 | 30–34 | FANTINI → HUENCHULLAMI | ~25 |
 | 04 | a7 | 35–38 | HUENTELAUQUEN → LIGUA, La | ~19 |
 | 05 | a8 + a9 | 39–45 | LIGUAY → MATA GORDA (incluye MAITENCILLO 1-6) | 36: 34 cargadas, 2 en revisión |
-| 06 | 10 + 11 | 46–52 | MAUCO → PASTIZAL | ~29 |
+| 06 | 10 + 11 | 46–52 | MAUCO → PASTIZAL, Taller del | 37 cargadas |
 | 07 | 12 | 53–58 | PATAGUILLA → PLACILLA | ~27 |
 | 08 | 13 | 59–62 | PLAZA → PURUTUN | ~15 |
 | 09 | 14 | 63–68 | PUTU → RASPA 2 | ~28 |
@@ -241,9 +243,11 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 
 ## 7. Pendientes y decisiones abiertas
 0. 📌 Completar `descripcion_detallada` de los 107 del Lote 01 con el texto íntegro y renombrar sus remisiones con el sufijo `(Ver X)` (ALGARROBAL, BUCALEMU, CHENA, CHINCOLCO u otras). Se trabaja después.
-1. Aplicar por separado el `url_pdf` original de la Publicación Ocasional N° 17 a los 170 registros anteriores al Lote 05 (§2). El enlace ya está identificado; los 34 del Lote 05 lo usan.
+1. Aplicar por separado el `url_pdf` original de la Publicación Ocasional N° 17 a los 170 registros anteriores al Lote 05 (§2). El enlace ya está identificado; los 71 de los Lotes 05 y 06 lo usan.
 2. ¿Se trata el Apéndice 1975-1977 como compendio aparte (`stehberg_1977_apendice`)?
-3. Entradas fuera de Chile (ej.: `NEUQUEN ?`): definir tratamiento al llegar al Lote 06.
+3. ✅ Resuelto en el Lote 06: `NEUQUEN` está en la «ex-provincia de Colchagua» (Chile, no Argentina); se cargó con pin genérico en el valle de Colchagua y nota RP. Revisar en la fase final si se identifica la localidad.
 4. Comuna: resolver en una fase posterior (§5.6).
 5. LO VALLE y LLAPEN (Lote 05, p. 40): conservados en el CSV, no insertados. Falta ubicación respaldada; no equiparar automáticamente con Lo Ovalle o Illapel.
 6. MATA GORDA (Lote 05): «Complejo Papudo» conservado en la descripción y cultura `No determinado`. Definir si se agrega Papudo a CULTURAS; no se añadió automáticamente.
+7. Lote 06, para la revisión final de pines: (a) DUNAS 2 y DUNAS BAJAS 3 (Lotes anteriores) siguen en el punto costero impreso (32°51' - 71°31'); decisión 15/10/2026: se dejan en la zona costera y se reubican con el resto de la revisión. MISIONES 1, MISIONES 2 y NORMANDIE (Lote 06) se desplazaron ≤1 km a tierra. (b) CIGUEÑA (Lote 02) está a ~3 km del estero La Cigüeña; MIRAMAR, PALQUIAL y PARAGUAS (Lote 06) se midieron desde el estero (-33.52065, -71.60669); REPRESA y POTRERO LA VIÑA (Lote 07) deben usar el mismo ancla.
+8. MAUCO (Lote 06): subtítulo «Estructuras indígenas», sin «fortaleza» en el texto; cargado como `No determinado` / `Otro`. MAULE conserva la coordenada impresa (±), cercana al río Claro de San Clemente, afluente del Maule alto.
