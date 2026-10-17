@@ -1,12 +1,12 @@
 # 📋 CHECKPOINT CP_011 — Compendio Stehberg 1975: Cierre Lote 01 y Protocolo de Lotes
 
-**Fecha:** 10 de octubre de 2026  
+**Fecha:** 10 de octubre de 2026 (actualizado 17/10/2026)  
 **Versión:** RedPatrimonio v0.5  
 **Repo:** `redpatrimonio/redpatrimonio-v0.36`  
 **Archivo:** `_checkpoints/CP_011_2026-10-10_Stehberg_1975_Lote01_Protocolo_Lotes.md`  
 **Actualiza a:** CP_010 (Sistema de Compendios Documentales). Donde este documento contradiga a CP_010, rige CP_011.  
 **Autor:** Fundador (curaduría y criterio arqueológico) & Partner Ingeniero IA (estructura, extracción y SQL)  
-**Estado:** Lote 01 aplicado · Lotes 02–06 cargados (134 en `pendiente`; 241 sitios en total) · Lote 05: 34 cargados y 2 en revisión · Siguiente: Lote 07
+**Estado:** Lote 01 aplicado · Lotes 02–07 cargados (164 en `pendiente`; 271 sitios en total) · Lote 05: 34 cargados y 2 en revisión · Lote 07: 30 cargados, 7 con nota PENDIENTE DE REVISIÓN · Siguiente: Lote 08 (desde PLAZA, La)
 
 ---
 
@@ -14,9 +14,9 @@
 
 | Ítem | Estado |
 |---|---|
-| Sitios en `sitios_compendio` | **204** (107 del Lote 01 + 97 nuevos de los Lotes 02–05) |
-| `estado_validacion` | 107 en `verde` (visibles), 97 en `pendiente` (sin lectura pública por RLS). |
-| `codigo_accesibilidad` | 204 en `B` |
+| Sitios en `sitios_compendio` | **271** (107 del Lote 01 + 164 nuevos de los Lotes 02–07) |
+| `estado_validacion` | 107 en `verde` (visibles), 164 en `pendiente` (sin lectura pública por RLS: la única política de lectura es `estado_validacion = 'verde'`). |
+| `codigo_accesibilidad` | 271 en `B` |
 | Homologación de tipologías (Lote 01) | ✅ Aplicada el 10/10/2026 |
 | Campos `categoria_general`, `categoria_sitio`, `cultura_asociada`, `periodo_cronologico`, `cronologia_general` | ✅ Completos en los 107 (antes vacíos) |
 | `comuna` | Vacía a propósito (ver §5.6) |
@@ -26,8 +26,11 @@
 | Lote 04 (HUENTELAUQUEN → LIGUA, La) | ✅ 20 sitios en `pendiente`, código B, texto completo |
 | Lote 05 (LIGUAY → MATA GORDA) | 34 sitios en `pendiente`, código B, texto completo; LO VALLE y LLAPEN en revisión y fuera de la tabla |
 | Lote 06 (MAUCO → PASTIZAL, Taller del) | ✅ 37 sitios en `pendiente`, código B, texto completo, 10 con nota RP; 7 remisiones «(Ver X)» |
+| Lote 07 (PATAGUILLA, La → PLANCHON, Paso del) | ✅ 30 sitios en `pendiente`, código B, 12 con nota RP; 7 con nota «PENDIENTE DE REVISIÓN» (ver §7.9); 2 remisiones «(Ver X)» (PIEDRA DE LOS PLATITOS, PLACILLA). Transcrito desde OCR y texto pegado por el fundador, sin lectura visual del PDF |
 | Corrección de metadatos del Lote 05 (aprobada 15/10/2026) | ✅ 34 registros alineados con §5.2: `capa_destino='arqueologico'`, `compilador_digital='Carlos Verdugo Rotella'`, `declarado_cmn` NULL, `fuente_principal` = referencias + « — Diccionario Stehberg»; la línea «Referencias citadas por Stehberg» salió de la descripción |
-| Resto del diccionario (PATAGUILLA → YAQUIL) | Por revisar y cargar, Lotes 07 a 11; aparte quedan las 2 entradas no localizadas del Lote 05 |
+| Resto del diccionario (PLAZA, La → YAQUIL) | Por revisar y cargar, Lotes 08 a 11; aparte quedan las 2 entradas no localizadas del Lote 05 |
+
+Verificación posterior al INSERT del Lote 07 (17/10/2026): total 271; verde 107; pendiente 164; código distinto de B: 0; comuna con valor: 0; `declarado_cmn` con valor: 0; `capa_destino='arqueologico'`: 164; `url_pdf` con PDF 71072: 101 (Lotes 05–07); con nota PENDIENTE DE REVISIÓN: 7.
 
 ### Rotulación de lotes (definitiva)
 - **Lote 01** = homologación y correcciones de los 107 sitios ya cargados (A–CH). No existe "Lote 00".
@@ -40,12 +43,12 @@
 | Fuente | Uso | Observaciones |
 |---|---|---|
 | `Libro original/…páginas-N.pdf` (18 partes) | **Fuente primaria.** Se lee su texto extraído por partes. | Las partes `a2` y `a3` repiten pp. 5–19 con OCR deficiente. Usar la serie sin prefijo `a` cuando exista. |
-| `1975 - DSA p4-p35.md`, `p36-p68.md`, `p69-p96.md` | Transcripción de apoyo para contrastar la lectura. | OCR con errores en grados (`9` por `°`, `%` por `°`). |
+| `1975 - DSA p4-p35.md`, `p36-p68.md`, `p69-p96.md` | Transcripción de apoyo para contrastar la lectura. | OCR con errores en grados (`9` por `°`, `%` por `°`). Los marcadores «## Página N» numeran la página del PDF: la página impresa es N + 1. |
 | `1975 - DSA p4-p35.csv`, `p36-p68.csv`, `p69-p96.csv` | **Solo borrador**, nunca fuente. | Columnas corridas (referencias mezcladas en etiquetas). p4-p35 termina en CH; p36-p68 termina en PURUTUN; p69-p96 parte en RELOCA. Faltan D–I y PUTU–REINA II. |
 | `1975 DSA/lotes/` | Salida de cada lote: CSV de revisión + SQL aplicado. | `Lote_01_homologacion_A-CH.csv` y `.sql` |
 | `1975 DSA/lotes/_herramientas/homologar_v1.py` | Reglas de homologación reutilizables. | Se aplica igual en todos los lotes. |
 
-**Enlace resuelto, corrección anterior pendiente:** el Lote 05 usa el [PDF original de la Publicación Ocasional N° 17 de 1975](https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf), identificado en la [ficha del MNHN](https://publicaciones.mnhn.gob.cl/668/w3-article-71072.html). Los Lotes 05 y 06 (71 registros) usan el PDF original. Los 170 registros anteriores siguen apuntando al [Apéndice 1975-1977](https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf); no se actualizaron al cargar el Lote 05 y su corrección se hará por separado.
+**Enlace resuelto, corrección anterior pendiente:** los Lotes 05 a 07 usan el [PDF original de la Publicación Ocasional N° 17 de 1975](https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf), identificado en la [ficha del MNHN](https://publicaciones.mnhn.gob.cl/668/w3-article-71072.html). Esos 101 registros usan el PDF original. Los 170 registros anteriores siguen apuntando al [Apéndice 1975-1977](https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf); su corrección se hará por separado.
 
 ---
 
@@ -102,6 +105,7 @@
 - "influencia(s) diaguita(s)" no asigna cultura Diaguita (singular y plural).
 - "a la llegada de los españoles" no asigna `Colonial` (se quitó `español` del patrón; quedan `hispano` y `colonial`).
 - Coordenadas que quedan a ~3 km del lugar nombrado dentro de una ciudad (ej.: GOLF, HUELEN) se mantienen como en el original: están dentro de la aproximación de Stehberg y moverlas las dejaría en pleno centro urbano.
+- (Lote 07) "preincaico" y "relacionado con la ocupación incaica" activan el patrón `inca` del script pero no afirman cultura Inca: se corrigen a mano a `No determinado` (PETORCA, PIEDRA NUMERADA). Una colonia mitimae solo atribuida a un autor (PELEQUEN) tampoco asigna Inca.
 
 **Reglas complementarias**
 1. Si el subtítulo tiene un tipo de sitio y además material (ej.: "Conchal con cerámica"), el material no se agrega como tipología.
@@ -143,7 +147,7 @@ Adapta el rol del Agente Bibliotecario (`reportes_nuevos`) a la tabla `sitios_co
 4. **Homologar** con `homologar_v1.py` y revisar caso a caso.
 5. **Validar coordenadas** (§5.4).
 6. **Entregar** `Lote_NN_<tramo>.csv` con observaciones → **aprobación del fundador**.
-7. **Insertar** con SQL `Lote_NN_<tramo>.sql`, guardado en `1975 DSA/lotes/`.
+7. **Insertar** con SQL `Lote_NN_<tramo>.sql` (una sola sentencia, sin BEGIN/COMMIT), guardado en `1975 DSA/lotes/`.
 8. **Verificar** los conteos tras el INSERT y registrar el lote en el siguiente checkpoint.
 
 ### 5.2 Valores fijos de cada INSERT
@@ -157,8 +161,11 @@ titulo_obra          = 'Diccionario de sitios arqueológicos de Chile Central'
 anio_publicacion     = 1975
 institucion_editora  = 'Museo Nacional de Historia Natural — Publicación Ocasional N° 17'
 compilador_digital   = 'Carlos Verdugo Rotella'
-url_pdf              = (igual que los 107, hasta resolver el pendiente del §2)
+url_pdf              = 'https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf'  -- Lotes 05 a 07; los 170 anteriores, ver §2
 comuna               = NULL
+alias_local          = NULL
+declarado_cmn        = NULL             -- NULL, no false
+fuente_principal     = referencias de la entrada + ' — Diccionario Stehberg'
 ```
 
 ### 5.3 Mapeo de cada entrada
@@ -177,6 +184,12 @@ comuna               = NULL
 - **Signo ±:** no se registra. Según el propio autor, prácticamente todas sus coordenadas son aproximadas; además, el código B ya muestra el punto desplazado.
 - **Remisiones con texto propio:** si una entrada dice "(Ver X)" pero tiene descripción propia (ej.: CAMINO 2), no lleva el sufijo en el nombre; el sufijo `(Ver X)` es solo para entradas cuyo cuerpo es únicamente la remisión.
 - **Tipologías corregidas a mano:** cuando el script asigna algo que el texto no afirma del sitio (ej.: "precerámico" citado como comparación), se corrige a mano y queda registrado en el CSV del lote.
+
+### 5.3.2 Decisión del 17/10/2026 (Lote 07)
+- **Entradas con datos faltantes o dudosos** (nombre, coordenada o texto de remisión no resueltos con el OCR) se cargan igual, en `pendiente`, con una segunda nota al final de `descripcion_detallada`: `[Nota RP: PENDIENTE DE REVISIÓN: …]`. Se buscan después con `descripcion_detallada ILIKE '%PENDIENTE DE REVISIÓN%'` y se completan en el PDF. `latitud` y `longitud` son NOT NULL en la tabla: si falta la coordenada se usa un pin provisional con nota.
+- **Revisión del PDF:** se hace solo cuando la información está incompleta, es incoherente o la coordenada es poco congruente; esos casos los revisa el fundador.
+- **Cultura Inca:** los registros con relación inca se dejan como asigna el protocolo (PICO y PEUMO: Inca); PETORCA, PIEDRA NUMERADA y PELEQUEN quedan `No determinado`.
+- **PATOS, Paso de los:** ubicación referencial aceptada (pin en el paso, -32.36289, -70.2195).
 
 ### 5.4 Validación de coordenadas (regla del fundador)
 Cada coordenada se contrasta con **el lugar que describe el texto**, no solo con la cifra impresa. Se marca si:
@@ -216,7 +229,7 @@ Criterio: **una parte del PDF por lote, entre 20 y 30 sitios**, para revisarlo e
 | 04 | a7 | 35–38 | HUENTELAUQUEN → LIGUA, La | ~19 |
 | 05 | a8 + a9 | 39–45 | LIGUAY → MATA GORDA (incluye MAITENCILLO 1-6) | 36: 34 cargadas, 2 en revisión |
 | 06 | 10 + 11 | 46–52 | MAUCO → PASTIZAL, Taller del | 37 cargadas |
-| 07 | 12 | 53–58 | PATAGUILLA → PLACILLA | ~27 |
+| 07 | 12 | 53–58 | PATAGUILLA, La → PLANCHON, Paso del | 30 cargadas |
 | 08 | 13 | 59–62 | PLAZA → PURUTUN | ~15 |
 | 09 | 14 | 63–68 | PUTU → RASPA 2 | ~28 |
 | 10 | 15 | 69–75 | RATONES → SOBRANTE | ~32 |
@@ -234,20 +247,34 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 | 03 | 10/10/2026 | 25 (INSERT) | `pendiente` | `Lote_03_F-HUENCHULLAMI.csv/.sql`, `_herramientas/lote03_data.py`, `gen03.py` | Coordenadas corregidas: GUACHO, HIERRO VIEJO, HORCON III, HUAPI, HUENCHULLAMI. Sin coordenadas: FANTINI (afueras de Quillota). Remisiones: GUAIQUIVILO y HUAYQUIVILLO (Ver Valle de Calabozos). |
 | 04 | 10/10/2026 | 20 (INSERT) | `pendiente` | `Lote_04_HUENTELAUQUEN-LIGUA.csv/.sql`, `_herramientas/lote04_data.py`, `gen04.py` | Coordenadas corregidas: HUENTELAUQUEN (margen N del Choapa), ILOCA, INFIERNILLO, JAHUEL ALTO. Sin coordenadas: LA CRUZ (zona acequia madre del Maipo, tentativa), ITATA (Ver Río Claro; zona Quinel, Cabrero, entre Itata y río Claro; tentativa — la entrada RIO CLARO, Cerro del ? de la letra R debe usar la misma ubicación). Nueva cultura en lista controlada: `Huentelauquén` (agregada a `CULTURAS` en `tipologias.ts`). |
 | 05 | 10/10/2026 | 34 (INSERT); 2 excluidas | `pendiente` | `Lote_05_LIGUAY-MATA_GORDA.csv/.sql`, `_revision.md`, `_carga.json`, `_herramientas/lote05_data.py`, `gen05.py` | Aprobación explícita de las 34 entradas y exclusión de LO VALLE y LLAPEN por ubicación no resuelta. 15 ajustes geográficos aproximados con nota RP. Dos MAITENES, Los diferenciados como Conchal y Tiesto alfarero, con nombre original como alias. MAITEN, El incorpora RIO COLORADO p. 70, afluente del Aconcagua. Verificados: 34 IDs, coincidencia de campos con el CSV aprobado, comuna NULL, código B, estado pendiente y cero visibles al rol anon. |
+| 06 | 15/10/2026 | 37 (INSERT) | `pendiente` | `Lote_06_MAUCO-PASTIZAL.csv/.sql`, `_EXPLAIN.sql`, `_PRECHECK.sql`, `_validacion.json`, `_herramientas/lote06_data.py`, `gen06.py` | 10 notas RP; 7 remisiones «(Ver X)»; anclas del estero La Cigüeña para MIRAMAR, PALQUIAL y PARAGUAS. |
+| 07 | 17/10/2026 | 30 (INSERT) | `pendiente` | `Lote_07_PATAGUILLA-PLANCHON.csv/.sql`, `_EXPLAIN.sql`, `_PRECHECK.sql`, `_validacion.json`, `_herramientas/lote07_data.py`, `gen07.py`, `homologar_v1.py` (**generados en la sesión; pendientes de subir a `1975 DSA/lotes/`, sin CLI `pplx`**) | Transcrito desde OCR y texto pegado por el fundador; sin lectura visual del PDF; EXPLAIN no ejecutado en la base (sentencia única); lista controlada no validada contra `tipologias.ts`. Coordenadas corregidas: PERAL (Fundo) y PERAL (Laguna) por ancla/laguna, PETRAS, PIEDRAS TAZAS, PITE, PATOS (Paso). Remisiones: PIEDRA DE LOS PLATITOS (Ver La Huerta), PLACILLA (Ver Las Cenizas). 7 con nota PENDIENTE DE REVISIÓN (ver §7.9). |
 
-**Total en `sitios_compendio` (stehberg_1975):** 204 = 107 `verde` + 97 `pendiente`.
+**Total en `sitios_compendio` (stehberg_1975):** 271 = 107 `verde` + 164 `pendiente`.
 
-**Aviso para lotes futuros:** PIEDRAS TAZAS y TALLER LITICO (grupo Borries 1971, cuesta de Chacabuco) traen el mismo 71°54' erróneo que CASAS y ALAMO; corregir con igual criterio.
+**Aviso para lotes futuros:** TALLER LITICO (grupo Borries 1971, cuesta de Chacabuco) trae el mismo 71°54' erróneo que CASAS, ALAMO y PIEDRAS TAZAS; corregir con igual criterio (PIEDRAS TAZAS quedó ~1 km al S de CASAS, en -33.009, -70.705, según la nota del registro CASAS).
 
 ---
 
 ## 7. Pendientes y decisiones abiertas
 0. 📌 Completar `descripcion_detallada` de los 107 del Lote 01 con el texto íntegro y renombrar sus remisiones con el sufijo `(Ver X)` (ALGARROBAL, BUCALEMU, CHENA, CHINCOLCO u otras). Se trabaja después.
-1. Aplicar por separado el `url_pdf` original de la Publicación Ocasional N° 17 a los 170 registros anteriores al Lote 05 (§2). El enlace ya está identificado; los 71 de los Lotes 05 y 06 lo usan.
+1. Aplicar por separado el `url_pdf` original de la Publicación Ocasional N° 17 a los 170 registros anteriores al Lote 05 (§2). El enlace ya está identificado; los 101 de los Lotes 05 a 07 lo usan.
 2. ¿Se trata el Apéndice 1975-1977 como compendio aparte (`stehberg_1977_apendice`)?
 3. ✅ Resuelto en el Lote 06: `NEUQUEN` está en la «ex-provincia de Colchagua» (Chile, no Argentina); se cargó con pin genérico en el valle de Colchagua y nota RP. Revisar en la fase final si se identifica la localidad.
 4. Comuna: resolver en una fase posterior (§5.6).
 5. LO VALLE y LLAPEN (Lote 05, p. 40): conservados en el CSV, no insertados. Falta ubicación respaldada; no equiparar automáticamente con Lo Ovalle o Illapel.
 6. MATA GORDA (Lote 05): «Complejo Papudo» conservado en la descripción y cultura `No determinado`. Definir si se agrega Papudo a CULTURAS; no se añadió automáticamente.
-7. Lote 06, para la revisión final de pines: (a) DUNAS 2 y DUNAS BAJAS 3 (Lotes anteriores) siguen en el punto costero impreso (32°51' - 71°31'); decisión 15/10/2026: se dejan en la zona costera y se reubican con el resto de la revisión. MISIONES 1, MISIONES 2 y NORMANDIE (Lote 06) se desplazaron ≤1 km a tierra. (b) CIGUEÑA (Lote 02) está a ~3 km del estero La Cigüeña; MIRAMAR, PALQUIAL y PARAGUAS (Lote 06) se midieron desde el estero (-33.52065, -71.60669); REPRESA y POTRERO LA VIÑA (Lote 07) deben usar el mismo ancla.
+7. Lote 06, para la revisión final de pines: (a) DUNAS 2 y DUNAS BAJAS 3 (Lotes anteriores) siguen en el punto costero impreso (32°51' - 71°31'); decisión 15/10/2026: se dejan en la zona costera y se reubican con el resto de la revisión. MISIONES 1, MISIONES 2 y NORMANDIE (Lote 06) se desplazaron ≤1 km a tierra. (b) CIGUEÑA (Lote 02) está a ~3 km del estero La Cigüeña; MIRAMAR, PALQUIAL y PARAGUAS (Lote 06) y PERAL, Fundo el (Lote 07) se midieron desde el estero (-33.52065, -71.60669); REPRESA, CERRO LA y POTRERO LA VIÑA (Lote 08 o siguientes) deben usar el mismo ancla (REPRESA: 500 m al N y 500 m al E del estero).
 8. MAUCO (Lote 06): subtítulo «Estructuras indígenas», sin «fortaleza» en el texto; cargado como `No determinado` / `Otro`. MAULE conserva la coordenada impresa (±), cercana al río Claro de San Clemente, afluente del Maule alto.
+9. **Lote 07, registros con nota PENDIENTE DE REVISIÓN (verificar en el PDF):**
+   - PATAGUILLA, La: el OCR lee 34°43' - 71°35', ~16 km al O-SO de Santa Cruz; el texto dice ~9 km al SO de Paniahue (si el PDF dice 71°25' es coherente). Se cargó la coordenada impresa.
+   - PEÑA BLANCA E. 5: verificar el encabezado («E. 5») y las páginas de la última cita (Berdichewsky 1964). Se corrigió «perdichewsky 1935» a 1955.
+   - PETRAS, Quebrada: la latitud OCR (33°09') no cuadra; la quebrada Las Petras está entre Algarrobo y El Quisco. Pin orientativo (-33.385, -71.668).
+   - PICHIDANGUI: la longitud impresa probablemente cae en el mar; ubicar la desembocadura del Quilimarí y poner el pin 500 m al N. Se corrigió «Bahamondes 1909» a 1969.
+   - SIN NOMBRE LEGIBLE (Putaendo; entre PIEDRAS TAZAS y PIRAMIDE, La): el OCR perdió el encabezado (nombre y coordenadas). Hipótesis no verificada: PIGUCHEN. Pin provisional (-32.6, -70.7). Al resolverlo, renombrar el registro.
+   - PIRAMIDE, La: 33°25' - 70°38' cae en el sector del cerro San Cristóbal, no al NO de Santiago; si el PDF dice 70°43' queda junto al cerro Renca. Se cargó la coordenada impresa.
+   - PLACILLA (Ver Las Cenizas): completar con el texto íntegro de CENIZAS, Las (el copiado viene del registro del Lote 01, que es un resumen) y combinar sus referencias.
+10. Lote 07, observaciones menores (sin nota en la tabla): PEDERNAL 1, 2 y 3 comparten coordenada entre sí y con CHINCOLCO (Lote 01); PICHILEMU («En la misma plaza», ¿playa?); PIEDRA DE LAS MARCAS (cabecera del río Seco, posible desfase hacia el interior); PITE, Punta (verificar que el pin no caiga en el mar); varias coordenadas impresas conservadas sin contraste cartográfico fino.
+11. `capa_destino` está vacío (NULL) en los 107 registros `verde` del Lote 01; §5.2 la fija como `arqueologico`. Decidir si se completa antes del cierre de la revisión (afecta lo que se ve en el mapa).
+12. Archivos del Lote 07 y este checkpoint pendientes de subir a `1975 DSA/lotes/` y `1975 DSA/checkpoints/` de los archivos del proyecto (requiere la CLI `pplx project files submit`).
+13. Seguridad (aviso del asesor de Supabase, 17/10/2026): `spatial_ref_sys`, `reportes_cmn`, `lugares_capas`, `inv_cola`, `inv_fichas` e `inv_log` no tienen RLS activado. No afecta a `sitios_compendio`; se trata como tarea aparte.
