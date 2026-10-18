@@ -1,12 +1,12 @@
 # 📋 CHECKPOINT CP_011 — Compendio Stehberg 1975: Cierre Lote 01 y Protocolo de Lotes
 
-**Fecha:** 10 de octubre de 2026 (actualizado 17/10/2026)  
+**Fecha:** 10 de octubre de 2026 (actualizado 18/10/2026)  
 **Versión:** RedPatrimonio v0.5  
 **Repo:** `redpatrimonio/redpatrimonio-v0.36`  
 **Archivo:** `_checkpoints/CP_011_2026-10-10_Stehberg_1975_Lote01_Protocolo_Lotes.md`  
 **Actualiza a:** CP_010 (Sistema de Compendios Documentales). Donde este documento contradiga a CP_010, rige CP_011.  
 **Autor:** Fundador (curaduría y criterio arqueológico) & Partner Ingeniero IA (estructura, extracción y SQL)  
-**Estado:** Lote 01 aplicado · Lotes 02–07 cargados (164 en `pendiente`; 271 sitios en total) · Lote 05: 34 cargados y 2 en revisión · Lote 07: 30 cargados, 7 con nota PENDIENTE DE REVISIÓN · Siguiente: Lote 08 (desde PLAZA, La)
+**Estado:** Lote 01 aplicado · Lotes 02–08 cargados (185 en `pendiente`; 292 sitios en total) · Lote 05: 34 cargados y 2 en revisión · Lotes 07 y 08: 10 registros con nota PENDIENTE DE REVISIÓN · Siguiente: Lote 09 (desde PUTU)
 
 ---
 
@@ -14,9 +14,9 @@
 
 | Ítem | Estado |
 |---|---|
-| Sitios en `sitios_compendio` | **271** (107 del Lote 01 + 164 nuevos de los Lotes 02–07) |
-| `estado_validacion` | 107 en `verde` (visibles), 164 en `pendiente` (sin lectura pública por RLS: la única política de lectura es `estado_validacion = 'verde'`). |
-| `codigo_accesibilidad` | 271 en `B` |
+| Sitios en `sitios_compendio` | **292** (107 del Lote 01 + 185 nuevos de los Lotes 02–08) |
+| `estado_validacion` | 107 en `verde` (visibles), 185 en `pendiente` (sin lectura pública por RLS: la única política de lectura es `estado_validacion = 'verde'`). |
+| `codigo_accesibilidad` | 292 en `B` |
 | Homologación de tipologías (Lote 01) | ✅ Aplicada el 10/10/2026 |
 | Campos `categoria_general`, `categoria_sitio`, `cultura_asociada`, `periodo_cronologico`, `cronologia_general` | ✅ Completos en los 107 (antes vacíos) |
 | `comuna` | Vacía a propósito (ver §5.6) |
@@ -27,10 +27,13 @@
 | Lote 05 (LIGUAY → MATA GORDA) | 34 sitios en `pendiente`, código B, texto completo; LO VALLE y LLAPEN en revisión y fuera de la tabla |
 | Lote 06 (MAUCO → PASTIZAL, Taller del) | ✅ 37 sitios en `pendiente`, código B, texto completo, 10 con nota RP; 7 remisiones «(Ver X)» |
 | Lote 07 (PATAGUILLA, La → PLANCHON, Paso del) | ✅ 30 sitios en `pendiente`, código B, 12 con nota RP; 7 con nota «PENDIENTE DE REVISIÓN» (ver §7.9); 2 remisiones «(Ver X)» (PIEDRA DE LOS PLATITOS, PLACILLA). Transcrito desde OCR y texto pegado por el fundador, sin lectura visual del PDF |
+| Lote 08 (PLAZA, La → PURUTUN) | ✅ 21 sitios en `pendiente`, código B, 6 con nota RP; 3 con nota «PENDIENTE DE REVISIÓN» (ver §7.14); 2 nombres repetidos diferenciados con `alias_local` (PUNTILLA, La). Texto pegado por el fundador y OCR del proyecto, sin lectura visual del PDF |
 | Corrección de metadatos del Lote 05 (aprobada 15/10/2026) | ✅ 34 registros alineados con §5.2: `capa_destino='arqueologico'`, `compilador_digital='Carlos Verdugo Rotella'`, `declarado_cmn` NULL, `fuente_principal` = referencias + « — Diccionario Stehberg»; la línea «Referencias citadas por Stehberg» salió de la descripción |
-| Resto del diccionario (PLAZA, La → YAQUIL) | Por revisar y cargar, Lotes 08 a 11; aparte quedan las 2 entradas no localizadas del Lote 05 |
+| Resto del diccionario (PUTU → YAQUIL) | Por revisar y cargar, Lotes 09 a 11; aparte quedan las 2 entradas no localizadas del Lote 05 |
 
 Verificación posterior al INSERT del Lote 07 (17/10/2026): total 271; verde 107; pendiente 164; código distinto de B: 0; comuna con valor: 0; `declarado_cmn` con valor: 0; `capa_destino='arqueologico'`: 164; `url_pdf` con PDF 71072: 101 (Lotes 05–07); con nota PENDIENTE DE REVISIÓN: 7.
+
+Verificación posterior al INSERT del Lote 08 (18/10/2026): total 292; verde 107; pendiente 185; código distinto de B: 0; comuna con valor: 0; `declarado_cmn` con valor: 0; `capa_destino='arqueologico'`: 185; `url_pdf` con PDF 71072: 122 (Lotes 05–08); con nota PENDIENTE DE REVISIÓN: 10; con `alias_local`: 5 (3 MAITENES y 2 PUNTILLA).
 
 ### Rotulación de lotes (definitiva)
 - **Lote 01** = homologación y correcciones de los 107 sitios ya cargados (A–CH). No existe "Lote 00".
@@ -48,7 +51,7 @@ Verificación posterior al INSERT del Lote 07 (17/10/2026): total 271; verde 107
 | `1975 DSA/lotes/` | Salida de cada lote: CSV de revisión + SQL aplicado. | `Lote_01_homologacion_A-CH.csv` y `.sql` |
 | `1975 DSA/lotes/_herramientas/homologar_v1.py` | Reglas de homologación reutilizables. | Se aplica igual en todos los lotes. |
 
-**Enlace resuelto, corrección anterior pendiente:** los Lotes 05 a 07 usan el [PDF original de la Publicación Ocasional N° 17 de 1975](https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf), identificado en la [ficha del MNHN](https://publicaciones.mnhn.gob.cl/668/w3-article-71072.html). Esos 101 registros usan el PDF original. Los 170 registros anteriores siguen apuntando al [Apéndice 1975-1977](https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf); su corrección se hará por separado.
+**Enlace resuelto, corrección anterior pendiente:** los Lotes 05 a 08 usan el [PDF original de la Publicación Ocasional N° 17 de 1975](https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf), identificado en la [ficha del MNHN](https://publicaciones.mnhn.gob.cl/668/w3-article-71072.html). Esos 122 registros usan el PDF original. Los 170 registros anteriores siguen apuntando al [Apéndice 1975-1977](https://publicaciones.mnhn.gob.cl/668/articles-64113_archivo_01.pdf); su corrección se hará por separado.
 
 ---
 
@@ -106,6 +109,7 @@ Verificación posterior al INSERT del Lote 07 (17/10/2026): total 271; verde 107
 - "a la llegada de los españoles" no asigna `Colonial` (se quitó `español` del patrón; quedan `hispano` y `colonial`).
 - Coordenadas que quedan a ~3 km del lugar nombrado dentro de una ciudad (ej.: GOLF, HUELEN) se mantienen como en el original: están dentro de la aproximación de Stehberg y moverlas las dejaría en pleno centro urbano.
 - (Lote 07) "preincaico" y "relacionado con la ocupación incaica" activan el patrón `inca` del script pero no afirman cultura Inca: se corrigen a mano a `No determinado` (PETORCA, PIEDRA NUMERADA). Una colonia mitimae solo atribuida a un autor (PELEQUEN) tampoco asigna Inca.
+- (Lote 08) "Colonia mitimae", "Curacazgo inca", "Cerámica inca-local" y "Estructuras incásicas" afirmados en el subtítulo o en el texto asignan `Inca` (POCOA, PURUTUN, PRINCIPAL, PORTILLO, PUENTE DE LOS INCAS). "Santuario incaico" → `Plataforma ceremonial` (PLOMO). En PLAZA, La las piedras tacitas se citan como forma del nivel anterior y no se agregan como tipología.
 
 **Reglas complementarias**
 1. Si el subtítulo tiene un tipo de sitio y además material (ej.: "Conchal con cerámica"), el material no se agrega como tipología.
@@ -161,9 +165,9 @@ titulo_obra          = 'Diccionario de sitios arqueológicos de Chile Central'
 anio_publicacion     = 1975
 institucion_editora  = 'Museo Nacional de Historia Natural — Publicación Ocasional N° 17'
 compilador_digital   = 'Carlos Verdugo Rotella'
-url_pdf              = 'https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf'  -- Lotes 05 a 07; los 170 anteriores, ver §2
+url_pdf              = 'https://publicaciones.mnhn.gob.cl/668/articles-71072_archivo_01.pdf'  -- Lotes 05 a 08; los 170 anteriores, ver §2
 comuna               = NULL
-alias_local          = NULL
+alias_local          = NULL             -- salvo nombres repetidos (ver §5.3.3)
 declarado_cmn        = NULL             -- NULL, no false
 fuente_principal     = referencias de la entrada + ' — Diccionario Stehberg'
 ```
@@ -190,6 +194,12 @@ fuente_principal     = referencias de la entrada + ' — Diccionario Stehberg'
 - **Revisión del PDF:** se hace solo cuando la información está incompleta, es incoherente o la coordenada es poco congruente; esos casos los revisa el fundador.
 - **Cultura Inca:** los registros con relación inca se dejan como asigna el protocolo (PICO y PEUMO: Inca); PETORCA, PIEDRA NUMERADA y PELEQUEN quedan `No determinado`.
 - **PATOS, Paso de los:** ubicación referencial aceptada (pin en el paso, -32.36289, -70.2195).
+
+### 5.3.3 Decisiones del 18/10/2026 (Lote 08)
+- **Nombres repetidos en el libro:** se diferencian con un descriptor entre paréntesis y el nombre impreso va en `alias_local`, igual que los MAITENES del Lote 05 (ej.: `PUNTILLA, La (Conchal cerámico)` y `PUNTILLA, La (Cueva con enterratorio)`, alias `PUNTILLA, La`). El filtro NOT EXISTS del INSERT compara por `nombre_sitio`, por eso los nombres deben ser únicos.
+- **Coordenadas aportadas por el fundador en UTM:** se convierten con pyproj (EPSG:32718, WGS84 huso 18S) y la nota RP registra las UTM originales (PUNTILLA de Pichilemu: 771378.72 E, 6186514.34 S = -34.42725, -72.04695).
+- **Pines del fundo El Peral:** POTRERO LA VIÑA (3 km al E y ~300 m al S del ancla) y POTRERO SEGUNDO (2 km al E y ~200 m al N del ancla) se miden desde el ancla del estero (-33.52065, -71.60669). En POTRERO SEGUNDO se sigue la distancia al camino público.
+- **Fuente del texto:** el fundador pega el texto de las páginas desde el `.md` (marcadores «## Página N»; página impresa = N + 1). La lectura de archivos del proyecto devuelve tramos de ~40 líneas con omisiones, por lo que pegar el texto es la vía más rápida.
 
 ### 5.4 Validación de coordenadas (regla del fundador)
 Cada coordenada se contrasta con **el lugar que describe el texto**, no solo con la cifra impresa. Se marca si:
@@ -230,7 +240,7 @@ Criterio: **una parte del PDF por lote, entre 20 y 30 sitios**, para revisarlo e
 | 05 | a8 + a9 | 39–45 | LIGUAY → MATA GORDA (incluye MAITENCILLO 1-6) | 36: 34 cargadas, 2 en revisión |
 | 06 | 10 + 11 | 46–52 | MAUCO → PASTIZAL, Taller del | 37 cargadas |
 | 07 | 12 | 53–58 | PATAGUILLA, La → PLANCHON, Paso del | 30 cargadas |
-| 08 | 13 | 59–62 | PLAZA → PURUTUN | ~15 |
+| 08 | 13 | 59–61 | PLAZA, La → PURUTUN | 21 cargadas |
 | 09 | 14 | 63–68 | PUTU → RASPA 2 | ~28 |
 | 10 | 15 | 69–75 | RATONES → SOBRANTE | ~32 |
 | 11 | 16 + 17 | 76–83 | TABO → YAQUIL | ~29 |
@@ -249,8 +259,9 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 | 05 | 10/10/2026 | 34 (INSERT); 2 excluidas | `pendiente` | `Lote_05_LIGUAY-MATA_GORDA.csv/.sql`, `_revision.md`, `_carga.json`, `_herramientas/lote05_data.py`, `gen05.py` | Aprobación explícita de las 34 entradas y exclusión de LO VALLE y LLAPEN por ubicación no resuelta. 15 ajustes geográficos aproximados con nota RP. Dos MAITENES, Los diferenciados como Conchal y Tiesto alfarero, con nombre original como alias. MAITEN, El incorpora RIO COLORADO p. 70, afluente del Aconcagua. Verificados: 34 IDs, coincidencia de campos con el CSV aprobado, comuna NULL, código B, estado pendiente y cero visibles al rol anon. |
 | 06 | 15/10/2026 | 37 (INSERT) | `pendiente` | `Lote_06_MAUCO-PASTIZAL.csv/.sql`, `_EXPLAIN.sql`, `_PRECHECK.sql`, `_validacion.json`, `_herramientas/lote06_data.py`, `gen06.py` | 10 notas RP; 7 remisiones «(Ver X)»; anclas del estero La Cigüeña para MIRAMAR, PALQUIAL y PARAGUAS. |
 | 07 | 17/10/2026 | 30 (INSERT) | `pendiente` | `Lote_07_PATAGUILLA-PLANCHON.csv/.sql`, `_EXPLAIN.sql`, `_PRECHECK.sql`, `_validacion.json`, `_herramientas/lote07_data.py`, `gen07.py`, `homologar_v1.py` (**generados en la sesión; pendientes de subir a `1975 DSA/lotes/`, sin CLI `pplx`**) | Transcrito desde OCR y texto pegado por el fundador; sin lectura visual del PDF; EXPLAIN no ejecutado en la base (sentencia única); lista controlada no validada contra `tipologias.ts`. Coordenadas corregidas: PERAL (Fundo) y PERAL (Laguna) por ancla/laguna, PETRAS, PIEDRAS TAZAS, PITE, PATOS (Paso). Remisiones: PIEDRA DE LOS PLATITOS (Ver La Huerta), PLACILLA (Ver Las Cenizas). 7 con nota PENDIENTE DE REVISIÓN (ver §7.9). |
+| 08 | 18/10/2026 | 21 (INSERT) | `pendiente` | `Lote_08_PLAZA-PURUTUN.csv/.sql`, `_EXPLAIN.sql`, `_PRECHECK.sql`, `_validacion.json`, `_herramientas/lote08_data.py`, `gen08.py`, `homologar_v1.py` (**generados en la sesión; pendientes de subir a `1975 DSA/lotes/`, sin CLI `pplx`**) | Texto pegado por el fundador (desde POTRERILLOS) y OCR del proyecto (PLAZA a PORTILLO); sin lectura visual del PDF; EXPLAIN no ejecutado en la base. 0 duplicados en el precheck. Coordenadas corregidas: POTRERO LA VIÑA y POTRERO SEGUNDO (ancla del estero), PUNTILLA de Pichilemu (UTM del fundador). Nombres repetidos: PUNTILLA, La (2) con alias. 3 con nota PENDIENTE DE REVISIÓN (ver §7.14). |
 
-**Total en `sitios_compendio` (stehberg_1975):** 271 = 107 `verde` + 164 `pendiente`.
+**Total en `sitios_compendio` (stehberg_1975):** 292 = 107 `verde` + 185 `pendiente`.
 
 **Aviso para lotes futuros:** TALLER LITICO (grupo Borries 1971, cuesta de Chacabuco) trae el mismo 71°54' erróneo que CASAS, ALAMO y PIEDRAS TAZAS; corregir con igual criterio (PIEDRAS TAZAS quedó ~1 km al S de CASAS, en -33.009, -70.705, según la nota del registro CASAS).
 
@@ -258,13 +269,13 @@ Los conteos son aproximados (detección automática de encabezados); el número 
 
 ## 7. Pendientes y decisiones abiertas
 0. 📌 Completar `descripcion_detallada` de los 107 del Lote 01 con el texto íntegro y renombrar sus remisiones con el sufijo `(Ver X)` (ALGARROBAL, BUCALEMU, CHENA, CHINCOLCO u otras). Se trabaja después.
-1. Aplicar por separado el `url_pdf` original de la Publicación Ocasional N° 17 a los 170 registros anteriores al Lote 05 (§2). El enlace ya está identificado; los 101 de los Lotes 05 a 07 lo usan.
+1. Aplicar por separado el `url_pdf` original de la Publicación Ocasional N° 17 a los 170 registros anteriores al Lote 05 (§2). El enlace ya está identificado; los 122 de los Lotes 05 a 08 lo usan.
 2. ¿Se trata el Apéndice 1975-1977 como compendio aparte (`stehberg_1977_apendice`)?
 3. ✅ Resuelto en el Lote 06: `NEUQUEN` está en la «ex-provincia de Colchagua» (Chile, no Argentina); se cargó con pin genérico en el valle de Colchagua y nota RP. Revisar en la fase final si se identifica la localidad.
 4. Comuna: resolver en una fase posterior (§5.6).
 5. LO VALLE y LLAPEN (Lote 05, p. 40): conservados en el CSV, no insertados. Falta ubicación respaldada; no equiparar automáticamente con Lo Ovalle o Illapel.
 6. MATA GORDA (Lote 05): «Complejo Papudo» conservado en la descripción y cultura `No determinado`. Definir si se agrega Papudo a CULTURAS; no se añadió automáticamente.
-7. Lote 06, para la revisión final de pines: (a) DUNAS 2 y DUNAS BAJAS 3 (Lotes anteriores) siguen en el punto costero impreso (32°51' - 71°31'); decisión 15/10/2026: se dejan en la zona costera y se reubican con el resto de la revisión. MISIONES 1, MISIONES 2 y NORMANDIE (Lote 06) se desplazaron ≤1 km a tierra. (b) CIGUEÑA (Lote 02) está a ~3 km del estero La Cigüeña; MIRAMAR, PALQUIAL y PARAGUAS (Lote 06) y PERAL, Fundo el (Lote 07) se midieron desde el estero (-33.52065, -71.60669); REPRESA, CERRO LA y POTRERO LA VIÑA (Lote 08 o siguientes) deben usar el mismo ancla (REPRESA: 500 m al N y 500 m al E del estero).
+7. Lote 06, para la revisión final de pines: (a) DUNAS 2 y DUNAS BAJAS 3 (Lotes anteriores) siguen en el punto costero impreso (32°51' - 71°31'); decisión 15/10/2026: se dejan en la zona costera y se reubican con el resto de la revisión. MISIONES 1, MISIONES 2 y NORMANDIE (Lote 06) se desplazaron ≤1 km a tierra. (b) CIGUEÑA (Lote 02) está a ~3 km del estero La Cigüeña; MIRAMAR, PALQUIAL y PARAGUAS (Lote 06), PERAL, Fundo el (Lote 07) y POTRERO LA VIÑA y POTRERO SEGUNDO (Lote 08) se midieron desde el estero (-33.52065, -71.60669); REPRESA y CERRO LA (Lote 09 o siguientes) deben usar el mismo ancla (REPRESA: 500 m al N y 500 m al E del estero).
 8. MAUCO (Lote 06): subtítulo «Estructuras indígenas», sin «fortaleza» en el texto; cargado como `No determinado` / `Otro`. MAULE conserva la coordenada impresa (±), cercana al río Claro de San Clemente, afluente del Maule alto.
 9. **Lote 07, registros con nota PENDIENTE DE REVISIÓN (verificar en el PDF):**
    - PATAGUILLA, La: el OCR lee 34°43' - 71°35', ~16 km al O-SO de Santa Cruz; el texto dice ~9 km al SO de Paniahue (si el PDF dice 71°25' es coherente). Se cargó la coordenada impresa.
@@ -276,5 +287,10 @@ Los conteos son aproximados (detección automática de encabezados); el número 
    - PLACILLA (Ver Las Cenizas): completar con el texto íntegro de CENIZAS, Las (el copiado viene del registro del Lote 01, que es un resumen) y combinar sus referencias.
 10. Lote 07, observaciones menores (sin nota en la tabla): PEDERNAL 1, 2 y 3 comparten coordenada entre sí y con CHINCOLCO (Lote 01); PICHILEMU («En la misma plaza», ¿playa?); PIEDRA DE LAS MARCAS (cabecera del río Seco, posible desfase hacia el interior); PITE, Punta (verificar que el pin no caiga en el mar); varias coordenadas impresas conservadas sin contraste cartográfico fino.
 11. `capa_destino` está vacío (NULL) en los 107 registros `verde` del Lote 01; §5.2 la fija como `arqueologico`. Decidir si se completa antes del cierre de la revisión (afecta lo que se ve en el mapa).
-12. Archivos del Lote 07 y este checkpoint pendientes de subir a `1975 DSA/lotes/` y `1975 DSA/checkpoints/` de los archivos del proyecto (requiere la CLI `pplx project files submit`).
+12. Archivos de los Lotes 07 y 08 y este checkpoint pendientes de subir a `1975 DSA/lotes/` y `1975 DSA/checkpoints/` de los archivos del proyecto (requiere la CLI `pplx project files submit`).
 13. Seguridad (aviso del asesor de Supabase, 17/10/2026): `spatial_ref_sys`, `reportes_cmn`, `lugares_capas`, `inv_cola`, `inv_fichas` e `inv_log` no tienen RLS activado. No afecta a `sitios_compendio`; se trata como tarea aparte.
+14. **Lote 08, registros con nota PENDIENTE DE REVISIÓN (verificar en el PDF):**
+   - PLAZA, La: verificar la palabra «Colmo» (el OCR lee «Ccliimo»).
+   - PORTILLO, Paso del: verificar que la coordenada impresa (35°15' - 70°20') quede del lado chileno y en el paso indicado (alta cordillera, cerca del límite internacional).
+   - PULLALLI 1: la longitud del OCR («719 93») es ilegible; se usa provisoriamente la de PULLALLI 2 (71°28'). La latitud impresa (32°27') de ambos PULLALLI queda ~6 km al N de Papudo, mientras el texto dice «entre Papudo y Zapallar».
+15. Lote 08, observaciones menores (sin nota en la tabla): PLOMO, Cerro del conserva «figuras de platas y oro» como lo lee el OCR; POCOA (coordenada con «(?)» del autor); POZA 2, La y PUNTILLA, La (Conchal cerámico) con coordenada impresa cercana al mar (verificar que no caigan en él); PUENTE DE LOS INCAS (coordenada en la alta cordillera cerca del límite internacional; cultura Inca por el subtítulo aunque el texto dice «habrían»); PUNTILLA de Pichilemu (pin según UTM del fundador, ~3 km al SO de la coordenada impresa); POTRERO SEGUNDO (el texto dice a la vez «próximo a la desembocadura» y «a más de 2 km del camino público»); varias coordenadas impresas conservadas sin contraste cartográfico fino.
