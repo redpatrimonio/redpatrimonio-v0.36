@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const nextParam = requestUrl.searchParams.get('next')
   const origin = requestUrl.origin
 
   if (code) {
@@ -11,6 +12,11 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // Redirigir al home después de login exitoso
-  return NextResponse.redirect(`${origin}/`)
+  // Redirigir a la ruta solicitada si es relativa y segura, o a /perfil por defecto
+  let destination = '/perfil'
+  if (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) {
+    destination = nextParam
+  }
+
+  return NextResponse.redirect(`${origin}${destination}`)
 }
