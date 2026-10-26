@@ -96,7 +96,7 @@ function LoginForm() {
               className="text-[10px] font-medium tracking-widest uppercase"
               style={{ color: 'var(--accent)', opacity: 0.85 }}
             >
-              Patrimonio arqueológico de Chile
+              Patrimonio arqueológico
             </span>
             <span className="block w-5 h-px" style={{ backgroundColor: 'var(--accent)', opacity: 0.6 }} />
           </div>
@@ -104,9 +104,9 @@ function LoginForm() {
           <Link href="/" className="my-1 opacity-90 hover:opacity-100 transition">
             <Image
               src="/logo.png"
-              alt="Arqueoportal"
-              width={56}
-              height={56}
+              alt="ArqueoPortal"
+              width={140}
+              height={140}
               className="object-contain"
             />
           </Link>
@@ -116,10 +116,10 @@ function LoginForm() {
               className="font-display font-light text-2xl md:text-3xl leading-tight"
               style={{ color: 'var(--text)' }}
             >
-              Ingresa a Arqueoportal
+              ArqueoPortal
             </h1>
             <p className="text-xs leading-relaxed mt-1" style={{ color: 'var(--muted)' }}>
-              Accede a la plataforma para documentar, consultar y resguardar sitios patrimoniales.
+              Accede a la plataforma para documentar, consultar y resguardar sitios arqueologicos.
             </p>
           </div>
         </div>
@@ -247,7 +247,7 @@ function LoginForm() {
               {loadingEmail ? 'Enviando enlace…' : 'Enviar enlace de acceso'}
             </button>
             <p className="text-[11px] text-center leading-snug" style={{ color: 'var(--faint)' }}>
-              Te enviaremos un enlace a tu bandeja para ingresar sin contraseña.
+              Te enviaremos un enlace a tu correo para ingresar a validarlo.
             </p>
           </form>
         )}
