@@ -42,8 +42,8 @@ function crearIconoCompendio(): L.DivIcon {
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: #78350f;
-      border: 2px solid #fef3c7;
+      background: #10454B;
+      border: 2px solid #B6875D;
       display: flex;
       align-items: center;
       justify-content: center;
