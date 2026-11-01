@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'RedPatrimonio',
-    short_name: 'RedPatrimonio',
+    name: 'Arqueoportal',
+    short_name: 'Arqueoportal',
     description: 'Registro y gestión del patrimonio arqueológico de Chile',
     start_url: '/',
     display: 'standalone',

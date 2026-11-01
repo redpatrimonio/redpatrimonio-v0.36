@@ -4,9 +4,26 @@ import { AuthProvider } from '@/components/auth/AuthProvider'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 
+const DESCRIPCION =
+  'Plataforma colaborativa para el registro, investigación y protección del patrimonio arqueológico de Chile'
+
 export const metadata: Metadata = {
-  title: 'Red Patrimonio Chile',
-  description: 'Plataforma colaborativa de sitios arqueológicos en Chile',
+  metadataBase: new URL('https://arqueoportal.com'),
+  title: 'Arqueoportal',
+  description: DESCRIPCION,
+  applicationName: 'Arqueoportal',
+  appleWebApp: {
+    capable: true,
+    title: 'Arqueoportal',
+  },
+  openGraph: {
+    title: 'Arqueoportal.com',
+    description: DESCRIPCION,
+    url: 'https://arqueoportal.com',
+    siteName: 'Arqueoportal',
+    locale: 'es_CL',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({
