@@ -67,9 +67,9 @@ function LoginForm() {
             <span className="text-[10px] font-medium tracking-widest uppercase" style={{ color: 'var(--accent)', opacity: 0.85 }}>Patrimonio arqueológico</span>
             <span className="block w-5 h-px" style={{ backgroundColor: 'var(--accent)', opacity: 0.6 }} />
           </div>
-          <Link href="/" className="my-1 opacity-90 hover:opacity-100 transition"><Image src="/logo.png" alt="ArqueoPortal" width={140} height={140} className="object-contain" /></Link>
+          <Link href="/" className="my-1 opacity-90 hover:opacity-100 transition"><Image src="/logo.png" alt="Arqueoportal" width={140} height={140} className="object-contain" /></Link>
           <div>
-            <h1 className="font-display font-light text-2xl md:text-3xl leading-tight" style={{ color: 'var(--text)' }}>ArqueoPortal</h1>
+            <h1 className="font-display font-light text-2xl md:text-3xl leading-tight" style={{ color: 'var(--text)' }}>Arqueoportal</h1>
             <p className="text-xs leading-relaxed mt-1" style={{ color: 'var(--muted)' }}>Accede a la plataforma para documentar, consultar y resguardar sitios arqueologicos.</p>
           </div>
         </div>

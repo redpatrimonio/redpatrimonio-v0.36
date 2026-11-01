@@ -112,7 +112,7 @@ export function Navbar() {
               >
                 {usuario && (
                   <span
-                    className="text-[11px] px-2 py-0.5 rounded-full"
+                    className="text-[10px] font-medium tracking-wide leading-none px-1.5 py-1 rounded-[4px] whitespace-nowrap"
                     style={{ backgroundColor: rolStyle.bg, color: rolStyle.color, border: `1px solid ${rolStyle.border}` }}
                   >
                     {ROL_LABEL[rolKey]}
