@@ -76,7 +76,7 @@ function IconArrow() {
   return <span style={{ color: 'var(--faint)', fontSize: 18, lineHeight: 1 }}>›</span>
 }
 
-// ── Helpers de estilo ─────────────────────────────────────────
+// ── Helpers de estilo ──────────────────────────────────────────
 function rolBadge(rol: string | undefined) {
   const base: React.CSSProperties = {
     display: 'inline-block', fontSize: 10, padding: '2px 10px',
@@ -108,8 +108,16 @@ const solItem: React.CSSProperties = {
   padding: 14, borderRadius: 11, border: '1px solid var(--border)',
   background: 'var(--surface-2)', display: 'flex', flexDirection: 'column', gap: 8,
 }
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+  color: 'var(--faint)', marginBottom: 4,
+}
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '9px 11px', borderRadius: 9, fontSize: 13, fontFamily: 'inherit',
+  background: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border-m)',
+}
 
-// ── Componente PanelBtn ───────────────────────────────────────
+// ── Componente PanelBtn ───────────────────────────────────────────
 interface PanelBtnProps {
   icon: React.ReactNode
   iconBg: string
@@ -152,10 +160,18 @@ function PanelBtn({ icon, iconBg, iconColor, title, desc, badge, onClick }: Pane
   )
 }
 
-// ── Página principal ──────────────────────────────────────────
+// ── Página principal ─────────────────────────────────────────────────
 export default function PerfilPage() {
-  const { user, usuario, loading, signOut } = useAuth()
+  const { user, usuario, loading, signOut, refreshProfile } = useAuth()
   const router = useRouter()
+
+  const [saliendo, setSaliendo] = useState(false)
+  const [editando, setEditando] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [formNombre, setFormNombre] = useState('')
+  const [formTelefono, setFormTelefono] = useState('')
+  const [errorPerfil, setErrorPerfil] = useState<string | null>(null)
+  const [okPerfil, setOkPerfil] = useState(false)
 
   const [solicitudesPendientes, setSolicitudesPendientes] = useState<SolicitudConDatos[]>([])
   const [misSolicitudes, setMisSolicitudes] = useState<SolicitudConDatos[]>([])
@@ -172,6 +188,10 @@ export default function PerfilPage() {
   } | null>(null)
   const [loadingInfoContacto, setLoadingInfoContacto] = useState(false)
   const [errorInfoContacto, setErrorInfoContacto] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!loading && !user && !saliendo) router.replace('/login')
+  }, [loading, user, saliendo, router])
 
   useEffect(() => {
     if (user && usuario) cargarSolicitudes()
@@ -252,7 +272,54 @@ export default function PerfilPage() {
     } catch { alert('Error al rechazar solicitud') }
   }
 
-  async function handleSignOut() { await signOut(); router.push('/') }
+  async function handleSignOut() {
+    setSaliendo(true)
+    await signOut()
+    router.push('/')
+  }
+
+  function iniciarEdicion() {
+    setFormNombre(usuario?.nombre_completo || '')
+    setFormTelefono(usuario?.telefono || '')
+    setErrorPerfil(null)
+    setOkPerfil(false)
+    setEditando(true)
+  }
+
+  function cancelarEdicion() {
+    setEditando(false)
+    setErrorPerfil(null)
+  }
+
+  async function guardarPerfil(e: React.FormEvent) {
+    e.preventDefault()
+    if (!user) return
+    const nombre = formNombre.trim()
+    const telefono = formTelefono.trim()
+    if (nombre.length > 120) {
+      setErrorPerfil('El nombre no puede superar los 120 caracteres.')
+      return
+    }
+    if (telefono.length > 30 || !/^[0-9+() -]*$/.test(telefono)) {
+      setErrorPerfil('Ingresa un teléfono válido: solo números, espacios, +, - y paréntesis.')
+      return
+    }
+    setGuardando(true)
+    setErrorPerfil(null)
+    const { data, error } = await supabase
+      .from('usuarios_autorizados')
+      .update({ nombre_completo: nombre || null, telefono: telefono || null })
+      .eq('id_usuario', user.id)
+      .select('id_usuario')
+    setGuardando(false)
+    if (error || !data || data.length === 0) {
+      setErrorPerfil('No pudimos guardar los cambios. Intenta nuevamente.')
+      return
+    }
+    await refreshProfile()
+    setEditando(false)
+    setOkPerfil(true)
+  }
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
@@ -260,7 +327,7 @@ export default function PerfilPage() {
     </div>
   )
 
-  if (!user) { router.push('/auth/login'); return null }
+  if (!user) return null
 
   if (!usuario) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
@@ -290,38 +357,106 @@ export default function PerfilPage() {
             }}>
               <IconUser />
             </div>
-            <div>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 20, color: 'var(--text)', lineHeight: 1.1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 20, color: 'var(--text)', lineHeight: 1.1, overflowWrap: 'anywhere' }}>
                 {usuario.nombre_completo || 'Sin nombre'}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{user.email}</div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflowWrap: 'anywhere' }}>{user.email}</div>
               <span style={rolBadge(usuario.rol)}>{usuario.rol?.toUpperCase() || 'PÚBLICO'}</span>
             </div>
+            {!editando && (
+              <button
+                onClick={iniciarEdicion}
+                style={{
+                  flexShrink: 0, padding: '7px 12px', borderRadius: 9, fontSize: 12, cursor: 'pointer',
+                  fontFamily: 'inherit', background: 'transparent', color: 'var(--accent)',
+                  border: '1px solid rgba(143,181,164,0.3)',
+                }}
+              >
+                Editar perfil
+              </button>
+            )}
           </div>
 
           <div style={{ height: 1, background: 'var(--border)', marginBottom: 14 }} />
 
-          <div style={{ display: 'grid', gap: 10 }}>
-            {usuario.telefono && (
+          {editando ? (
+            <form onSubmit={guardarPerfil} style={{ display: 'grid', gap: 12 }}>
               <div>
-                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)', marginBottom: 2 }}>Teléfono</div>
-                <div style={{ fontSize: 13, color: 'var(--muted)' }}>{usuario.telefono}</div>
+                <label htmlFor="perfil-nombre" style={labelStyle}>Nombre completo</label>
+                <input
+                  id="perfil-nombre"
+                  type="text"
+                  value={formNombre}
+                  onChange={e => setFormNombre(e.target.value)}
+                  maxLength={120}
+                  autoComplete="name"
+                  disabled={guardando}
+                  style={inputStyle}
+                />
               </div>
-            )}
-          </div>
-
-          <button
-            onClick={handleSignOut}
-            style={{
-              marginTop: 16, width: '100%', padding: 9, borderRadius: 9,
-              border: '1px solid var(--border-m)', background: 'transparent',
-              color: 'var(--muted)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--ladrillo)'; e.currentTarget.style.color = 'var(--ladrillo)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-m)'; e.currentTarget.style.color = 'var(--muted)' }}
-          >
-            Cerrar sesión
-          </button>
+              <div>
+                <label htmlFor="perfil-telefono" style={labelStyle}>Teléfono</label>
+                <input
+                  id="perfil-telefono"
+                  type="tel"
+                  value={formTelefono}
+                  onChange={e => setFormTelefono(e.target.value)}
+                  maxLength={30}
+                  autoComplete="tel"
+                  disabled={guardando}
+                  style={inputStyle}
+                />
+              </div>
+              <p style={{ fontSize: 11, color: 'var(--faint)', margin: 0 }}>
+                El correo y el rol no se pueden modificar desde aquí.
+              </p>
+              {errorPerfil && (
+                <div role="alert" style={{
+                  fontSize: 12, padding: 10, borderRadius: 9, color: 'var(--text)',
+                  background: 'rgba(168,80,64,0.12)', border: '1px solid rgba(168,80,64,0.3)',
+                }}>
+                  {errorPerfil}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="submit"
+                  disabled={guardando}
+                  style={{
+                    flex: 1, padding: 9, borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                    fontFamily: 'inherit', background: 'var(--btn-light)', color: '#111110', border: 'none',
+                    opacity: guardando ? 0.6 : 1,
+                  }}
+                >
+                  {guardando ? 'Guardando…' : 'Guardar cambios'}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelarEdicion}
+                  disabled={guardando}
+                  style={{
+                    flex: 1, padding: 9, borderRadius: 9, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                    background: 'transparent', color: 'var(--muted)', border: '1px solid var(--border-m)',
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div style={{ display: 'grid', gap: 10 }}>
+              {usuario.telefono && (
+                <div>
+                  <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)', marginBottom: 2 }}>Teléfono</div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>{usuario.telefono}</div>
+                </div>
+              )}
+              {okPerfil && (
+                <div role="status" style={{ fontSize: 12, color: 'var(--musgo)' }}>✓ Perfil actualizado.</div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Panel de control ── */}
@@ -466,6 +601,22 @@ export default function PerfilPage() {
             <a href="mailto:redpatrimonio.chile@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>redpatrimonio.chile@gmail.com</a>
           </div>
         )}
+
+        {/* ── Cerrar sesión (al final) ── */}
+        <button
+          onClick={handleSignOut}
+          disabled={saliendo}
+          style={{
+            marginTop: 8, width: '100%', padding: 11, borderRadius: 10,
+            border: '1px solid var(--border-m)', background: 'transparent',
+            color: 'var(--muted)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+            opacity: saliendo ? 0.6 : 1,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--ladrillo)'; e.currentTarget.style.color = 'var(--ladrillo)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-m)'; e.currentTarget.style.color = 'var(--muted)' }}
+        >
+          {saliendo ? 'Cerrando sesión…' : 'Cerrar sesión'}
+        </button>
 
       </div>
 

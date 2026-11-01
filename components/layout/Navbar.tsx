@@ -2,21 +2,34 @@
 
 import { useAuth } from '@/components/auth/AuthProvider'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
-export function Navbar() {
-  const { user, usuario, loading, signOut } = useAuth()
-  const router = useRouter()
-  const pathname = usePathname()
+const ROL_LABEL: Record<string, string> = {
+  founder: 'Founder',
+  partner: 'Partner',
+  experto: 'Experto',
+  publico: 'Público',
+}
 
-  async function handleSignOut() {
-    await signOut()
-    router.push('/login')
-  }
+const ROL_STYLE: Record<string, { bg: string; color: string; border: string }> = {
+  founder: { bg: 'rgba(194,120,64,0.13)', color: 'var(--cobre)', border: 'rgba(194,120,64,0.22)' },
+  partner: { bg: 'rgba(143,181,164,0.1)', color: 'var(--accent)', border: 'rgba(143,181,164,0.2)' },
+  experto: { bg: 'rgba(78,138,96,0.12)', color: 'var(--musgo)', border: 'rgba(78,138,96,0.22)' },
+  publico: { bg: 'rgba(82,96,88,0.15)', color: 'var(--muted)', border: 'rgba(82,96,88,0.25)' },
+}
+
+export function Navbar() {
+  const { user, usuario, loading } = useAuth()
+  const pathname = usePathname()
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
   const esEquipo = !loading && usuario && ['founder', 'partner', 'experto'].includes(usuario.rol)
+
+  const nombreVisible = usuario?.nombre_completo || user?.email || ''
+  const inicial = nombreVisible.trim() ? nombreVisible.trim().charAt(0).toUpperCase() : '?'
+  const rolKey = usuario?.rol && ROL_STYLE[usuario.rol] ? usuario.rol : 'publico'
+  const rolStyle = ROL_STYLE[rolKey]
 
   return (
     <nav
@@ -28,12 +41,12 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="Red Patrimonio Chile" width={40} height={40} className="object-contain" />
+            <Image src="/logo.png" alt="Arqueoportal" width={40} height={40} className="object-contain" />
             <span
-              className="font-display font-light text-base tracking-wide hidden sm:block"
+              className="font-display font-light text-base tracking-wide"
               style={{ color: 'var(--text)' }}
             >
-              RedPatrimonio
+              Arqueoportal
             </span>
           </Link>
 
@@ -91,25 +104,38 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {loading ? (
               <div className="w-16 h-7 rounded animate-pulse" style={{ backgroundColor: 'var(--surface-2)' }} />
-            ) : user && usuario ? (
-              <>
-                <span className="text-xs hidden lg:block" style={{ color: 'var(--muted)' }}>
-                  {usuario.nombre_completo || usuario.email}
+            ) : user ? (
+              <Link
+                href="/perfil"
+                aria-label="Ir a mi perfil"
+                className="flex items-center gap-2 transition"
+              >
+                {usuario && (
+                  <span
+                    className="text-[11px] px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: rolStyle.bg, color: rolStyle.color, border: `1px solid ${rolStyle.border}` }}
+                  >
+                    {ROL_LABEL[rolKey]}
+                  </span>
+                )}
+                <span
+                  className="text-xs hidden lg:block max-w-[180px] truncate"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  {nombreVisible}
                 </span>
                 <span
-                  className="text-xs px-2 py-0.5 rounded-full hidden sm:block"
-                  style={{ backgroundColor: 'rgba(143,181,164,0.12)', color: 'var(--accent)' }}
+                  aria-hidden="true"
+                  className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium"
+                  style={{
+                    backgroundColor: 'rgba(143,181,164,0.12)',
+                    color: 'var(--accent)',
+                    border: `1px solid ${isActive('/perfil') ? 'var(--accent)' : 'var(--border-m)'}`,
+                  }}
                 >
-                  {usuario.rol}
+                  {inicial}
                 </span>
-                <button
-                  onClick={handleSignOut}
-                  className="text-xs px-3 py-1.5 rounded-md transition"
-                  style={{ color: 'var(--muted)', border: '1px solid var(--border-m)' }}
-                >
-                  Salir
-                </button>
-              </>
+              </Link>
             ) : (
               <Link
                 href="/login"
