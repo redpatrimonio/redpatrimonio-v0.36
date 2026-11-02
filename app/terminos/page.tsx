@@ -16,7 +16,7 @@ export default function TerminosPage() {
               1. Aceptación de términos
             </h2>
             <p>
-              Al usar Red Patrimonio Chile, aceptas estos términos de servicio.
+              Al usar Arqueoportal, aceptas estos términos de servicio.
             </p>
           </section>
 
@@ -41,7 +41,7 @@ export default function TerminosPage() {
             </h2>
             <p>
               Al subir fotos, mantienes tus derechos de autor pero otorgas 
-              permiso a Red Patrimonio Chile para mostrarlas en la plataforma.
+              permiso a Arqueoportal para mostrarlas en la plataforma.
             </p>
           </section>
 
@@ -51,10 +51,10 @@ export default function TerminosPage() {
             </h2>
             <p>
               <a 
-                href="mailto:redpatrimonio.chile@gmail.com"
+                href="mailto:equipo@arqueoportal.com"
                 className="text-blue-600 hover:underline"
               >
-                redpatrimonio.chile@gmail.com
+                equipo@arqueoportal.com
               </a>
             </p>
           </section>

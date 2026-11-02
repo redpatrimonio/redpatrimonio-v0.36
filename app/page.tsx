@@ -22,7 +22,7 @@ export default function HomePage() {
       style={{ backgroundColor: 'var(--bg)' }}
     >
 
-      {/* ── MOBILE ────────────────────────────────── */}
+      {/* ── MOBILE ────────────────────────────────────── */}
       <div className="flex flex-col justify-between flex-1 px-6 pt-10 pb-0 md:hidden">
 
         <div className="flex flex-col gap-5">
@@ -73,7 +73,7 @@ export default function HomePage() {
           <div className="flex justify-center" style={{ marginTop: 20, marginBottom: 32 }}>
             <Image
               src="/logo.png"
-              alt="Red Patrimonio Chile"
+              alt="Arqueoportal"
               width={120}
               height={120}
               className="object-contain"
@@ -111,7 +111,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── DESKTOP ───────────────────────────────── */}
+      {/* ── DESKTOP ───────────────────────────────────── */}
       <div className="hidden md:grid grid-cols-2 gap-16 items-center flex-1 max-w-5xl mx-auto px-12 py-16 w-full">
 
         <div className="flex flex-col gap-7">
@@ -154,7 +154,7 @@ export default function HomePage() {
             </Link>
             <Image
               src="/logo.png"
-              alt="Red Patrimonio Chile"
+              alt="Arqueoportal"
               width={36}
               height={36}
               className="object-contain ml-2"

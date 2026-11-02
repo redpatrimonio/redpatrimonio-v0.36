@@ -16,7 +16,7 @@ export default function PrivacidadPage() {
               1. Información que recopilamos
             </h2>
             <p>
-              Red Patrimonio Chile recopila la siguiente información cuando usas Google Sign-In:
+              Arqueoportal recopila la siguiente información cuando usas Google Sign-In:
             </p>
             <ul className="list-disc ml-6 mt-2 space-y-1">
               <li>Nombre completo</li>
@@ -60,7 +60,7 @@ export default function PrivacidadPage() {
             <p>Puedes:</p>
             <ul className="list-disc ml-6 mt-2 space-y-1">
               <li>Acceder a tu información en cualquier momento desde tu perfil</li>
-              <li>Solicitar eliminación de tu cuenta contactando a redpatrimonio.chile@gmail.com</li>
+              <li>Solicitar eliminación de tu cuenta contactando a equipo@arqueoportal.com</li>
               <li>Revocar el acceso de Google desde tu cuenta Google</li>
             </ul>
           </section>
@@ -89,10 +89,10 @@ export default function PrivacidadPage() {
             <p>
               Para preguntas sobre esta política, contacta a:{' '}
               <a 
-                href="mailto:redpatrimonio.chile@gmail.com"
+                href="mailto:equipo@arqueoportal.com"
                 className="text-blue-600 hover:underline"
               >
-                redpatrimonio.chile@gmail.com
+                equipo@arqueoportal.com
               </a>
             </p>
           </section>
