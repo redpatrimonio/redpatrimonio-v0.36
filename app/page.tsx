@@ -2,16 +2,72 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 const pasos = [
-  { n: '01', title: 'Reporta un hallazgo',          desc: 'Ubica y fotografía el sitio. Tu reporte inicia la documentación formal.' },
-  { n: '02', title: 'Se evalúa y se publica',       desc: 'Arqueólogos de la red revisan y completan la ficha; el sitio validado entra al mapa y la biblioteca patrimonial.' },
-  { n: '03', title: 'Descubre tu territorio',        desc: 'Visita sitios protegidos, museos de sitio y lugares de interés patrimonial cercanos a ti.' },
+  {
+    n: '01',
+    title: 'Explora el mapa de sitios arqueológicos',
+    desc: 'En constante construcción. Descubre sitios visitables y lugares de interés patrimonial, usa Google Maps para llegar.',
+  },
+  {
+    n: '02',
+    title: 'Guarda lugares que encuentres con foto y geolocalización',
+    desc: 'Agrega fotografías, videos y enlaces a fotos 360° o modelos 3D. Los expertos pueden revisarlos para publicarlos en el mapa.',
+  },
+  {
+    n: '03',
+    title: 'Reporta hallazgos en peligro',
+    desc: 'De forma personal o anónima, puedes dar cuenta de destrucción, robo o deterioro provocados por obras de construcción u otras causas. Esto será revisado con total privacidad.',
+  },
+  {
+    n: '04',
+    title: 'Incorpora compendios de sitios arqueológicos en Chile y el mundo',
+    desc: 'Reúne en un solo lugar registros de fuentes históricas y oficiales, con su publicación PDF, para consultarlos en el mapa. Todo aporte está sujeto a revisión.',
+  },
 ]
 
-const pasosDesktop = [
-  { n: '01', title: 'Reporta',           desc: 'Ubica y fotografía el sitio.' },
-  { n: '02', title: 'Se evalúa y publica', desc: 'Arqueólogos revisan la ficha y el sitio entra al mapa y biblioteca.' },
-  { n: '03', title: 'Descubre',          desc: 'Visita sitios, museos y lugares patrimoniales cercanos.' },
-]
+function ComoFunciona() {
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ border: '1px solid var(--border)' }}
+    >
+      {pasos.map(({ n, title, desc }, i) => (
+        <div
+          key={n}
+          className="flex items-start justify-between gap-4 px-4 py-3"
+          style={{
+            backgroundColor: 'var(--surface)',
+            borderTop: i > 0 ? '1px solid var(--border)' : 'none',
+          }}
+        >
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium" style={{ color: 'var(--text)' }}>{title}</p>
+            <p className="text-[11px] leading-snug mt-0.5" style={{ color: 'var(--muted)' }}>{desc}</p>
+          </div>
+          <span
+            className="font-display font-light leading-none shrink-0"
+            style={{ fontSize: 24, color: 'var(--accent)', opacity: 0.45 }}
+          >
+            {n}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function EnlacesLegales({ className = '' }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-3 text-[11px] ${className}`}>
+      <Link href="/terminos" className="hover:underline transition" style={{ color: 'var(--muted)' }}>
+        Términos de Servicio
+      </Link>
+      <span style={{ color: 'var(--faint)' }}>•</span>
+      <Link href="/privacidad" className="hover:underline transition" style={{ color: 'var(--muted)' }}>
+        Política de Privacidad
+      </Link>
+    </div>
+  )
+}
 
 function LinkApp({ className = '' }: { className?: string }) {
   return (
@@ -31,11 +87,11 @@ function LinkApp({ className = '' }: { className?: string }) {
 export default function HomePage() {
   return (
     <div
-      className="flex flex-col min-h-[calc(100dvh-120px)] md:min-h-0 md:h-[calc(100vh-56px)] md:overflow-hidden"
+      className="flex flex-col min-h-[calc(100dvh-120px)] md:min-h-[calc(100vh-56px)]"
       style={{ backgroundColor: 'var(--bg)' }}
     >
 
-      {/* ── MOBILE ───────────────────────────────────────────── */}
+      {/* MOBILE */}
       <div className="flex flex-col justify-between flex-1 px-6 pt-10 pb-0 md:hidden">
 
         <div className="flex flex-col gap-5">
@@ -96,43 +152,21 @@ export default function HomePage() {
         </div>
 
         <div>
-          {/* Cómo funciona */}
-          <div
-            className="rounded-xl overflow-hidden"
-            style={{ border: '1px solid var(--border)' }}
-          >
-            {pasos.map(({ n, title, desc }, i) => (
-              <div
-                key={n}
-                className="flex items-start gap-3.5 px-4 py-3"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderTop: i > 0 ? '1px solid var(--border)' : 'none',
-                }}
-              >
-                <span
-                  className="font-display font-light leading-none w-7 shrink-0"
-                  style={{ fontSize: 20, color: 'var(--accent)', opacity: 0.45 }}
-                >
-                  {n}
-                </span>
-                <div>
-                  <p className="text-[12px] font-medium" style={{ color: 'var(--text)' }}>{title}</p>
-                  <p className="text-[11px] leading-snug mt-0.5" style={{ color: 'var(--muted)' }}>{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Como funciona */}
+          <ComoFunciona />
+
+          {/* Enlaces legales */}
+          <EnlacesLegales className="justify-center pt-4" />
 
           {/* Link usar como app */}
-          <div className="flex justify-center pt-5 pb-6">
+          <div className="flex justify-center pt-3 pb-6">
             <LinkApp />
           </div>
         </div>
       </div>
 
-      {/* ── DESKTOP ───────────────────────────────────────────── */}
-      <div className="hidden md:grid grid-cols-2 gap-16 items-center flex-1 max-w-5xl mx-auto px-12 py-16 w-full">
+      {/* DESKTOP */}
+      <div className="hidden md:grid grid-cols-2 gap-16 items-center flex-1 max-w-5xl mx-auto px-12 py-12 w-full">
 
         <div className="flex flex-col gap-7">
           <div className="flex items-center gap-3">
@@ -182,28 +216,12 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Cómo — horizontal */}
-          <div
-            className="flex rounded-xl overflow-hidden"
-            style={{ border: '1px solid var(--border)' }}
-          >
-            {pasosDesktop.map(({ n, title, desc }, i) => (
-              <div
-                key={n}
-                className="flex-1 p-4"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderLeft: i > 0 ? '1px solid var(--border)' : 'none',
-                }}
-              >
-                <div className="font-display font-light mb-2" style={{ fontSize: 24, color: 'var(--accent)', opacity: 0.4 }}>{n}</div>
-                <div className="text-[12px] font-medium mb-1" style={{ color: 'var(--text)' }}>{title}</div>
-                <div className="text-[11px] leading-snug" style={{ color: 'var(--muted)' }}>{desc}</div>
-              </div>
-            ))}
+          {/* Como funciona + enlaces legales + usar como app */}
+          <div className="flex flex-col gap-3">
+            <ComoFunciona />
+            <EnlacesLegales />
+            <LinkApp />
           </div>
-
-          <LinkApp />
         </div>
 
         {/* Mapa decorativo */}
