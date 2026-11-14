@@ -32,13 +32,15 @@ export function puedeVerSitio(
 }
 
 // Determinar si puede ver coordenadas exactas
+// A: todos. B: experto, partner y founder. C: solo partner y founder.
+// Quien puede ver el sitio pero no la coordenada exacta lo ve aproximado.
 export function puedeVerCoordenadasExactas(
   codigoAccesibilidad: 'A' | 'B' | 'C',
   rolUsuario: 'publico' | 'experto' | 'partner' | 'founder' | null
 ): boolean {
-  // Solo expertos ven coordenadas de C
+  // C: solo partner y founder ven la coordenada exacta
   if (codigoAccesibilidad === 'C') {
-    return rolUsuario === 'experto' || rolUsuario === 'partner' || rolUsuario === 'founder'
+    return rolUsuario === 'partner' || rolUsuario === 'founder'
   }
 
   // B: Expertos ven coordenadas exactas, públicos NO
