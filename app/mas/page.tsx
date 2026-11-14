@@ -213,7 +213,7 @@ export default function MasPage() {
         </section>
 
         {/* ── SECCIÓN 2: Usar como app ── */}
-        <section className="space-y-4">
+        <section id="usar-como-app" className="space-y-4 scroll-mt-20">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
             <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
