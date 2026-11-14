@@ -101,7 +101,7 @@ export function SitiosMaster({ zoomActual, onSeleccionar }: Props) {
         const tipologias: string[] = sitio.tipologias ?? []
         const necesitaSolicitar =
           (codigo === 'B' && rolUsuario === 'publico') ||
-          (codigo === 'C' && ['experto', 'partner', 'founder'].includes(rolUsuario || ''))
+          (codigo === 'C' && rolUsuario === 'experto')
 
         const googleMapsUrl = `https://www.google.com/maps?q=${sitio.latitud},${sitio.longitud}`
 

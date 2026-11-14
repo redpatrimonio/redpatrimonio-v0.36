@@ -233,7 +233,7 @@ export function MapView() {
 
               const necesitaSolicitar =
                 (codigo === 'B' && rolUsuario === 'publico') ||
-                (codigo === 'C' && ['experto', 'partner', 'founder'].includes(rolUsuario || ''))
+                (codigo === 'C' && rolUsuario === 'experto')
 
               const popup = (
                 <div style={{ width: '272px', fontFamily: 'inherit' }}>
