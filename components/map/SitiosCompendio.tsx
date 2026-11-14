@@ -1,9 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
+import { puedeVerSitio, puedeVerCoordenadasExactas } from '@/lib/utils/accesibilidad'
+import { areaB, areaC } from '@/components/map/IconosCapas'
 
 interface SitioCompendioRow {
   id: string
@@ -27,6 +30,7 @@ interface SitioCompendioRow {
   compilador_digital: string | null
   url_portada: string | null
   compendio_slug: string
+  codigo_accesibilidad: 'A' | 'B' | 'C' | null
 }
 
 interface Props {
@@ -34,6 +38,16 @@ interface Props {
   onSeleccionar?: (id: string) => void
   onSelectSitio?: (id: string, origen: 'compendio') => void
   zoomActual?: number
+}
+
+function desplazarCoordenada(lat: number, lng: number, radioMetros: number): [number, number] {
+  const radioGrados = radioMetros / 111320
+  const angulo = Math.random() * 2 * Math.PI
+  const distancia = Math.random() * radioGrados
+  return [
+    lat + distancia * Math.cos(angulo),
+    lng + distancia * Math.sin(angulo) / Math.cos((lat * Math.PI) / 180),
+  ]
 }
 
 function crearIconoCompendio(): L.DivIcon {
@@ -62,10 +76,14 @@ function crearIconoCompendio(): L.DivIcon {
   })
 }
 
-export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSitio, zoomActual }: Props) {
+export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSitio, zoomActual = 5 }: Props) {
+  const { usuario } = useAuth()
   const [sitios, setSitios] = useState<SitioCompendioRow[]>([])
   const [loading, setLoading] = useState(false)
+  const coordsDesplazadasRef = useRef<Record<string, [number, number]>>({})
   const supabase = createClient()
+
+  const rolUsuario = (usuario?.rol as 'publico' | 'experto' | 'partner' | 'founder') || null
 
   const handleAbrirFicha = (id: string) => {
     if (onSeleccionar) {
@@ -73,6 +91,13 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
     } else if (onSelectSitio) {
       onSelectSitio(id, 'compendio')
     }
+  }
+
+  function getCoordsDesplazadas(s: SitioCompendioRow): [number, number] {
+    if (!coordsDesplazadasRef.current[s.id]) {
+      coordsDesplazadasRef.current[s.id] = desplazarCoordenada(s.latitud, s.longitud, 300)
+    }
+    return coordsDesplazadasRef.current[s.id]
   }
 
   useEffect(() => {
@@ -84,7 +109,7 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
     async function cargarSitiosCompendio() {
       setLoading(true)
       try {
-        const { data, error } = await supabase
+        let consulta = supabase
           .from('sitios_compendio')
           .select(`
             id,
@@ -107,9 +132,19 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
             institucion_editora,
             compilador_digital,
             url_portada,
-            compendio_slug
+            compendio_slug,
+            codigo_accesibilidad
           `)
           .in('compendio_slug', compendiosActivos)
+
+        // Sin login: solo A. Publico logueado: A y B. Experto o superior: todo.
+        if (!rolUsuario) {
+          consulta = consulta.in('codigo_accesibilidad', ['A'])
+        } else if (rolUsuario === 'publico') {
+          consulta = consulta.in('codigo_accesibilidad', ['A', 'B'])
+        }
+
+        const { data, error } = await consulta
 
         if (error) throw error
         setSitios(data ?? [])
@@ -121,7 +156,7 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
     }
 
     cargarSitiosCompendio()
-  }, [compendiosActivos])
+  }, [compendiosActivos, rolUsuario])
 
   if (sitios.length === 0) return null
 
@@ -130,13 +165,28 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
   return (
     <>
       {sitios.map(s => {
+        const codigo = (s.codigo_accesibilidad ?? 'B') as 'A' | 'B' | 'C'
+
+        if (!puedeVerSitio(codigo, rolUsuario)) return null
+
+        const verExacto = puedeVerCoordenadasExactas(codigo, rolUsuario)
+        const coords: [number, number] = verExacto
+          ? [s.latitud, s.longitud]
+          : getCoordsDesplazadas(s)
+
+        let iconoMarcador: L.DivIcon | L.Icon = icono
+        if (!verExacto) {
+          if (zoomActual >= 16) return null
+          if (zoomActual >= 10) iconoMarcador = codigo === 'B' ? areaB : areaC
+        }
+
         const googleMapsUrl = `https://www.google.com/maps?q=${s.latitud},${s.longitud}&t=k`
 
         return (
           <Marker
             key={s.id}
-            position={[s.latitud, s.longitud]}
-            icon={icono}
+            position={coords}
+            icon={iconoMarcador}
           >
             <Popup maxWidth={380} minWidth={320}>
               <div
@@ -185,6 +235,9 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                       <span style={{ color: '#dc2626', fontSize: '13px' }}>📍</span>
                       <span>{[s.comuna, s.region].filter(Boolean).join(' · ')}</span>
                     </p>
+                    {!verExacto && (
+                      <p style={{ margin: '3px 0 0 0', fontSize: '10px', color: '#d97706' }}>Ubicación aproximada</p>
+                    )}
                   </div>
                 </div>
 
@@ -301,27 +354,29 @@ export function SitiosCompendio({ compendiosActivos, onSeleccionar, onSelectSiti
                     Ver Ficha
                   </button>
 
-                  <a
-                    href={googleMapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      padding: '8px 0',
-                      backgroundColor: 'white',
-                      color: '#10454B',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                      border: '1.5px solid #10454B',
-                    }}
-                  >
-                    Abrir en Google Maps
-                  </a>
+                  {verExacto && (
+                    <a
+                      href={googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        padding: '8px 0',
+                        backgroundColor: 'white',
+                        color: '#10454B',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        border: '1.5px solid #10454B',
+                      }}
+                    >
+                      Abrir en Google Maps
+                    </a>
+                  )}
                 </div>
               </div>
             </Popup>
