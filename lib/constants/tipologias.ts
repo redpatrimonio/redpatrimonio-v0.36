@@ -16,6 +16,7 @@ export const CATEGORIAS = [
   'Hallazgos aislados',
   'Arquitectura histórica',
   'Patrimonio industrial',
+  'Paleontológico',
   'Otro'
 ] as const
 
@@ -92,6 +93,9 @@ export const TIPOLOGIAS: Record<string, string[]> = {
     'Hornos',
     'Talleres'
   ],
+  'Paleontológico': [
+    'Yacimiento paleontológico'
+  ],
   'Otro': [
     'No determinado',
     'Otro (especificar)'
@@ -103,6 +107,7 @@ export const CULTURAS = [
   'Inca',
   'Aconcagua',
   'Diaguita',
+  'Inca-Diaguita',
   'Molle',
   'Atacameña',
   'Aymara',
