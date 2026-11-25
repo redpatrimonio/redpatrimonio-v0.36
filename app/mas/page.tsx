@@ -10,10 +10,16 @@ type Organizacion = {
   linkLabel: string
 }
 
-const pasosInstalacion = [
+const pasosInstalacionIOS = [
   <>Abre <strong>arqueoportal.com</strong> en <strong>Safari</strong> y toca <strong>Compartir</strong>. Está en la barra inferior, o en el menú de tres puntos (⋯) si tu barra está arriba.</>,
   <>Desliza la lista hacia abajo y toca <strong>Agregar a Inicio</strong>. Si no la ves, baja hasta el final, toca <strong>Editar acciones</strong> y agrégala desde ahí.</>,
   <>Activa <strong>Abrir como app web</strong> y toca <strong>Agregar</strong>. El ícono de Arqueoportal queda en tu pantalla de inicio.</>,
+]
+
+const pasosInstalacionAndroid = [
+  <>Abre <strong>arqueoportal.com</strong> en <strong>Chrome</strong> y toca el menú de tres puntos (⋮), junto a la barra de direcciones.</>,
+  <>Toca <strong>Instalar app</strong> o <strong>Agregar a la pantalla principal</strong>, según tu versión de Chrome, y confirma con <strong>Instalar</strong>.</>,
+  <>Abre <strong>Arqueoportal</strong> desde su ícono en tu pantalla de inicio o en tus aplicaciones.</>,
 ]
 
 const organizacionesVinculadas: Organizacion[] = [
@@ -103,6 +109,64 @@ function TarjetaOrganizacion({ org }: { org: Organizacion }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
         </svg>
       </a>
+    </div>
+  )
+}
+
+function TarjetaInstalacion({
+  titulo,
+  bajada,
+  pasos,
+  nota,
+}: {
+  titulo: string
+  bajada: string
+  pasos: React.ReactNode[]
+  nota: string
+}) {
+  return (
+    <div
+      className="p-5 sm:p-6 rounded-xl space-y-4"
+      style={{
+        backgroundColor: 'var(--surface)',
+        border: '1px solid var(--border)',
+      }}
+    >
+      <div className="space-y-1">
+        <h3 className="font-display font-light text-xl" style={{ color: 'var(--text)' }}>
+          {titulo}
+        </h3>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+          {bajada}
+        </p>
+      </div>
+
+      <ol className="space-y-3">
+        {pasos.map((paso, i) => (
+          <li key={i} className="flex gap-3 items-start">
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+              style={{
+                backgroundColor: 'rgba(143,181,164,0.12)',
+                color: 'var(--accent)',
+                border: '1px solid var(--border-m)',
+              }}
+            >
+              {i + 1}
+            </span>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
+              {paso}
+            </p>
+          </li>
+        ))}
+      </ol>
+
+      <p
+        className="text-xs leading-relaxed pt-4 border-t"
+        style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}
+      >
+        {nota}
+      </p>
     </div>
   )
 }
@@ -221,48 +285,19 @@ export default function MasPage() {
             </h2>
           </div>
 
-          <div
-            className="p-5 sm:p-6 rounded-xl space-y-4"
-            style={{
-              backgroundColor: 'var(--surface)',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <div className="space-y-1">
-              <h3 className="font-display font-light text-xl" style={{ color: 'var(--text)' }}>
-                Instalar en tu iPhone
-              </h3>
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
-                Usa Arqueoportal como una app, sin pasar por la App Store.
-              </p>
-            </div>
-
-            <ol className="space-y-3">
-              {pasosInstalacion.map((paso, i) => (
-                <li key={i} className="flex gap-3 items-start">
-                  <span
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
-                    style={{
-                      backgroundColor: 'rgba(143,181,164,0.12)',
-                      color: 'var(--accent)',
-                      border: '1px solid var(--border-m)',
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
-                    {paso}
-                  </p>
-                </li>
-              ))}
-            </ol>
-
-            <p
-              className="text-xs leading-relaxed pt-4 border-t"
-              style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}
-            >
-              El ícono solo se crea en el dispositivo donde lo agregas. Si ya tenías una versión anterior instalada, bórrala y vuelve a agregarla para que aparezca el nombre actualizado.
-            </p>
+          <div className="grid gap-4">
+            <TarjetaInstalacion
+              titulo="Instalar en tu iPhone"
+              bajada="Usa Arqueoportal como una app, sin pasar por la App Store."
+              pasos={pasosInstalacionIOS}
+              nota="El ícono solo se crea en el dispositivo donde lo agregas. Si ya tenías una versión anterior instalada, bórrala y vuelve a agregarla para que aparezca el nombre actualizado."
+            />
+            <TarjetaInstalacion
+              titulo="Instalar en tu Android"
+              bajada="Usa Arqueoportal como una app, sin pasar por Google Play."
+              pasos={pasosInstalacionAndroid}
+              nota="El ícono solo se crea en el dispositivo donde lo instalas. Las opciones del menú pueden variar según la versión de Chrome."
+            />
           </div>
         </section>
 
